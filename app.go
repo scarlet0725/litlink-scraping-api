@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/PuerkitoBio/goquery"
@@ -12,26 +14,13 @@ import (
 
 func main() {
 
-	siteUrl := os.Getenv("SITE_URL")
-
-	scrapingResult, err := scrapingLitlink(siteUrl)
-
-	if err != nil {
-		panic(err)
+	port, flg := os.LookupEnv("PORT")
+	if !flg {
+		port = "8080"
 	}
 
-	serializedResult, err := serializeLitlinkProps(&scrapingResult)
-
-	if err != nil {
-		panic(err)
-	}
-
-	str, err := json.Marshal(serializedResult)
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(str))
+	http.HandleFunc("/scraiping/litlink", scrapingRequestHandler)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func scrapingLitlink(url string) (models.LitlinkProps, error) {
@@ -86,4 +75,49 @@ func serializeLitlinkProps(props *models.LitlinkProps) (models.ApiResponse, erro
 	}
 
 	return result, nil
+
+}
+
+func scrapingRequestHandler(w http.ResponseWriter, r *http.Request) {
+	siteUrl := r.URL.Query().Get("target_url")
+
+	u, err := url.Parse(siteUrl)
+
+	if u.Host != "lit.link" || err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"ok\": false, \"error\": \"invalid_url\"}"))
+		return
+	}
+
+	scrapingResult, err := scrapingLitlink(siteUrl)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"ok\": false, \"error\": \"invalid_url\"}"))
+		return
+	}
+
+	serializedResult, err := serializeLitlinkProps(&scrapingResult)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"ok\": false, \"error\": \"invalid_url\"}"))
+		return
+	}
+
+	str, err := json.Marshal(serializedResult)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"ok\": false, \"error\": \"invalid_url\"}"))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintln(w, string(str))
+
 }
