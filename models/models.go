@@ -308,18 +308,23 @@ type LitlinkProfile struct {
 }
 
 type ApiResponse struct {
-	Ok           bool                   `json:"ok"`
-	Name         string                 `json:"name"`
-	ProfileLinks []LitlinkProfileDetail `json:"profileLink"`
+	Ok             bool                         `json:"ok"`
+	LivepocketData *[]LivepocketApplicationData `json:"livepocketData,omitempty"`
+	LitlinkData    *LitlinkData                 `json:"litlinkData,omitempty"`
+}
+
+type LitlinkData struct {
+	Name         string                  `json:"name"`
+	ProfileLinks *[]LitlinkProfileDetail `json:"profileLink"`
 }
 
 type LitlinkProfileDetail struct {
-	Title       string `json:"title,"`
+	Title       string `json:"title"`
 	URL         string `json:"url"`
 	Description string `json:"description"`
 }
 
-type LivepocketEventData struct {
+type LivepocketApplicationData struct {
 	GroupName                string                 `json:"group_name"`
 	GroupID                  string                 `json:"group_id"`
 	GroupPublishType         string                 `json:"group_publish_type"`
