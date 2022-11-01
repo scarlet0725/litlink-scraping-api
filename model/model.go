@@ -1,4 +1,8 @@
-package models
+package model
+
+import (
+	"time"
+)
 
 type ScrapingRequest struct {
 	Url string `json:"url"`
@@ -308,9 +312,9 @@ type LitlinkProfile struct {
 }
 
 type ApiResponse struct {
-	Ok             bool                         `json:"ok"`
-	LivepocketData *[]LivepocketApplicationData `json:"livepocketData,omitempty"`
-	LitlinkData    *LitlinkData                 `json:"litlinkData,omitempty"`
+	Ok         bool                         `json:"ok"`
+	Livepocket *[]LivepocketApplicationData `json:"livepocketData,omitempty"`
+	Litlink    *LitlinkData                 `json:"litlinkData,omitempty"`
 }
 
 type LitlinkData struct {
@@ -376,4 +380,14 @@ type LivepocketTicketData struct {
 	OrderLimited               string      `json:"order_limited"`
 	SalesStatus                int         `json:"sales_status"`
 	EventTicketSendForbiddance string      `json:"event_ticket_send_forbiddance"`
+}
+
+type kolokolEventData struct {
+	Name     string    `json:"name"`
+	Date     time.Time `json:"date"`
+	Location string    `json:"location"`
+}
+
+type ScrapingResult struct {
+	Data []byte
 }
