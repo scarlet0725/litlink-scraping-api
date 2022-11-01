@@ -19,7 +19,7 @@ type Serializer interface {
 type serializer struct {
 }
 
-func CreateSerializer() *serializer {
+func CreateSerializer() Serializer {
 	return &serializer{}
 }
 
@@ -71,11 +71,30 @@ func (s *serializer) Litlink(r io.Reader) (model.ApiResponse, error) {
 	}
 
 	return result, nil
-
 }
 
 func (s *serializer) Livepocket(r io.Reader) (model.ApiResponse, error) {
-	return model.ApiResponse{}, nil
+	doc, err := goquery.NewDocumentFromReader(r)
+	if err != nil {
+		return model.ApiResponse{}, err
+	}
+	selection, _ := doc.Find("#event_ticket_groups").Attr("value")
+	b := []byte(selection)
+
+	var data []model.LivepocketApplicationData
+
+	json.Unmarshal(b, &data)
+
+	if err != nil {
+		return model.ApiResponse{}, err
+	}
+
+	result := model.ApiResponse{
+		Ok:         true,
+		Livepocket: &data,
+	}
+
+	return result, nil
 }
 
 func (s *serializer) Kolokol(r io.Reader) (model.ApiResponse, error) {

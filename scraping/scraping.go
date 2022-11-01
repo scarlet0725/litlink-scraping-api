@@ -8,14 +8,6 @@ import (
 	"github.com/scarlet0725/litlink-scraping-api/model"
 )
 
-func GetSiteContent(url string) (io.ReadCloser, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	return res.Body, err
-}
-
 type Client interface {
 	Execute(url string) (model.ScrapingResult, error)
 }
@@ -24,15 +16,17 @@ type client struct {
 }
 
 func (c *client) Execute(url string) (model.ScrapingResult, error) {
-	r, err := GetSiteContent(url)
+	res, err := http.Get(url)
+
 	if err != nil {
 		return model.ScrapingResult{}, err
 	}
-	defer r.Close()
+
+	defer res.Body.Close()
 
 	buf := new(bytes.Buffer)
 
-	io.Copy(buf, r)
+	io.Copy(buf, res.Body)
 	b := buf.Bytes()
 	s := model.ScrapingResult{
 		Data: b,
@@ -41,6 +35,6 @@ func (c *client) Execute(url string) (model.ScrapingResult, error) {
 	return s, nil
 }
 
-func CreateClient() *client {
+func CreateClient() Client {
 	return &client{}
 }
