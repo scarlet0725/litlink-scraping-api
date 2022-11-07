@@ -28,7 +28,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 
 	u := r.URL.Query().Get("target_url")
 
-	host, ok := c.validationURL(u)
+	host, ok := c.validateURL(u)
 
 	if ok != nil {
 		resopondError(w, r, http.StatusBadRequest, "invalid_url")
@@ -61,7 +61,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 
 }
 
-func (c *controller) validationURL(u string) (string, error) {
+func (c *controller) validateURL(u string) (string, error) {
 	result, ok := url.Parse(u)
 
 	if ok != nil {
