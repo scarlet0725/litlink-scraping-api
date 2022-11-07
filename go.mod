@@ -1,4 +1,4 @@
-module github.com/scarlet0725/litlink-scraping-api
+module github.com/scarlet0725/prism-api
 
 go 1.19
 
