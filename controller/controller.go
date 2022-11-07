@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/scarlet0725/litlink-scraping-api/model"
-	"github.com/scarlet0725/litlink-scraping-api/scraping"
-	"github.com/scarlet0725/litlink-scraping-api/serializer"
+	"github.com/scarlet0725/prism-api/cache"
+	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/scraping"
+	"github.com/scarlet0725/prism-api/serializer"
 )
 
 type Controller interface {
@@ -21,6 +22,7 @@ type controller struct {
 	SupportedSites map[string]string
 	ScrapingClient scraping.Client
 	Serializer     serializer.Serializer
+	cache          cache.Cache
 }
 
 func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,11 +77,12 @@ func (c *controller) validateURL(u string) (string, error) {
 	return result.Host, nil
 }
 
-func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Serializer) Controller {
+func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Serializer, cache *cache.Cache) Controller {
 	con := &controller{
 		SupportedSites: m,
 		ScrapingClient: *c,
 		Serializer:     *s,
+		cache:          *cache,
 	}
 	return con
 }
