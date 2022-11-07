@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/scarlet0725/litlink-scraping-api/model"
+	"github.com/scarlet0725/prism-api/model"
 )
 
 type ScrapingApplication interface {
