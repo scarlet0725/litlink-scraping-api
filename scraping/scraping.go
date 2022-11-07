@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/scarlet0725/litlink-scraping-api/model"
+	"github.com/scarlet0725/prism-api/model"
 )
 
 type Client interface {

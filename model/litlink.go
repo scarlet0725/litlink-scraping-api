@@ -1,9 +1,5 @@
 package model
 
-import (
-	"time"
-)
-
 type LitlinkProps struct {
 	Props struct {
 		PageProps struct {
@@ -307,12 +303,6 @@ type LitlinkProfile struct {
 	} `json:"snsActivitySetting"`
 }
 
-type APIResponse struct {
-	Ok         bool                        `json:"ok"`
-	Livepocket []LivepocketApplicationData `json:"livepocketData,omitempty"`
-	Litlink    LitlinkData                 `json:"litlinkData,omitempty"`
-}
-
 type LitlinkData struct {
 	Name         string                 `json:"name"`
 	ProfileLinks []LitlinkProfileDetail `json:"profileLink"`
@@ -322,84 +312,4 @@ type LitlinkProfileDetail struct {
 	Title       string `json:"title"`
 	URL         string `json:"url"`
 	Description string `json:"description"`
-}
-
-type LivepocketApplicationData struct {
-	GroupName                string                 `json:"group_name"`
-	GroupID                  string                 `json:"group_id"`
-	GroupPublishType         string                 `json:"group_publish_type"`
-	GroupStarttime           string                 `json:"group_starttime"`
-	GroupEndtimeType         string                 `json:"group_endtime_type"`
-	GroupEndtime             string                 `json:"group_endtime"`
-	Remarks                  string                 `json:"remarks"`
-	OfficialFacebookURL      interface{}            `json:"official_facebook_url"`
-	OfficialTwitterURL       interface{}            `json:"official_twitter_url"`
-	GroupOrderLimited        string                 `json:"group_order_limited"`
-	GroupEventOrderLimited   string                 `json:"group_event_order_limited"`
-	GroupSmsLimited          string                 `json:"group_sms_limited"`
-	LotteryAnnounce          string                 `json:"lottery_announce"`
-	Publishtime              string                 `json:"publishtime"`
-	FanClubName              interface{}            `json:"fan_club_name"`
-	FanClubEntryDate         interface{}            `json:"fan_club_entry_date"`
-	Cname                    interface{}            `json:"cname"`
-	Referer                  interface{}            `json:"referer"`
-	AccessLimited            bool                   `json:"access_limited"`
-	IsGotoTarget             bool                   `json:"is_goto_target"`
-	LimitedAccessAppName     interface{}            `json:"limited_access_app_name"`
-	LimitedAccessAppType     interface{}            `json:"limited_access_app_type"`
-	IsPurchaseLimitedByFcApp bool                   `json:"is_purchase_limited_by_fc_app"`
-	TicketsInfo              []LivepocketTicketData `json:"tickets_info"`
-}
-
-type LivepocketTicketData struct {
-	ID                         int         `json:"id"`
-	Type                       string      `json:"type"`
-	Name                       string      `json:"name"`
-	Price                      int         `json:"price"`
-	Starttime                  string      `json:"starttime"`
-	Endtime                    string      `json:"endtime"`
-	Publishtime                string      `json:"publishtime"`
-	SoldOut                    bool        `json:"sold_out"`
-	TicketStock                int         `json:"ticket_stock"`
-	DisplayRemain              bool        `json:"display_remain"`
-	LimitMin                   int         `json:"limit_min"`
-	LimitMax                   int         `json:"limit_max"`
-	PurchaseLimited            bool        `json:"purchase_limited"`
-	PublishType                string      `json:"publish_type"`
-	Referer                    interface{} `json:"referer"`
-	Hash                       interface{} `json:"hash"`
-	Free                       bool        `json:"free"`
-	IsDisabled                 bool        `json:"is_disabled"`
-	Pattern                    bool        `json:"pattern"`
-	Detail                     string      `json:"detail"`
-	EntryLimited               string      `json:"entry_limited"`
-	OrderLimited               string      `json:"order_limited"`
-	SalesStatus                int         `json:"sales_status"`
-	EventTicketSendForbiddance string      `json:"event_ticket_send_forbiddance"`
-}
-
-type kolokolEventData struct {
-	Name     string    `json:"name"`
-	Date     time.Time `json:"date"`
-	Location string    `json:"location"`
-}
-
-type ScrapingResult struct {
-	Data []byte
-}
-
-type ScrapingRequest struct {
-	URL  string
-	Type string
-}
-
-type Event struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Date      time.Time `json:"date"`
-	OpenTime  time.Time `json:"open_time"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-	Location  string    `json:"location"`
-	Url       string    `json:"url"`
 }

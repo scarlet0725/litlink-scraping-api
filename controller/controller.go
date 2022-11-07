@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/scarlet0725/litlink-scraping-api/model"
-	"github.com/scarlet0725/litlink-scraping-api/scraping"
-	"github.com/scarlet0725/litlink-scraping-api/serializer"
+	"github.com/scarlet0725/prism-api/cache"
+	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/scraping"
+	"github.com/scarlet0725/prism-api/serializer"
 )
 
 type Controller interface {
@@ -21,21 +22,45 @@ type controller struct {
 	SupportedSites map[string]string
 	ScrapingClient scraping.Client
 	Serializer     serializer.Serializer
+	cache          cache.Cache
 }
 
 func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var err error
 
 	u := r.URL.Query().Get("target_url")
 
-	host, ok := c.validationURL(u)
+	host, ok := c.validateURL(u)
 
 	if ok != nil {
 		resopondError(w, r, http.StatusBadRequest, "invalid_url")
 		return
 	}
 
-	s, err := c.ScrapingClient.Execute(u)
+	var s model.ScrapingResult
+
+	cache, ok := c.cache.GetByKey(u)
+
+	switch ok {
+	case nil:
+		s = model.ScrapingResult{
+			Data: cache.Value,
+		}
+	default:
+		s, err = c.ScrapingClient.Execute(u)
+		if err != nil {
+			break
+		}
+		cacheData := model.CacheData{
+			Key:   u,
+			Value: s.Data,
+		}
+
+		c.cache.Set(&cacheData, 600)
+
+	}
+
 	if err != nil {
 		resopondError(w, r, http.StatusBadRequest, "scraping_error")
 	}
@@ -61,7 +86,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 
 }
 
-func (c *controller) validationURL(u string) (string, error) {
+func (c *controller) validateURL(u string) (string, error) {
 	result, ok := url.Parse(u)
 
 	if ok != nil {
@@ -75,11 +100,12 @@ func (c *controller) validationURL(u string) (string, error) {
 	return result.Host, nil
 }
 
-func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Serializer) Controller {
+func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Serializer, cache *cache.Cache) Controller {
 	con := &controller{
 		SupportedSites: m,
 		ScrapingClient: *c,
 		Serializer:     *s,
+		cache:          *cache,
 	}
 	return con
 }
