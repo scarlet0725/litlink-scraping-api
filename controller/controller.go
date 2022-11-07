@@ -27,6 +27,7 @@ type controller struct {
 
 func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var err error
 
 	u := r.URL.Query().Get("target_url")
 
@@ -37,7 +38,29 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	s, err := c.ScrapingClient.Execute(u)
+	var s model.ScrapingResult
+
+	cache, ok := c.cache.GetByKey(u)
+
+	switch ok {
+	case nil:
+		s = model.ScrapingResult{
+			Data: cache.Value,
+		}
+	default:
+		s, err = c.ScrapingClient.Execute(u)
+		if err != nil {
+			break
+		}
+		cacheData := model.CacheData{
+			Key:   u,
+			Value: s.Data,
+		}
+
+		c.cache.Set(&cacheData, 600)
+
+	}
+
 	if err != nil {
 		resopondError(w, r, http.StatusBadRequest, "scraping_error")
 	}

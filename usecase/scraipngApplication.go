@@ -7,3 +7,6 @@ import (
 type ScrapingApplication interface {
 	Execute(*model.ScrapingRequest) (model.ScrapingResult, error)
 }
+
+type scrapingApplication struct {
+}

@@ -2,7 +2,9 @@ version: '2'
 
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -10,6 +12,6 @@ services:
       - CACHE_ADDR=cache:6379
   
   cache:
-    image: redis:alpine
+    image: redis:7.0-alpine
     ports:
       - "6379:6379"
