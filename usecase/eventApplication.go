@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"github.com/scarlet0725/litlink-scraping-api/controller"
-	"github.com/scarlet0725/litlink-scraping-api/model"
-	"github.com/scarlet0725/litlink-scraping-api/scraping"
+	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/scraping"
 )
 
 type EventApplication interface {
