@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-type ScrapingRequest struct {
-	Url string `json:"url"`
-}
-
 type LitlinkProps struct {
 	Props struct {
 		PageProps struct {
@@ -311,15 +307,15 @@ type LitlinkProfile struct {
 	} `json:"snsActivitySetting"`
 }
 
-type ApiResponse struct {
-	Ok         bool                         `json:"ok"`
-	Livepocket *[]LivepocketApplicationData `json:"livepocketData,omitempty"`
-	Litlink    *LitlinkData                 `json:"litlinkData,omitempty"`
+type APIResponse struct {
+	Ok         bool                        `json:"ok"`
+	Livepocket []LivepocketApplicationData `json:"livepocketData,omitempty"`
+	Litlink    LitlinkData                 `json:"litlinkData,omitempty"`
 }
 
 type LitlinkData struct {
-	Name         string                  `json:"name"`
-	ProfileLinks *[]LitlinkProfileDetail `json:"profileLink"`
+	Name         string                 `json:"name"`
+	ProfileLinks []LitlinkProfileDetail `json:"profileLink"`
 }
 
 type LitlinkProfileDetail struct {
@@ -390,4 +386,20 @@ type kolokolEventData struct {
 
 type ScrapingResult struct {
 	Data []byte
+}
+
+type ScrapingRequest struct {
+	URL  string
+	Type string
+}
+
+type Event struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Date      time.Time `json:"date"`
+	OpenTime  time.Time `json:"open_time"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	Location  string    `json:"location"`
+	Url       string    `json:"url"`
 }

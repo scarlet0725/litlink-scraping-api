@@ -10,10 +10,10 @@ import (
 )
 
 type Serializer interface {
-	Execute(io.Reader) (model.ApiResponse, error)
-	Litlink(io.Reader) (model.ApiResponse, error)
-	Livepocket(io.Reader) (model.ApiResponse, error)
-	Kolokol(io.Reader) (model.ApiResponse, error)
+	Execute(io.Reader) (model.APIResponse, error)
+	Litlink(io.Reader) (model.APIResponse, error)
+	Livepocket(io.Reader) (model.APIResponse, error)
+	Kolokol(io.Reader) (model.APIResponse, error)
 }
 
 type serializer struct {
@@ -23,10 +23,10 @@ func CreateSerializer() Serializer {
 	return &serializer{}
 }
 
-func (s *serializer) Litlink(r io.Reader) (model.ApiResponse, error) {
+func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.ApiResponse{}, err
+		return model.APIResponse{}, err
 	}
 
 	selection := doc.Find("#__NEXT_DATA__")
@@ -37,7 +37,7 @@ func (s *serializer) Litlink(r io.Reader) (model.ApiResponse, error) {
 	json.Unmarshal(b, &data)
 
 	if err != nil {
-		return model.ApiResponse{}, err
+		return model.APIResponse{}, err
 	}
 
 	b = []byte(data.Props.PageProps.ProfileString)
@@ -45,7 +45,7 @@ func (s *serializer) Litlink(r io.Reader) (model.ApiResponse, error) {
 	var profile model.LitlinkProfile
 	err = json.Unmarshal(b, &profile)
 	if err != nil {
-		return model.ApiResponse{}, err
+		return model.APIResponse{}, err
 	}
 
 	var profileDetails []model.LitlinkProfileDetail
@@ -64,19 +64,19 @@ func (s *serializer) Litlink(r io.Reader) (model.ApiResponse, error) {
 		})
 	}
 
-	result := model.ApiResponse{
+	result := model.APIResponse{
 		Ok:         true,
-		Livepocket: &[]model.LivepocketApplicationData{},
-		Litlink:    &model.LitlinkData{Name: profile.Name, ProfileLinks: &profileDetails},
+		Livepocket: []model.LivepocketApplicationData{},
+		Litlink:    model.LitlinkData{Name: profile.Name, ProfileLinks: profileDetails},
 	}
 
 	return result, nil
 }
 
-func (s *serializer) Livepocket(r io.Reader) (model.ApiResponse, error) {
+func (s *serializer) Livepocket(r io.Reader) (model.APIResponse, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.ApiResponse{}, err
+		return model.APIResponse{}, err
 	}
 	selection, _ := doc.Find("#event_ticket_groups").Attr("value")
 	b := []byte(selection)
@@ -86,23 +86,23 @@ func (s *serializer) Livepocket(r io.Reader) (model.ApiResponse, error) {
 	json.Unmarshal(b, &data)
 
 	if err != nil {
-		return model.ApiResponse{}, err
+		return model.APIResponse{}, err
 	}
 
-	result := model.ApiResponse{
+	result := model.APIResponse{
 		Ok:         true,
-		Livepocket: &data,
+		Livepocket: data,
 	}
 
 	return result, nil
 }
 
-func (s *serializer) Kolokol(r io.Reader) (model.ApiResponse, error) {
+func (s *serializer) Kolokol(r io.Reader) (model.APIResponse, error) {
 	//Todo
-	return model.ApiResponse{}, nil
+	return model.APIResponse{}, nil
 }
 
-func (s *serializer) Execute(b io.Reader) (model.ApiResponse, error) {
+func (s *serializer) Execute(r io.Reader) (model.APIResponse, error) {
 	//Todo
-	return model.ApiResponse{}, nil
+	return model.APIResponse{}, nil
 }

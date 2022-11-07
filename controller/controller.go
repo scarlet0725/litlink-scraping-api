@@ -42,7 +42,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 
 	b := bytes.NewReader(s.Data)
 
-	var res model.ApiResponse
+	var res model.APIResponse
 
 	switch host {
 	case "t.livepocket.jp":
