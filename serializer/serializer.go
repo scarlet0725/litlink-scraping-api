@@ -6,7 +6,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/scarlet0725/litlink-scraping-api/model"
+	"github.com/scarlet0725/prism-api/model"
 )
 
 type Serializer interface {
