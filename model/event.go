@@ -4,12 +4,6 @@ import (
 	"time"
 )
 
-type kolokolEventData struct {
-	Name     string    `json:"name"`
-	Date     time.Time `json:"date"`
-	Location string    `json:"location"`
-}
-
 type Event struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
