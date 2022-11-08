@@ -10,12 +10,13 @@ import (
 
 	"github.com/scarlet0725/prism-api/cache"
 	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/scraping"
-	"github.com/scarlet0725/prism-api/serializer"
 )
 
 type Controller interface {
 	ScrapingRequestHandler(w http.ResponseWriter, r *http.Request)
+	HealthCheckHandler(w http.ResponseWriter, r *http.Request) error
 	Respond(http.ResponseWriter, *http.Request, any) error
 	RespondError(http.ResponseWriter, *http.Request, int, string) error
 }
@@ -23,7 +24,7 @@ type Controller interface {
 type controller struct {
 	SupportedSites map[string]string
 	ScrapingClient scraping.Client
-	Serializer     serializer.Serializer
+	Parser         parser.Serializer
 	cache          cache.Cache
 }
 
@@ -73,9 +74,9 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 
 	switch host {
 	case "t.livepocket.jp":
-		res, err = c.Serializer.Livepocket(b)
+		res, err = c.Parser.Livepocket(b)
 	case "lit.link":
-		res, err = c.Serializer.Litlink(b)
+		res, err = c.Parser.Litlink(b)
 	default:
 		c.RespondError(w, r, http.StatusBadRequest, "unsupported_site")
 	}
@@ -118,11 +119,18 @@ func (c *controller) validateURL(u string) (string, error) {
 	return result.Host, nil
 }
 
-func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Serializer, cache *cache.Cache) Controller {
+func (c *controller) HealthCheckHandler(w http.ResponseWriter, r *http.Request) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte("{\"ok\": true}"))
+	return err
+}
+
+func CreateContoroller(m map[string]string, c *scraping.Client, s *parser.Serializer, cache *cache.Cache) Controller {
 	con := &controller{
 		SupportedSites: m,
 		ScrapingClient: *c,
-		Serializer:     *s,
+		Parser:         *s,
 		cache:          *cache,
 	}
 	return con

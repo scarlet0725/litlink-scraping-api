@@ -8,9 +8,9 @@ import (
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/gateway"
+	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/router"
 	"github.com/scarlet0725/prism-api/scraping"
-	"github.com/scarlet0725/prism-api/serializer"
 )
 
 var supportedSites = map[string]string{
@@ -36,7 +36,7 @@ func main() {
 	cache := cache.CreateRedisManager(redisClient)
 
 	sc := scraping.CreateClient()
-	sl := serializer.CreateSerializer()
+	sl := parser.CreateSerializer()
 
 	rt := router.NewRouter()
 	c := controller.CreateContoroller(supportedSites, &sc, &sl, &cache)
