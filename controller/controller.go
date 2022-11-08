@@ -24,7 +24,7 @@ type Controller interface {
 type controller struct {
 	SupportedSites map[string]string
 	ScrapingClient scraping.Client
-	Parser         parser.Serializer
+	Parser         parser.DocParser
 	cache          cache.Cache
 }
 
@@ -126,7 +126,7 @@ func (c *controller) HealthCheckHandler(w http.ResponseWriter, r *http.Request) 
 	return err
 }
 
-func CreateContoroller(m map[string]string, c *scraping.Client, s *parser.Serializer, cache *cache.Cache) Controller {
+func CreateContoroller(m map[string]string, c *scraping.Client, s *parser.DocParser, cache *cache.Cache) Controller {
 	con := &controller{
 		SupportedSites: m,
 		ScrapingClient: *c,

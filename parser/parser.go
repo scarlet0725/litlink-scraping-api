@@ -9,21 +9,21 @@ import (
 	"github.com/scarlet0725/prism-api/model"
 )
 
-type Serializer interface {
+type DocParser interface {
 	Execute(io.Reader) (model.APIResponse, error)
 	Litlink(io.Reader) (model.APIResponse, error)
 	Livepocket(io.Reader) (model.APIResponse, error)
 	Kolokol(io.Reader) (model.APIResponse, error)
 }
 
-type serializer struct {
+type docParser struct {
 }
 
-func CreateSerializer() Serializer {
-	return &serializer{}
+func CreateSerializer() DocParser {
+	return &docParser{}
 }
 
-func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Litlink(r io.Reader) (model.APIResponse, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return model.APIResponse{}, err
@@ -73,7 +73,7 @@ func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 	return result, nil
 }
 
-func (s *serializer) Livepocket(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Livepocket(r io.Reader) (model.APIResponse, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return model.APIResponse{}, err
@@ -97,12 +97,12 @@ func (s *serializer) Livepocket(r io.Reader) (model.APIResponse, error) {
 	return result, nil
 }
 
-func (s *serializer) Kolokol(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Kolokol(r io.Reader) (model.APIResponse, error) {
 	//Todo
 	return model.APIResponse{}, nil
 }
 
-func (s *serializer) Execute(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Execute(r io.Reader) (model.APIResponse, error) {
 	//Todo
 	return model.APIResponse{}, nil
 }
