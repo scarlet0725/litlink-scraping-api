@@ -1,8 +1,11 @@
 FROM golang:1.19.2-bullseye as builder
 
-COPY . /go/src
 WORKDIR /go/src
-RUN go mod tidy
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . /go/src
 RUN go build -o prism-api
 
 FROM gcr.io/distroless/base-debian11
