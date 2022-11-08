@@ -16,6 +16,8 @@ import (
 
 type Controller interface {
 	ScrapingRequestHandler(w http.ResponseWriter, r *http.Request)
+	Respond(http.ResponseWriter, *http.Request, any) error
+	RespondError(http.ResponseWriter, *http.Request, int, string) error
 }
 
 type controller struct {
@@ -34,7 +36,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 	host, ok := c.validateURL(u)
 
 	if ok != nil {
-		resopondError(w, r, http.StatusBadRequest, "invalid_url")
+		c.RespondError(w, r, http.StatusBadRequest, "invalid_url")
 		return
 	}
 
@@ -62,7 +64,7 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err != nil {
-		resopondError(w, r, http.StatusBadRequest, "scraping_error")
+		c.RespondError(w, r, http.StatusBadRequest, "scraping_error")
 	}
 
 	b := bytes.NewReader(s.Data)
@@ -75,15 +77,31 @@ func (c *controller) ScrapingRequestHandler(w http.ResponseWriter, r *http.Reque
 	case "lit.link":
 		res, err = c.Serializer.Litlink(b)
 	default:
-		resopondError(w, r, http.StatusBadRequest, "unsupported_site")
+		c.RespondError(w, r, http.StatusBadRequest, "unsupported_site")
 	}
 
 	if err != nil {
-		resopondError(w, r, http.StatusBadRequest, "scraping_error")
+		c.RespondError(w, r, http.StatusBadRequest, "scraping_error")
 	}
 
-	respondToClient(w, r, &res)
+	c.Respond(w, r, &res)
 
+}
+
+func (c *controller) Respond(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	w.WriteHeader(http.StatusOK)
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(b)
+	return err
+}
+
+func (c *controller) RespondError(w http.ResponseWriter, r *http.Request, code int, msg string) error {
+	w.WriteHeader(code)
+	_, err := w.Write([]byte(fmt.Sprintf("{\"ok\": false, \"error\": \"%s\"}", msg)))
+	return err
 }
 
 func (c *controller) validateURL(u string) (string, error) {
@@ -108,19 +126,4 @@ func CreateContoroller(m map[string]string, c *scraping.Client, s *serializer.Se
 		cache:          *cache,
 	}
 	return con
-}
-
-func respondToClient(w http.ResponseWriter, r *http.Request, res any) error {
-	w.WriteHeader(http.StatusOK)
-	b, err := json.Marshal(res)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(b)
-	return err
-}
-
-func resopondError(w http.ResponseWriter, r *http.Request, errorCode int, message string) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(fmt.Sprintf("{\"ok\": false, \"error\": \"%s\"}", message)))
 }

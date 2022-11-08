@@ -2,12 +2,12 @@ package main
 
 import (
 	"log"
-	"net/http"
-	"os"
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cache"
+	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/scraping"
 	"github.com/scarlet0725/prism-api/serializer"
 )
@@ -19,16 +19,8 @@ var supportedSites = map[string]string{
 
 func main() {
 
-	port, flg := os.LookupEnv("PORT")
-	if !flg {
-		port = "8080"
-	}
-
-	cacheAddr, flg := os.LookupEnv("CACHE_ADDR")
-
-	if !flg {
-		cacheAddr = "localhost:6379"
-	}
+	serverAddr := cmd.ConfigureHTTPServer()
+	cacheAddr := cmd.ConfigureCacheServer()
 
 	reidsConfig := &redis.Options{
 		Addr:     cacheAddr,
@@ -45,6 +37,10 @@ func main() {
 
 	c := controller.CreateContoroller(supportedSites, &sc, &sl, &cache)
 
-	http.HandleFunc("/scraiping", c.ScrapingRequestHandler)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	server := gateway.InitAPIServer(serverAddr)
+	server.AddRoute("/scraping", c.ScrapingRequestHandler)
+
+	err := server.Serve()
+
+	log.Fatal(err)
 }
