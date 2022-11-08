@@ -52,7 +52,7 @@ func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 
 	for _, v := range profile.ProfileLink.Details {
 
-		//この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
+		//TODO: この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
 		if v.ButtonLink.URL == "" {
 			continue
 		}
