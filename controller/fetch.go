@@ -44,6 +44,7 @@ func (f *fetchController) Fetch(r *model.ScrapingRequest) (model.ScrapingResult,
 		}
 
 		f.c.Set(&cacheData, 600)
+		//TODO: キャッシュを書き込み失敗したらロギングする
 
 		s.Request = r
 

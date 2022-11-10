@@ -36,7 +36,15 @@ func (r *router) ScrapingRequestHandler(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	u := req.URL.Query().Get("target_url")
+	hasRequiredParams := req.URL.Query().Has("url")
+
+	if !hasRequiredParams {
+		r.RespondError(w, req, http.StatusBadRequest, "url is required")
+		return
+	}
+
+	u := req.URL.Query().Get("url")
+
 	host, ok := r.validateURL(u)
 
 	if ok != nil {
@@ -51,9 +59,9 @@ func (r *router) ScrapingRequestHandler(w http.ResponseWriter, req *http.Request
 	result, err := r.Scraping.Execute(&s)
 
 	if err != nil {
-		appError := model.AppError{}
-		if errors.As(err, &appError) {
-			r.RespondError(w, req, appError.Code, appError.Msg)
+		var e *model.AppError
+		if errors.As(err, &e) {
+			r.RespondError(w, req, e.Code, e.Msg)
 			return
 		}
 		r.RespondError(w, req, http.StatusInternalServerError, "internal_server_error")
