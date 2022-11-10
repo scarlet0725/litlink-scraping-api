@@ -17,10 +17,11 @@ type redisCache struct {
 	Client *redis.Client
 }
 
-func CreateRedisManager(c *redis.Client) Cache {
-	return &redisCache{
+func NewRedisManager(c *redis.Client) Cache {
+	client := &redisCache{
 		Client: c,
 	}
+	return client
 }
 
 func (c *redisCache) Set(d *model.CacheData, ttl int64) error {

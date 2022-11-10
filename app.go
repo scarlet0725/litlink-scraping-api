@@ -4,13 +4,13 @@ import (
 	"log"
 
 	"github.com/go-redis/redis"
-	"github.com/scarlet0725/prism-api/cache"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/router"
-	"github.com/scarlet0725/prism-api/scraping"
+	"github.com/scarlet0725/prism-api/selializer"
+	"github.com/scarlet0725/prism-api/usecase"
 )
 
 var supportedSites = map[string]string{
@@ -33,16 +33,19 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	cache := cache.CreateRedisManager(redisClient)
+	cache := gateway.NewRedisManager(redisClient)
+	fetch := gateway.NewScrapingClient()
+	fetchController := controller.NewFetchController(fetch, cache)
 
-	sc := scraping.CreateClient()
-	sl := parser.CreateSerializer()
+	parser := parser.NewParser()
+	serializer := selializer.NewResponseSerializer()
 
-	rt := router.NewRouter()
-	c := controller.CreateContoroller(supportedSites, &sc, &sl, &cache)
+	scrapingUsecase := usecase.NewScrapingApplication(fetchController, serializer, parser)
+
+	rt := router.NewRouter(&scrapingUsecase)
 
 	server := gateway.InitAPIServer(serverAddr)
-	server.AddRoute("/scraping", c.ScrapingRequestHandler)
+	server.AddRoute("/scraping", rt.ScrapingRequestHandler)
 	server.AddRoute("/health", rt.HealthCheckHandler)
 	server.AddRoute("/", rt.DefaultHandler)
 

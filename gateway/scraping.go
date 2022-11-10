@@ -35,6 +35,6 @@ func (c *client) Execute(url string) (model.ScrapingResult, error) {
 	return s, nil
 }
 
-func CreateClient() Client {
+func NewScrapingClient() Client {
 	return &client{}
 }

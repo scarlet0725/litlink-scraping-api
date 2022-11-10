@@ -2,8 +2,13 @@ package router
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+
+	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/usecase"
 )
 
 type Router interface {
@@ -15,10 +20,13 @@ type Router interface {
 }
 
 type router struct {
+	Scraping usecase.ScrapingApplication
 }
 
-func NewRouter() Router {
-	return &router{}
+func NewRouter(s *usecase.ScrapingApplication) Router {
+	return &router{
+		Scraping: *s,
+	}
 }
 
 func (r *router) ScrapingRequestHandler(w http.ResponseWriter, req *http.Request) {
@@ -27,6 +35,33 @@ func (r *router) ScrapingRequestHandler(w http.ResponseWriter, req *http.Request
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
+	u := req.URL.Query().Get("target_url")
+	host, ok := r.validateURL(u)
+
+	if ok != nil {
+		r.RespondError(w, req, http.StatusBadRequest, "invalid_url")
+	}
+
+	s := model.ScrapingRequest{
+		URL:  u,
+		Host: host,
+	}
+
+	result, err := r.Scraping.Execute(&s)
+
+	if err != nil {
+		appError := model.AppError{}
+		if errors.As(err, &appError) {
+			r.RespondError(w, req, appError.Code, appError.Msg)
+			return
+		}
+		r.RespondError(w, req, http.StatusInternalServerError, "internal_server_error")
+		return
+	}
+
+	r.Respond(w, req, result)
+
 }
 
 func (r *router) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
@@ -65,4 +100,14 @@ func (r *router) RespondError(w http.ResponseWriter, req *http.Request, code int
 	w.WriteHeader(code)
 	_, err := w.Write([]byte(fmt.Sprintf("{\"ok\": false, \"error\": \"%s\"}", msg)))
 	return err
+}
+
+func (r *router) validateURL(u string) (string, error) {
+	result, ok := url.Parse(u)
+
+	if ok != nil {
+		return "", errors.New("invalid_url")
+	}
+
+	return result.Host, nil
 }

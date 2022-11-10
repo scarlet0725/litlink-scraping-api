@@ -1,28 +1,27 @@
 package controller
 
 import (
-	"github.com/scarlet0725/prism-api/cache"
+	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/scraping"
 )
 
 type FetchController interface {
-	Fetch(model.ScrapingRequest) (model.ScrapingResult, error)
+	Fetch(*model.ScrapingRequest) (model.ScrapingResult, error)
 }
 
 type fetchController struct {
-	s scraping.Client
-	c cache.Cache
+	s gateway.Client
+	c gateway.Cache
 }
 
-func NewFetchController(s scraping.Client, c cache.Cache) FetchController {
+func NewFetchController(s gateway.Client, c gateway.Cache) FetchController {
 	return &fetchController{
 		s: s,
 		c: c,
 	}
 }
 
-func (f *fetchController) Fetch(r model.ScrapingRequest) (model.ScrapingResult, error) {
+func (f *fetchController) Fetch(r *model.ScrapingRequest) (model.ScrapingResult, error) {
 	var err error
 	var s model.ScrapingResult
 
@@ -31,7 +30,8 @@ func (f *fetchController) Fetch(r model.ScrapingRequest) (model.ScrapingResult, 
 	switch ok {
 	case nil:
 		s = model.ScrapingResult{
-			Data: cache.Value,
+			Data:    cache.Value,
+			Request: r,
 		}
 	default:
 		s, err = f.s.Execute(r.URL)
@@ -44,6 +44,8 @@ func (f *fetchController) Fetch(r model.ScrapingRequest) (model.ScrapingResult, 
 		}
 
 		f.c.Set(&cacheData, 600)
+
+		s.Request = r
 
 	}
 
