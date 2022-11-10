@@ -1,4 +1,4 @@
-package scraping
+package gateway
 
 import (
 	"bytes"
