@@ -10,14 +10,14 @@ type FetchController interface {
 }
 
 type fetchController struct {
-	s gateway.Client
-	c gateway.Cache
+	s     gateway.Client
+	cache gateway.Cache
 }
 
 func NewFetchController(s gateway.Client, c gateway.Cache) FetchController {
 	return &fetchController{
-		s: s,
-		c: c,
+		s:     s,
+		cache: c,
 	}
 }
 
@@ -25,7 +25,7 @@ func (f *fetchController) Fetch(r *model.ScrapingRequest) (model.ScrapingResult,
 	var err error
 	var s model.ScrapingResult
 
-	cache, ok := f.c.GetByKey(r.URL)
+	cache, ok := f.cache.GetByKey(r.URL)
 
 	switch ok {
 	case nil:
@@ -43,7 +43,7 @@ func (f *fetchController) Fetch(r *model.ScrapingRequest) (model.ScrapingResult,
 			Value: s.Data,
 		}
 
-		f.c.Set(&cacheData, 600)
+		f.cache.Set(&cacheData, 600)
 		//TODO: キャッシュを書き込み失敗したらロギングする
 
 		s.Request = r
