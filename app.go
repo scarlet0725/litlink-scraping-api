@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/go-redis/redis"
-	"github.com/scarlet0725/prism-api/cache"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/gateway"
-	"github.com/scarlet0725/prism-api/scraping"
-	"github.com/scarlet0725/prism-api/serializer"
+	"github.com/scarlet0725/prism-api/parser"
+	"github.com/scarlet0725/prism-api/router"
+	"github.com/scarlet0725/prism-api/selializer"
 )
 
 var supportedSites = map[string]string{
@@ -22,25 +22,26 @@ func main() {
 	serverAddr := cmd.ConfigureHTTPServer()
 	cacheAddr := cmd.ConfigureCacheServer()
 
+	redisPassword := cmd.GetRedisPassword()
+
 	reidsConfig := &redis.Options{
 		Addr:     cacheAddr,
-		Password: "",
+		Password: redisPassword,
 		DB:       0,
 	}
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	cache := cache.CreateRedisManager(redisClient)
+	cache := gateway.NewRedisManager(redisClient)
+	httpClient := gateway.NewHTTPClient()
+	fetchController := controller.NewFetchController(httpClient, cache)
 
-	sc := scraping.CreateClient()
-	sl := serializer.CreateSerializer()
+	parser := parser.NewParser()
+	serializer := selializer.NewResponseSerializer()
 
-	c := controller.CreateContoroller(supportedSites, &sc, &sl, &cache)
+	gin := router.NewGinRouter(fetchController, parser, serializer)
 
-	server := gateway.InitAPIServer(serverAddr)
-	server.AddRoute("/scraping", c.ScrapingRequestHandler)
-
-	err := server.Serve()
+	err := gin.Serve(serverAddr)
 
 	log.Fatal(err)
 }

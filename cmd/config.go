@@ -33,3 +33,17 @@ func ConfigureCacheServer() string {
 
 	return conStr
 }
+
+func GetRedisPassword() string {
+	secret, flg := os.LookupEnv("REDIS_PASSWORD")
+
+	if !flg {
+		secret = ""
+	}
+
+	return secret
+}
+
+func MigrateDB() {
+
+}

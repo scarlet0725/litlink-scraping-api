@@ -1,0 +1,8 @@
+.git/
+.github/
+.vscode/
+.gitignore
+/tmp
+README.md
+LICENSE
+docker-compose.yaml

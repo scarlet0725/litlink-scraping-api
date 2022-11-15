@@ -5,3 +5,8 @@ type APIResponse struct {
 	Livepocket []LivepocketApplicationData `json:"livepocketData,omitempty"`
 	Litlink    LitlinkData                 `json:"litlinkData,omitempty"`
 }
+
+type EventAPIResponse struct {
+	OK   bool    `json:"ok"`
+	Data []Event `json:"data"`
+}
