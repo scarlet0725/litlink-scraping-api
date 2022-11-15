@@ -1,6 +1,8 @@
 package selializer
 
 import (
+	"time"
+
 	"github.com/scarlet0725/prism-api/model"
 )
 
@@ -49,10 +51,13 @@ func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]model.Ev
 	var result []model.Event
 
 	for _, v := range input.Data {
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		date, _ := time.ParseInLocation("2006-01-02", v.EventDate, jst)
 		result = append(result, model.Event{
 			UUID:      v.ID,
 			Name:      v.Title,
 			Artist:    v.Artist,
+			Date:      date,
 			Venue:     v.Venue,
 			TicketURL: v.ReservationSetting.Platforms[0].URL,
 		})

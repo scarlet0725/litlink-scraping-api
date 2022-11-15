@@ -6,8 +6,10 @@ type ScrapingResult struct {
 }
 
 type ScrapingRequest struct {
-	URL  string
-	Host string
+	URL    string
+	Host   string
+	Type   string
+	Option FetchOptions
 }
 
 type CacheData struct {
@@ -21,4 +23,14 @@ type LitlinkParseResult struct {
 
 type LivepocketParseResult struct {
 	Data []LivepocketApplicationData
+}
+
+type FetchOptions struct {
+	IsUseCache bool
+	HTTPHeader map[string]string
+	HTTPParams map[string]string
+}
+
+type BindingRequest struct {
+	Group string `uri:"group" binding:"required"`
 }

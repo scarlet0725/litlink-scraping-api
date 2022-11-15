@@ -11,8 +11,40 @@ services:
       - PORT=8080
       - REDIS_ADDR=cache
       - REDIS_PORT=6379
+    healthcheck:
+      test: ["CMD", "/bin/healthcheck"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+      start_period: 5s
+    depends_on:
+      cache:
+        condition: service_healthy
+      db:
+        condition: service_healthy
   
   cache:
     image: redis:7.0-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 1s
+      retries: 30
+      start_period: 5s
+
+  db:
+    image: mariadb:10.9.4-jammy
+    ports:
+      - "3306:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=Xj2qXnaTZ4gvj5Dp
+      - MARIADB_USER=prism-db
+      - MARIADB_PASSWORD=C9UxGe3ctRvSDJ56
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -1,58 +1,60 @@
 package controller
 
 import (
-	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/repository"
 )
 
 type FetchController interface {
-	Fetch(*model.ScrapingRequest) (model.ScrapingResult, error)
+	Fetch(*model.ScrapingRequest) (*model.ScrapingResult, error)
 }
 
 type fetchController struct {
-	s     gateway.Client
-	cache gateway.Cache
+	cache repository.CacheRepository
+	http  repository.HTTPRepository
 }
 
-func NewFetchController(s gateway.Client, c gateway.Cache) FetchController {
+func NewFetchController(http repository.HTTPRepository, cache repository.CacheRepository) FetchController {
 	return &fetchController{
-		s:     s,
-		cache: c,
+		http:  http,
+		cache: cache,
 	}
 }
 
-func (f *fetchController) Fetch(r *model.ScrapingRequest) (model.ScrapingResult, error) {
-	var err error
-	var s model.ScrapingResult
+func (f *fetchController) Fetch(r *model.ScrapingRequest) (*model.ScrapingResult, error) {
+	var (
+		cache *model.CacheData
+		ok    error
+	)
 
-	cache, ok := f.cache.GetByKey(r.URL)
+	cache, ok = f.cache.GetByKey(r.URL)
 
 	switch ok {
 	case nil:
-		s = model.ScrapingResult{
+		result := &model.ScrapingResult{
 			Data:    cache.Value,
 			Request: r,
 		}
+		return result, nil
+
 	default:
-		s, err = f.s.Execute(r.URL)
+		b, err := f.http.Get(r.URL, r.Option.HTTPHeader, r.Option.HTTPParams)
 		if err != nil {
-			break
+			return &model.ScrapingResult{}, err
 		}
 		cacheData := model.CacheData{
 			Key:   r.URL,
-			Value: s.Data,
+			Value: b,
 		}
 
 		f.cache.Set(&cacheData, 600)
 		//TODO: キャッシュを書き込み失敗したらロギングする
 
-		s.Request = r
+		result := &model.ScrapingResult{
+			Request: r,
+			Data:    b,
+		}
 
+		return result, nil
 	}
-
-	if err != nil {
-		return model.ScrapingResult{}, err
-	}
-
-	return s, nil
 }

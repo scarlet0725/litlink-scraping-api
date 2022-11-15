@@ -56,3 +56,7 @@ func (s *scrapingApplication) Execute(r *model.ScrapingRequest) (model.APIRespon
 	return s.s.BuildResponse(res)
 
 }
+
+func (s *scrapingApplication) UpdateEvents() {
+
+}

@@ -103,3 +103,8 @@ func (s *docParser) Execute(r io.Reader) (model.APIResponse, error) {
 	//Todo
 	return model.APIResponse{}, nil
 }
+
+func (s *docParser) Ryzm(r io.Reader) (model.RyzmAPIResponse, error) {
+	//Todo
+	return model.RyzmAPIResponse{}, nil
+}

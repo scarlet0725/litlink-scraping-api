@@ -12,7 +12,8 @@ type HttpClient struct {
 	client *http.Client
 }
 
-func NewHTTPClient(client *http.Client) repository.HTTPRepository {
+func NewHTTPClient() repository.HTTPRepository {
+	client := &http.Client{}
 	return &HttpClient{
 		client: client,
 	}

@@ -51,9 +51,21 @@ func (r *router) ScrapingRequestHandler(w http.ResponseWriter, req *http.Request
 		r.RespondError(w, req, http.StatusBadRequest, "invalid_url")
 	}
 
+	IsUseCache := req.URL.Query().Get("cache")
+
 	s := model.ScrapingRequest{
 		URL:  u,
 		Host: host,
+		Option: model.FetchOptions{
+			HTTPHeader: map[string]string{},
+			HTTPParams: map[string]string{},
+		},
+	}
+
+	if IsUseCache == "false" {
+		s.Option.IsUseCache = false
+	} else {
+		s.Option.IsUseCache = true
 	}
 
 	result, err := r.Scraping.Execute(&s)
