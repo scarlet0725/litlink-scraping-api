@@ -5,19 +5,14 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/repository"
 )
-
-type Cache interface {
-	Set(*model.CacheData, int64) error
-	Get(*model.CacheData) (*model.CacheData, error)
-	GetByKey(string) (*model.CacheData, error)
-}
 
 type redisCache struct {
 	Client *redis.Client
 }
 
-func NewRedisManager(c *redis.Client) Cache {
+func NewRedisManager(c *redis.Client) repository.CacheRepository {
 	client := &redisCache{
 		Client: c,
 	}
