@@ -116,8 +116,6 @@ func TestParseRyzmJson(t *testing.T) {
 					FileName: "D2CDA96A-5EEF-4F73-8725-5C4CFC266418.jpeg",
 					Width:    "1500",
 					Height:   "2121",
-					AltText:  "",
-					Title:    "",
 				},
 				Category: struct {
 					ID       int    "json:\"id\""
@@ -144,9 +142,7 @@ func TestParseRyzmJson(t *testing.T) {
 						URL string "json:\"url\""
 					} "json:\"platforms\""
 				}{
-					TicketReservationType:              "platform",
-					WebReservationMaxQuantity:          "",
-					WebReservationMaxQuantityPerPerson: "",
+					TicketReservationType: "platform",
 					Platforms: []struct {
 						ID  string "json:\"id\""
 						URL string "json:\"url\""
@@ -172,8 +168,6 @@ func TestParseRyzmJson(t *testing.T) {
 		}{
 			First: "https://api.ryzm.jp/public/lives?page=1",
 			Last:  "https://api.ryzm.jp/public/lives?page=1",
-			Prev:  "",
-			Next:  "",
 		},
 		Meta: struct {
 			CurrentPage int "json:\"current_page\""
@@ -198,7 +192,6 @@ func TestParseRyzmJson(t *testing.T) {
 				Active bool        "json:\"active\""
 			}{
 				{
-					URL:    "",
 					Label:  "&laquo; Previous",
 					Active: false,
 				},
@@ -208,11 +201,14 @@ func TestParseRyzmJson(t *testing.T) {
 					Active: true,
 				},
 				{
-					URL:    "",
 					Label:  "Next &raquo;",
 					Active: false,
 				},
 			},
+			Path:    "https://api.ryzm.jp/public/lives",
+			PerPage: 12,
+			To:      8,
+			Total:   8,
 		},
 	}
 
@@ -229,7 +225,7 @@ func TestParseRyzmJson(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("result => %#v", result)
+		t.Errorf("expected => %#v \n result => %#v", expected, result)
 	}
 
 }
