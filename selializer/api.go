@@ -6,6 +6,7 @@ import (
 
 type ResponseSerializer interface {
 	BuildResponse(interface{}) (model.APIResponse, error)
+	SelializeRyzmData(model.RyzmAPIResponse) ([]model.Event, error)
 }
 
 type apiResponse struct{}
@@ -42,4 +43,20 @@ func (a *apiResponse) BuildResponse(i interface{}) (model.APIResponse, error) {
 	}
 
 	return result, err
+}
+
+func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]model.Event, error) {
+	var result []model.Event
+
+	for _, v := range input.Data {
+		result = append(result, model.Event{
+			UUID:      v.ID,
+			Name:      v.Title,
+			Artist:    v.Artist,
+			Venue:     v.Venue,
+			TicketURL: v.ReservationSetting.Platforms[0].URL,
+		})
+	}
+
+	return result, nil
 }
