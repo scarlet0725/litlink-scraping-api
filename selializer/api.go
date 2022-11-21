@@ -52,14 +52,14 @@ func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]model.Ev
 
 	for _, v := range input.Data {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
-		date, _ := time.ParseInLocation("2006-01-02", v.EventDate, jst)
+		date, _ := time.ParseInLocation(time.RFC3339, v.EventDate, jst)
 		result = append(result, model.Event{
-			UUID:      v.ID,
-			Name:      v.Title,
-			Artist:    v.Artist,
-			Date:      date,
-			Venue:     v.Venue,
-			TicketURL: v.ReservationSetting.Platforms[0].URL,
+			UUID:       v.ID,
+			Name:       v.Title,
+			ArtistName: v.Artist,
+			Date:       date,
+			VenueName:  v.Venue,
+			TicketURL:  v.ReservationSetting.Platforms[0].URL,
 		})
 	}
 

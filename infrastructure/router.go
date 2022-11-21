@@ -1,12 +1,12 @@
-package router
+package infrastructure
 
 import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/controller"
-	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/parser"
+	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/selializer"
 	"github.com/scarlet0725/prism-api/usecase"
 )
@@ -21,9 +21,10 @@ type ginRouter struct {
 	paser      parser.DocParser
 	selializer selializer.ResponseSerializer
 	router     *gin.Engine
+	db         repository.DB
 }
 
-func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer) GinRouter {
+func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) GinRouter {
 	r := gin.Default()
 
 	router := &ginRouter{
@@ -31,6 +32,7 @@ func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, sel
 		paser:      parser,
 		selializer: selializer,
 		router:     r,
+		db:         db,
 	}
 	router.SetMeta()
 	router.SetRoute()
@@ -55,9 +57,20 @@ func (r *ginRouter) SetMeta() {
 }
 
 func (r *ginRouter) SetRoute() {
-	event := usecase.NewEventApplication(gateway.NewDevDB(), r.fetch, r.paser, r.selializer, parser.NewJsonParser())
+	event := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
+	userUsecase := usecase.NewUserApplication(r.db)
+	artistUsecase := usecase.NewArtistUsecase(r.db)
+
 	controller := adapter.NewController(event)
+	user := adapter.NewUserAdapter(userUsecase)
+	artist := adapter.NewArtistAdapter(artistUsecase)
 	v1 := r.router.Group("/v1")
 
+	v1.GET("user/me", user.GetMe)
+	v1.POST("user/register", user.Register)
+
 	v1.GET("events/:arist_name", controller.GetEventsByArtistName)
+
+	v1.POST("artist", artist.CreateArtist)
+
 }

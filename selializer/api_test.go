@@ -1,10 +1,10 @@
 package selializer
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/scarlet0725/prism-api/model"
 )
 
@@ -140,18 +140,22 @@ func TestRyzmResponseSelializer(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	expectedDate, _ := time.Parse(time.RFC3339, "2022-11-17")
 	expected := []model.Event{
 		{
-			UUID:      "6c16f274-aa55-4ea0-9994-64020f25629d",
-			Name:      "【単独無銭】プリズムセン",
-			Artist:    "PRSMIN",
-			Venue:     "Shibuya Milkyway",
-			TicketURL: "https://t.livepocket.jp/e/g6fq1",
+			UUID:       "6c16f274-aa55-4ea0-9994-64020f25629d",
+			Name:       "【単独無銭】プリズムセン",
+			Date:       expectedDate,
+			ArtistName: "PRSMIN",
+			VenueName:  "Shibuya Milkyway",
+			TicketURL:  "https://t.livepocket.jp/e/g6fq1",
 		},
 	}
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("got %#v \n want %#v", result, expected)
+	diff := cmp.Diff(expected, result)
+
+	if diff != "" {
+		t.Errorf("RyzmResponseSelializer differs: (-got +want)\n%s", diff)
 	}
 
 }

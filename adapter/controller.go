@@ -3,16 +3,20 @@ package adapter
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/selializer"
 	"github.com/scarlet0725/prism-api/usecase"
 )
 
 type EventController struct {
-	event usecase.EventApplication
+	event      usecase.EventApplication
+	selializer selializer.ResponseSerializer
 }
 
 func NewController(event usecase.EventApplication) EventController {
+	selializer := selializer.NewResponseSerializer()
 	return EventController{
-		event: event,
+		event:      event,
+		selializer: selializer,
 	}
 }
 

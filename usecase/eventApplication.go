@@ -9,7 +9,7 @@ import (
 )
 
 type EventApplication interface {
-	CreateEvent(*model.Event) error
+	CreateEvent(*model.Event) (*model.Event, error)
 	//GetEvent(string) (*model.Event, error)
 	GetEventsByArtistName(string) ([]model.Event, *model.AppError)
 }
@@ -32,8 +32,8 @@ func NewEventApplication(db repository.DB, fetch controller.FetchController, par
 	}
 }
 
-func (a *eventApplication) CreateEvent(e *model.Event) error {
-	return nil
+func (a *eventApplication) CreateEvent(e *model.Event) (*model.Event, error) {
+	return nil, nil
 }
 
 func (a *eventApplication) GetEventsByName(name string) ([]model.Event, error) {
@@ -105,4 +105,8 @@ func (a *eventApplication) GetEventsByArtistName(name string) ([]model.Event, *m
 		}
 
 	}
+}
+
+func (a *eventApplication) UpdateArtistLatestEventInformation(id string) (*model.Event, error) {
+	return nil, nil
 }
