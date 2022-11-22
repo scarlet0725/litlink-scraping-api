@@ -3,6 +3,8 @@
 .vscode/
 .gitignore
 /tmp
+/temp
+/sandbox
 README.md
 LICENSE
 docker-compose.yaml

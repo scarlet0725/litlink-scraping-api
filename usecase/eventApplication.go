@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"fmt"
+
+	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/parser"
@@ -9,9 +12,12 @@ import (
 )
 
 type EventApplication interface {
-	CreateEvent(*model.Event) (*model.Event, error)
+	CreateEvent(*model.CreateEvent) (*model.Event, error)
+	DeleteEvent(*model.Event) error
 	//GetEvent(string) (*model.Event, error)
 	GetEventsByArtistName(string) ([]model.Event, *model.AppError)
+	UpdateArtistLatestEventInformation(string) (*model.Event, error)
+	GetEventByID(string) (*model.Event, error)
 }
 
 type eventApplication struct {
@@ -32,8 +38,28 @@ func NewEventApplication(db repository.DB, fetch controller.FetchController, par
 	}
 }
 
-func (a *eventApplication) CreateEvent(e *model.Event) (*model.Event, error) {
-	return nil, nil
+func (a *eventApplication) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
+	id := cmd.MakeRamdomID(eventIDLength)
+
+	artists, _ := a.db.GetArtistsByIDs(e.ArtistIDs)
+
+	fmt.Println(artists)
+
+	event := &model.Event{
+		EventID:     id,
+		Name:        e.Name,
+		Date:        e.Date,
+		Description: e.Description,
+		OpenTime:    e.OpenTime,
+		StartTime:   e.StartTime,
+		EndTime:     e.EndTime,
+		Url:         e.Url,
+		TicketURL:   e.TicketURL,
+		Artists:     artists,
+	}
+	fmt.Println(event)
+
+	return a.db.CreateEvent(event)
 }
 
 func (a *eventApplication) GetEventsByName(name string) ([]model.Event, error) {
@@ -109,4 +135,12 @@ func (a *eventApplication) GetEventsByArtistName(name string) ([]model.Event, *m
 
 func (a *eventApplication) UpdateArtistLatestEventInformation(id string) (*model.Event, error) {
 	return nil, nil
+}
+
+func (a *eventApplication) GetEventByID(ID string) (*model.Event, error) {
+	return a.db.GetEventByID(ID)
+}
+
+func (a *eventApplication) DeleteEvent(event *model.Event) error {
+	return a.db.DeleteEvent(event)
 }

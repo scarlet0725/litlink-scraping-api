@@ -45,11 +45,13 @@ func (a *userAdapter) Register(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		return
 	}
 
 	//ユーザーネームが半角英数字とアンダーバーのみかどうか
 	if !usernameRegexp.MatchString(req.Username) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Usernames must be between 3 and 256 alphanumeric characters or underscored."})
+		return
 	}
 
 	//メールアドレスが正しいかどうか
@@ -57,22 +59,26 @@ func (a *userAdapter) Register(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid email address"})
+		return
 	}
 
 	//パスワードがASCII文字のみであるかチェック
 	if !(utf8.ValidString(req.Password) && utf8.RuneCountInString(req.Password) == len(req.Password)) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "password must be ASCII characters"})
+		return
 	}
 
 	//パスワードが8文字以上64文字以下であるかチェック
 	if len(req.Password) < 8 || len(req.Password) > 64 {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Password must be between 8 and 64 characters"})
+		return
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "failed to hash password"})
+		return
 	}
 
 	user := &model.User{

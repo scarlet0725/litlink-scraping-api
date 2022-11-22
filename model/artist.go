@@ -8,5 +8,5 @@ type Artist struct {
 	RyzmHost       string  `json:"-"`
 	CrawlTargetURL string  `json:"-"`
 	CrawlSiteType  string  `json:"-"`
-	Events         []Event `json:"events" gorm:"many2many:events_artists"`
+	Events         []Event `json:"events,omitempty" gorm:"many2many:events_artists"`
 }

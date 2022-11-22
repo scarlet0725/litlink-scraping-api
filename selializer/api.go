@@ -57,7 +57,7 @@ func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]model.Ev
 			UUID:       v.ID,
 			Name:       v.Title,
 			ArtistName: v.Artist,
-			Date:       date,
+			Date:       &date,
 			VenueName:  v.Venue,
 			TicketURL:  v.ReservationSetting.Platforms[0].URL,
 		})

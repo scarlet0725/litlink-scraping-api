@@ -145,7 +145,7 @@ func TestRyzmResponseSelializer(t *testing.T) {
 		{
 			UUID:       "6c16f274-aa55-4ea0-9994-64020f25629d",
 			Name:       "【単独無銭】プリズムセン",
-			Date:       expectedDate,
+			Date:       &expectedDate,
 			ArtistName: "PRSMIN",
 			VenueName:  "Shibuya Milkyway",
 			TicketURL:  "https://t.livepocket.jp/e/g6fq1",

@@ -1,10 +1,13 @@
 package infrastructure
 
 import (
+	"errors"
+
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/schema"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type gormDB struct {
@@ -67,7 +70,15 @@ func (g *gormDB) UpdateUser(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (g *gormDB) GetEvent(id string) (*model.Event, error) {
+func (g *gormDB) DeleteEvent(model *model.Event) error {
+	if model.ID == 0 {
+		return errors.New("invalid id")
+	}
+
+	return g.db.Select(clause.Associations).Delete(model).Error
+}
+
+func (g *gormDB) GetEventByID(id string) (*model.Event, error) {
 	var event model.Event
 	err := g.db.Where("event_id = ?", id).First(&event).Error
 	if err != nil {
@@ -79,7 +90,7 @@ func (g *gormDB) GetEvent(id string) (*model.Event, error) {
 func (g *gormDB) CreateEvent(event *model.Event) (*model.Event, error) {
 	var e schema.Event
 	e.Event = *event
-	err := g.db.Create(e).Error
+	err := g.db.Create(&e).Error
 	if err != nil {
 		return nil, err
 	}
@@ -122,4 +133,22 @@ func (g *gormDB) GetArtistByID(id string) (*model.Artist, error) {
 		return nil, err
 	}
 	return &artist, nil
+}
+
+func (g *gormDB) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
+	var artists []*model.Artist
+	err := g.db.Where("artist_id IN ?", ids).Find(&artists).Error
+	if err != nil {
+		return nil, err
+	}
+	return artists, nil
+}
+
+func (g *gormDB) GetEventsByID(ID string) (*model.Event, error) {
+	var event *model.Event
+	err := g.db.Preload("Artist").Where("event_id = ?", ID).First(&event).Error
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
 }

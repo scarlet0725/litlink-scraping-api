@@ -57,11 +57,11 @@ func (r *ginRouter) SetMeta() {
 }
 
 func (r *ginRouter) SetRoute() {
-	event := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
+	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
 	userUsecase := usecase.NewUserApplication(r.db)
 	artistUsecase := usecase.NewArtistUsecase(r.db)
 
-	controller := adapter.NewController(event)
+	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
 	artist := adapter.NewArtistAdapter(artistUsecase)
 	v1 := r.router.Group("/v1")
@@ -69,7 +69,10 @@ func (r *ginRouter) SetRoute() {
 	v1.GET("user/me", user.GetMe)
 	v1.POST("user/register", user.Register)
 
-	v1.GET("events/:arist_name", controller.GetEventsByArtistName)
+	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
+	v1.GET("events/:event_id", event.GetEventByID)
+	v1.DELETE("event/:event_id", event.DeleteEvent)
+	v1.POST("event", event.CreateEvent)
 
 	v1.POST("artist", artist.CreateArtist)
 
