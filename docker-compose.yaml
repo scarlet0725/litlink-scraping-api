@@ -12,7 +12,7 @@ services:
       - REDIS_ADDR=cache
       - REDIS_PORT=6379
       - DB_USER=prism
-      - DB_PASSWORD=C9UxGe3ctRvSDJ56
+      - DB_PASSWORD=password
       - DB_NAME=prism_api
       - DB_PORT=3306
       - DB_HOST=db
@@ -40,7 +40,7 @@ services:
       - REDIS_ADDR=cache
       - REDIS_PORT=6379
       - DB_USER=prism
-      - DB_PASSWORD=C9UxGe3ctRvSDJ56
+      - DB_PASSWORD=password
       - DB_NAME=prism_api
       - DB_PORT=3306
       - DB_HOST=db
@@ -66,9 +66,9 @@ services:
     volumes:
       - db:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=Xj2qXnaTZ4gvj5Dp
+      - MYSQL_ROOT_PASSWORD=password
       - MYSQL_USER=prism
-      - MYSQL_PASSWORD=C9UxGe3ctRvSDJ56
+      - MYSQL_PASSWORD=password
       - MYSQL_DATABASE=prism_api
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
