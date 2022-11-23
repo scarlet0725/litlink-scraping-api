@@ -52,7 +52,7 @@ func (s *docParser) Litlink(r io.Reader) (model.LitlinkParseResult, error) {
 
 	for _, v := range profile.ProfileLink.Details {
 
-		//TODO: この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
+		//HACK: この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
 		if v.ButtonLink.URL == "" {
 			continue
 		}
