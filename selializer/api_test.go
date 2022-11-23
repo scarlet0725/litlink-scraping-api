@@ -13,7 +13,7 @@ func TestRyzmResponseSelializer(t *testing.T) {
 	parsedCreatedAt, _ := time.Parse(time.RFC3339, "2022-11-10T05:00:32Z")
 	parsedUpdatedAt, _ := time.Parse(time.RFC3339, "2022-11-10T05:18:22Z")
 
-	input := model.RyzmAPIResponse{
+	validInput := model.RyzmAPIResponse{
 		Data: []model.RyzmLiveData{
 			{
 				ID:              "6c16f274-aa55-4ea0-9994-64020f25629d",
@@ -134,14 +134,9 @@ func TestRyzmResponseSelializer(t *testing.T) {
 
 	s := NewResponseSerializer()
 
-	result, err := s.SelializeRyzmData(input)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expectedDate, _ := time.Parse(time.RFC3339, "2022-11-17")
-	expected := []model.Event{
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	expectedDate, _ := time.ParseInLocation("2006-01-02", "2022-11-17", jst)
+	expected := []*model.Event{
 		{
 			UUID:       "6c16f274-aa55-4ea0-9994-64020f25629d",
 			Name:       "【単独無銭】プリズムセン",
@@ -152,10 +147,27 @@ func TestRyzmResponseSelializer(t *testing.T) {
 		},
 	}
 
-	diff := cmp.Diff(expected, result)
+	t.Run("正常にシリアライズできる", func(t *testing.T) {
+		result, err := s.SelializeRyzmData(validInput)
+		if err != nil {
+			t.Fatal(err)
+		}
+		diff := cmp.Diff(expected, result)
+		if diff != "" {
+			t.Errorf("RyzmResponseSelializer differs: (-got +want)\n%s", diff)
+		}
+	})
 
-	if diff != "" {
-		t.Errorf("RyzmResponseSelializer differs: (-got +want)\n%s", diff)
-	}
+	t.Run("空の配列を渡すと空の配列が帰ってくる(エラー時)", func(t *testing.T) {
+		var invalidInput model.RyzmAPIResponse
+		v, err := s.SelializeRyzmData(invalidInput)
+		if err != nil {
+			t.Errorf("error should be occurred \n got: \n%+v ", err)
+		}
+
+		if len(v) > 0 {
+			t.Errorf("error should be occurred \n got: \n%+v ", v)
+		}
+	})
 
 }
