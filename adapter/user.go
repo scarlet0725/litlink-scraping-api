@@ -25,7 +25,7 @@ type UserAdapter interface {
 	//GetUser(ctx *gin.Context)
 	//CreateUser(ctx *gin.Context)
 	//UpdateUser(ctx *gin.Context)
-	//DeleteUser(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 	//CreateAPIKey(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
 }
@@ -108,7 +108,12 @@ func (c *userAdapter) GetMe(ctx *gin.Context) {
 	k := ctx.GetHeader("X-Api-Key")
 	user, err := c.user.GetUserByAPIKey(k)
 	if err != nil {
-		ctx.JSON(err.Code, gin.H{"ok": false, "error": "invalid api key"})
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"ok": false, "error": "invalid api key"})
 		return
 	}
 
@@ -117,4 +122,39 @@ func (c *userAdapter) GetMe(ctx *gin.Context) {
 		User: user,
 	}
 	ctx.JSON(200, resp)
+}
+
+func (c *userAdapter) Delete(ctx *gin.Context) {
+	k := ctx.GetHeader("X-Api-Key")
+	user, err := c.user.GetUserByAPIKey(k)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"ok": false, "error": "User not found"})
+		return
+	}
+
+	if user.DeleteProtected {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"ok": false, "error": "User can not be deleted"})
+		return
+	}
+
+	err = c.user.DeleteUser(user)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "InternalServerError"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "message": "User deleted"})
+
 }

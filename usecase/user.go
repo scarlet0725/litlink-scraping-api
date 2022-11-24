@@ -13,10 +13,10 @@ type UserApplication interface {
 	//GetUser(id string) (*model.User, *model.AppError)
 	CreateUser(user *model.User) (*model.User, error)
 	//UpdateUser(user *model.User) (*model.User, *model.AppError)
-	//DeleteUser(id int) (*model.User, *model.AppError)
+	DeleteUser(*model.User) error
 	//CreateAPIKey(id int) (*model.User, *model.AppError)
 	//DeleteAPIKey(id int) (*model.User, *model.AppError)
-	GetUserByAPIKey(apiKey string) (*model.User, *model.AppError)
+	GetUserByAPIKey(apiKey string) (*model.User, error)
 }
 
 type userApplication struct {
@@ -51,8 +51,8 @@ func (a *userApplication) CreateUser(user *model.User) (*model.User, error) {
 
 	if err != nil {
 		return nil, &model.AppError{
-			Code: 404,
-			Msg:  "user_not_found",
+			Code: 400,
+			Msg:  "Failed to create user",
 		}
 	}
 
@@ -60,7 +60,18 @@ func (a *userApplication) CreateUser(user *model.User) (*model.User, error) {
 
 }
 
-func (a *userApplication) GetUserByAPIKey(key string) (*model.User, *model.AppError) {
+func (a *userApplication) DeleteUser(user *model.User) error {
+	if user.ID == 0 {
+		return &model.AppError{
+			Code: 404,
+			Msg:  "User not found",
+		}
+	}
+	err := a.db.DeleteUser(user)
+	return err
+}
+
+func (a *userApplication) GetUserByAPIKey(key string) (*model.User, error) {
 	sha512 := sha512.Sum512([]byte(key))
 	k := hex.EncodeToString(sha512[:])
 	user, err := a.db.GetUserByAPIKey(string(k))

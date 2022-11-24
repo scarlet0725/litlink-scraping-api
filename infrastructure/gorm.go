@@ -210,3 +210,7 @@ func (g *gormDB) UpdateVenue(v *model.Venue) (*model.Venue, error) {
 	}
 	return v, nil
 }
+
+func (g *gormDB) DeleteUser(user *model.User) error {
+	return g.db.Delete(user).Error
+}

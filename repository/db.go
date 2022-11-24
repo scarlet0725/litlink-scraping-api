@@ -9,6 +9,7 @@ type DB interface {
 	CreateUser(*model.User) (*model.User, error)
 	GetUserByAPIKey(apiKey string) (*model.User, error)
 	UpdateUser(*model.User) (*model.User, error)
+	DeleteUser(*model.User) error
 
 	CreateEvents([]*model.Event) ([]*model.Event, error)
 	CreateEvent(*model.Event) (*model.Event, error)
