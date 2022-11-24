@@ -48,19 +48,24 @@ func (a *apiResponse) BuildResponse(i interface{}) (model.APIResponse, error) {
 }
 
 func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]*model.Event, error) {
-	var result []*model.Event
+	result := []*model.Event{}
 
 	for _, v := range input.Data {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		date, _ := time.ParseInLocation("2006-01-02", v.EventDate, jst)
-		result = append(result, &model.Event{
+		event := &model.Event{
 			UUID:       v.ID,
 			Name:       v.Title,
 			ArtistName: v.Artist,
 			Date:       &date,
 			VenueName:  v.Venue,
-			TicketURL:  v.ReservationSetting.Platforms[0].URL,
-		})
+		}
+
+		if len(v.ReservationSetting.Platforms) > 0 {
+			event.TicketURL = v.ReservationSetting.Platforms[0].URL
+		}
+
+		result = append(result, event)
 	}
 
 	return result, nil
