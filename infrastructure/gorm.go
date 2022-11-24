@@ -97,6 +97,18 @@ func (g *gormDB) CreateEvent(event *model.Event) (*model.Event, error) {
 	return event, nil
 }
 
+func (g *gormDB) CreateEvents(events []*model.Event) ([]*model.Event, error) {
+	var es []*schema.Event
+	for _, event := range events {
+		es = append(es, &schema.Event{Event: *event})
+	}
+	err := g.db.Create(&es).Error
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
 func (g *gormDB) UpdateEvent(event *model.Event) (*model.Event, error) {
 	var e schema.Event
 	e.Event = *event
@@ -151,4 +163,50 @@ func (g *gormDB) GetEventsByID(ID string) (*model.Event, error) {
 		return nil, err
 	}
 	return event, nil
+}
+
+func (g *gormDB) GetEventsByUUIDs(IDs []string) ([]*model.Event, error) {
+	var events []*model.Event
+	err := g.db.Where("uuid IN ?", IDs).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
+func (g *gormDB) CreateVenue(v *model.Venue) (*model.Venue, error) {
+	var s *schema.Venue
+	s.Venue = *v
+	err := g.db.Create(s).Error
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (g *gormDB) GetVenueByID(id string) (*model.Venue, error) {
+	var venue *model.Venue
+	err := g.db.Where("venue_id = ?", id).First(&venue).Error
+	if err != nil {
+		return nil, err
+	}
+	return venue, nil
+}
+
+func (g *gormDB) DeleteVenue(v *model.Venue) error {
+	if v.ID == 0 {
+		return errors.New("invalid id")
+	}
+
+	return g.db.Select(clause.Associations).Delete(v).Error
+}
+
+func (g *gormDB) UpdateVenue(v *model.Venue) (*model.Venue, error) {
+	var s *schema.Venue
+	s.Venue = *v
+	err := g.db.Save(s).Error
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }

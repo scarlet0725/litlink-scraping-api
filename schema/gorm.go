@@ -20,7 +20,7 @@ type Event struct {
 	model.Event
 }
 
-type EventsArtists struct {
-	EventID  int `gorm:"primaryKey"`
-	ArtistID int `gorm:"primaryKey"`
+type Venue struct {
+	gorm.Model
+	model.Venue
 }

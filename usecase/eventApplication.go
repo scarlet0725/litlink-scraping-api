@@ -15,8 +15,8 @@ type EventApplication interface {
 	CreateEvent(*model.CreateEvent) (*model.Event, error)
 	DeleteEvent(*model.Event) error
 	//GetEvent(string) (*model.Event, error)
-	GetEventsByArtistName(string) ([]model.Event, *model.AppError)
-	UpdateArtistLatestEventInformation(string) (*model.Event, error)
+	GetEventsByArtistName(string) ([]*model.Event, *model.AppError)
+	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
 	GetEventByID(string) (*model.Event, error)
 }
 
@@ -66,7 +66,7 @@ func (a *eventApplication) GetEventsByName(name string) ([]model.Event, error) {
 	return nil, nil
 }
 
-func (a *eventApplication) GetEventsByArtistName(name string) ([]model.Event, *model.AppError) {
+func (a *eventApplication) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
 	artist, err := a.db.GetArtistByName(name)
 
 	if err != nil {
@@ -117,7 +117,7 @@ func (a *eventApplication) GetEventsByArtistName(name string) ([]model.Event, *m
 		result, err := a.selializer.SelializeRyzmData(json)
 
 		if err != nil {
-			return []model.Event{}, &model.AppError{
+			return nil, &model.AppError{
 				Code: 500,
 				Msg:  "failed_to_parse_json",
 			}
@@ -133,8 +133,119 @@ func (a *eventApplication) GetEventsByArtistName(name string) ([]model.Event, *m
 	}
 }
 
-func (a *eventApplication) UpdateArtistLatestEventInformation(id string) (*model.Event, error) {
-	return nil, nil
+func (a *eventApplication) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
+	artist, err := a.db.GetArtistByID(id)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "artist_not_found",
+		}
+	}
+
+	if artist.CrawlTargetURL == "" || artist.CrawlSiteType == "" || artist.RyzmHost == "" {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "This artist is not supported auto update",
+		}
+	}
+
+	req := &model.ScrapingRequest{
+		Host: artist.CrawlTargetURL,
+		URL:  artist.CrawlTargetURL,
+		Type: artist.CrawlSiteType,
+		Option: model.FetchOptions{
+			IsUseCache: true,
+		},
+	}
+
+	if req.Type == "ryzm" {
+		req.Option = model.FetchOptions{
+			HTTPHeader: map[string]string{
+				"X-RYZM-HOST": artist.RyzmHost,
+			},
+			HTTPParams: map[string]string{
+				"archived": "0",
+			},
+		}
+	}
+
+	res, err := a.fetch.Fetch(req)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "fetch_error",
+		}
+	}
+
+	switch artist.CrawlSiteType {
+	case "ryzm":
+
+		json, err := a.json.Ryzm(res.Data)
+		if err != nil {
+			return nil, &model.AppError{
+				Code: 500,
+				Msg:  "failed_to_parse_json",
+			}
+		}
+		result, err := a.selializer.SelializeRyzmData(json)
+
+		if err != nil {
+			return nil, &model.AppError{
+				Code: 500,
+				Msg:  "failed_to_parse_json",
+			}
+		}
+
+		uuids := []string{}
+		eventAlreadyRegistered := map[string]*model.Event{}
+
+		for _, event := range result {
+			uuids = append(uuids, event.UUID)
+		}
+
+		registeredEvents, err := a.db.GetEventsByUUIDs(uuids)
+
+		for _, event := range registeredEvents {
+			eventAlreadyRegistered[event.UUID] = event
+		}
+
+		//TODO: 既に登録されているイベントは更新する
+		//FIXME: データベースから更新できない場合の処理を考える
+		if err != nil {
+			return nil, &model.AppError{
+				Code: 500,
+				Msg:  "failed_to_get_events",
+			}
+		}
+
+		registrationExpectedEvents := []*model.Event{}
+
+		for _, event := range result {
+			_, ok := eventAlreadyRegistered[event.UUID]
+			if ok {
+				continue
+			}
+			event.EventID = cmd.MakeRamdomID(eventIDLength)
+			event.Artists = append(event.Artists, artist)
+			registrationExpectedEvents = append(registrationExpectedEvents, event)
+		}
+
+		if len(registrationExpectedEvents) <= 0 {
+			return []*model.Event{}, nil
+		}
+
+		return a.db.CreateEvents(registrationExpectedEvents)
+
+	default:
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "error!",
+		}
+
+	}
+
 }
 
 func (a *eventApplication) GetEventByID(ID string) (*model.Event, error) {

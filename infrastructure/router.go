@@ -70,10 +70,11 @@ func (r *ginRouter) SetRoute() {
 	v1.POST("user/register", user.Register)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
-	v1.GET("events/:event_id", event.GetEventByID)
+	v1.GET("event/:event_id", event.GetEventByID)
 	v1.DELETE("event/:event_id", event.DeleteEvent)
 	v1.POST("event", event.CreateEvent)
 
 	v1.POST("artist", artist.CreateArtist)
+	v1.POST("artist/:artist_id/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
 }

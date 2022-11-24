@@ -1,8 +1,8 @@
 package adapter
 
 import (
+	"errors"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/scarlet0725/prism-api/model"
@@ -21,6 +21,7 @@ type EventAdapter interface {
 	DeleteEvent(ctx *gin.Context)
 	GetEventsByArtistName(ctx *gin.Context)
 	GetEventByID(ctx *gin.Context)
+	CreateArtistEventsFromCrawlData(ctx *gin.Context)
 }
 
 type eventAdapter struct {
@@ -46,14 +47,6 @@ func (a *eventAdapter) CreateEvent(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
 		return
 	}
-
-	d, err := time.Parse(EventDateLayout, req.DateStr)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid date format"})
-		return
-	}
-
-	req.Date = &d
 
 	result, err := a.event.CreateEvent(&req)
 
@@ -104,12 +97,7 @@ func (a *eventAdapter) GetEventsByArtistName(ctx *gin.Context) {
 		return
 	}
 
-	res := model.EventAPIResponse{
-		OK:   true,
-		Data: events,
-	}
-
-	ctx.JSON(200, res)
+	ctx.JSON(200, gin.H{"ok": true, "events": events})
 
 }
 
@@ -135,5 +123,32 @@ func (a *eventAdapter) GetEventByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"ok":    true,
 		"event": event,
+	})
+}
+
+func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
+	artistID := ctx.Param("artist_id")
+
+	result, err := a.event.CreateArtistEventsFromCrawlData(artistID)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, appErr.Msg)
+			return
+		}
+
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"ok":    false,
+			"error": "Internal server error",
+		})
+		return
+
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"ok":      true,
+		"message": "Successfully created",
+		"data":    result,
 	})
 }
