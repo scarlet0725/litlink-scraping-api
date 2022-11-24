@@ -1,0 +1,114 @@
+swagger: '2.0'
+
+# This is your document metadata
+info:
+  version: "1.0.0"
+  title: prism-api
+
+# Describe your paths here
+paths:
+  /event/{eventId}:
+    get:
+      summary: "イベントを作成するAP"
+      description: "指定されたEvent IDの情報を返します"
+      parameters: 
+      - name: eventId
+        in: path
+        description: "aa"
+        required: true
+        type: string
+      
+      responses: 
+        200:
+          description: "成功時のレスポンス"
+          schema:
+            properties:
+              event:
+                $ref: "#/definitions/event"
+              ok:
+                type: boolean
+                example: true 
+    delete:
+      summary: "イベントを削除するAPI"
+      description: "指定されたEvent IDを削除します"
+      parameters: 
+      - name: eventId
+        in: path
+        description: "aa"
+        required: true
+        type: string
+      responses: 
+        200:
+          description: "正常に削除された場合"
+          schema:
+            required: 
+            - "ok"
+            - "message"
+            properties:
+              ok:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: successfully deleted
+  /artist:
+    get:
+      summary: "イベントを作成するAP"
+      description: "指定されたEvent IDの情報を返します"
+      parameters: 
+      - name: eventId
+        in: path
+        description: "aa"
+        required: true
+        type: string                
+definitions:
+    event: 
+      required: 
+        - "name"
+      properties: 
+        event_id: 
+          type: "string"
+          example: "BQYD6ZD2HBDKKZ2Z"
+        uuid: 
+          type: "string"
+          example: ""
+        name: 
+          type: "string"
+          example: "【単独無銭】プリズムセン"
+        date: 
+          type: "string"
+          example: "2022-11-17T00:00:00;09:00"
+        description: 
+          type: "string"
+          example: "test"
+        venue_name: 
+          type: "string"
+          example: ""
+        url: 
+          type: "string"
+          example: ""
+        ticket_url: 
+          type: "string"
+          example: ""
+        artist_name: 
+          type: "string"
+          example: ""
+        artists: 
+          type: "array"
+          items: 
+            $ref: "#/definitions/artist"
+      type: "object"
+    artist:
+      required: 
+        - "name"
+      properties: 
+        artist_id: 
+          type: "string"
+          example: "ZBPRZYRMKTEG7D2B"
+        name: 
+          type: "string"
+          example: "yosugala"
+        url: 
+          type: "string"
+          example: ""
+      type: "object"

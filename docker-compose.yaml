@@ -11,6 +11,11 @@ services:
       - PORT=8080
       - REDIS_ADDR=cache
       - REDIS_PORT=6379
+      - DB_USER=prism
+      - DB_PASSWORD=password
+      - DB_NAME=prism_api
+      - DB_PORT=3306
+      - DB_HOST=db
     healthcheck:
       test: ["CMD", "/bin/healthcheck"]
       interval: 10s
@@ -20,6 +25,26 @@ services:
     depends_on:
       cache:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+
+  migration:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: "--migration true"
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - REDIS_ADDR=cache
+      - REDIS_PORT=6379
+      - DB_USER=prism
+      - DB_PASSWORD=password
+      - DB_NAME=prism_api
+      - DB_PORT=3306
+      - DB_HOST=db
+    depends_on:
       db:
         condition: service_healthy
   
@@ -35,16 +60,33 @@ services:
       start_period: 5s
 
   db:
-    image: mariadb:10.9.4-jammy
+    image: mysql:8.0.31
     ports:
       - "3306:3306"
+    volumes:
+      - db:/var/lib/mysql
     environment:
-      - MARIADB_ROOT_PASSWORD=Xj2qXnaTZ4gvj5Dp
-      - MARIADB_USER=prism-db
-      - MARIADB_PASSWORD=C9UxGe3ctRvSDJ56
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=prism
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=prism_api
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
       timeout: 10s
       retries: 3
       start_period: 10s
+
+
+  adminer:
+    container_name: adminer
+    hostname: adminer
+    image: adminer:4.7.5
+    restart: always
+    ports:
+      - 8081:8080
+    depends_on:
+      - db
+
+volumes:
+  db:

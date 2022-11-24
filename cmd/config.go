@@ -43,7 +43,3 @@ func GetRedisPassword() string {
 
 	return secret
 }
-
-func MigrateDB() {
-
-}

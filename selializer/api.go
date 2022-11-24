@@ -8,7 +8,7 @@ import (
 
 type ResponseSerializer interface {
 	BuildResponse(interface{}) (model.APIResponse, error)
-	SelializeRyzmData(model.RyzmAPIResponse) ([]model.Event, error)
+	SelializeRyzmData(model.RyzmAPIResponse) ([]*model.Event, error)
 }
 
 type apiResponse struct{}
@@ -47,20 +47,25 @@ func (a *apiResponse) BuildResponse(i interface{}) (model.APIResponse, error) {
 	return result, err
 }
 
-func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]model.Event, error) {
-	var result []model.Event
+func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]*model.Event, error) {
+	result := []*model.Event{}
 
 	for _, v := range input.Data {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		date, _ := time.ParseInLocation("2006-01-02", v.EventDate, jst)
-		result = append(result, model.Event{
-			UUID:      v.ID,
-			Name:      v.Title,
-			Artist:    v.Artist,
-			Date:      date,
-			Venue:     v.Venue,
-			TicketURL: v.ReservationSetting.Platforms[0].URL,
-		})
+		event := &model.Event{
+			UUID:       v.ID,
+			Name:       v.Title,
+			ArtistName: v.Artist,
+			Date:       &date,
+			VenueName:  v.Venue,
+		}
+
+		if len(v.ReservationSetting.Platforms) > 0 {
+			event.TicketURL = v.ReservationSetting.Platforms[0].URL
+		}
+
+		result = append(result, event)
 	}
 
 	return result, nil

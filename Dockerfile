@@ -13,7 +13,7 @@ FROM golang:1.19.2-bullseye as healthcheck-builder
 WORKDIR /go/src
 COPY go.mod .
 COPY go.sum .
-COPY cmd/healthcheck/healthcheck.go /go/src/healthcheck.go
+COPY cmd/healthcheck/main.go /go/src/main.go
 RUN go build -o healthcheck
 RUN chmod 755 healthcheck
 
