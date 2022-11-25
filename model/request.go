@@ -58,3 +58,8 @@ type CrawlerRequest struct {
 	ArtistID   string `json:"artist_id"`
 	ArtistName string `json:"artist_name"`
 }
+
+type EventMergeRequest struct {
+	EventID             string   `json:"event_id"`
+	MergeTargetEventIDs []string `json:"merge_target_ids"`
+}
