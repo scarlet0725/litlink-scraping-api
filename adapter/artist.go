@@ -13,10 +13,10 @@ type ArtistAdapter interface {
 }
 
 type artistAdapter struct {
-	artist usecase.ArtistUsecase
+	artist usecase.Artist
 }
 
-func NewArtistAdapter(artist usecase.ArtistUsecase) ArtistAdapter {
+func NewArtistAdapter(artist usecase.Artist) ArtistAdapter {
 	return &artistAdapter{artist: artist}
 }
 

@@ -20,8 +20,8 @@ type CreateArtist struct {
 }
 
 type CreateEvent struct {
-	Name        string     `json:"name"`
-	Date        *time.Time `json:"date"`
+	Name        string     `json:"name" binding:"required"`
+	Date        string     `json:"date"`
 	Description string     `json:"description"`
 	OpenTime    *time.Time `json:"open_time"`
 	StartTime   *time.Time `json:"start_time"`
@@ -32,6 +32,7 @@ type CreateEvent struct {
 	TicketURL   string     `json:"ticket_url"`
 	ArtistName  string     `json:"artist_name"`
 	ArtistIDs   []string   `json:"artist_ids"`
+	VenueID     string     `json:"venue_id"`
 }
 
 type GetEvent struct {
@@ -41,4 +42,24 @@ type GetEvent struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type CreateVenue struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	WebSite     string `json:"website"`
+	Postcode    string `json:"post_code"`
+	Prefecture  string `json:"prefecture"`
+	City        string `json:"city"`
+	Street      string `json:"street"`
+}
+
+type CrawlerRequest struct {
+	ArtistID   string `json:"artist_id"`
+	ArtistName string `json:"artist_name"`
+}
+
+type EventMergeRequest struct {
+	EventID             string   `json:"event_id"`
+	MergeTargetEventIDs []string `json:"merge_target_ids"`
 }

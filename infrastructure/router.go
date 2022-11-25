@@ -60,10 +60,12 @@ func (r *ginRouter) SetRoute() {
 	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
 	userUsecase := usecase.NewUserApplication(r.db)
 	artistUsecase := usecase.NewArtistUsecase(r.db)
+	venueUsecase := usecase.NewVenueUsecase(r.db)
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
 	artist := adapter.NewArtistAdapter(artistUsecase)
+	venue := adapter.NewVenueAdapter(venueUsecase)
 	v1 := r.router.Group("/v1")
 
 	v1.GET("user/me", user.GetMe)
@@ -76,6 +78,8 @@ func (r *ginRouter) SetRoute() {
 	v1.POST("event", event.CreateEvent)
 
 	v1.POST("artist", artist.CreateArtist)
-	v1.POST("artist/:artist_id/events/auto_update", event.CreateArtistEventsFromCrawlData)
+	v1.POST("artist/events/auto_update", event.CreateArtistEventsFromCrawlData)
+
+	v1.POST("venue", venue.CreateVenue)
 
 }

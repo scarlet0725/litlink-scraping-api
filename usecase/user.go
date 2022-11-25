@@ -9,7 +9,7 @@ import (
 	"github.com/scarlet0725/prism-api/repository"
 )
 
-type UserApplication interface {
+type User interface {
 	//GetUser(id string) (*model.User, *model.AppError)
 	CreateUser(user *model.User) (*model.User, error)
 	//UpdateUser(user *model.User) (*model.User, *model.AppError)
@@ -19,17 +19,17 @@ type UserApplication interface {
 	GetUserByAPIKey(apiKey string) (*model.User, error)
 }
 
-type userApplication struct {
+type userUsecase struct {
 	db repository.DB
 }
 
-func NewUserApplication(db repository.DB) UserApplication {
-	return &userApplication{
+func NewUserApplication(db repository.DB) User {
+	return &userUsecase{
 		db: db,
 	}
 }
 
-func (a *userApplication) GetUser(id string) (*model.User, *model.AppError) {
+func (a *userUsecase) GetUser(id string) (*model.User, *model.AppError) {
 	user, err := a.db.GetUser(id)
 
 	if err != nil {
@@ -42,7 +42,7 @@ func (a *userApplication) GetUser(id string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (a *userApplication) CreateUser(user *model.User) (*model.User, error) {
+func (a *userUsecase) CreateUser(user *model.User) (*model.User, error) {
 	id := cmd.MakeRamdomID(userIDLength)
 
 	user.UserID = id
@@ -60,7 +60,7 @@ func (a *userApplication) CreateUser(user *model.User) (*model.User, error) {
 
 }
 
-func (a *userApplication) DeleteUser(user *model.User) error {
+func (a *userUsecase) DeleteUser(user *model.User) error {
 	if user.ID == 0 {
 		return &model.AppError{
 			Code: 404,
@@ -71,7 +71,7 @@ func (a *userApplication) DeleteUser(user *model.User) error {
 	return err
 }
 
-func (a *userApplication) GetUserByAPIKey(key string) (*model.User, error) {
+func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
 	sha512 := sha512.Sum512([]byte(key))
 	k := hex.EncodeToString(sha512[:])
 	user, err := a.db.GetUserByAPIKey(string(k))

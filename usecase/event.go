@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
@@ -11,7 +12,7 @@ import (
 	"github.com/scarlet0725/prism-api/selializer"
 )
 
-type EventApplication interface {
+type Event interface {
 	CreateEvent(*model.CreateEvent) (*model.Event, error)
 	DeleteEvent(*model.Event) error
 	//GetEvent(string) (*model.Event, error)
@@ -20,7 +21,7 @@ type EventApplication interface {
 	GetEventByID(string) (*model.Event, error)
 }
 
-type eventApplication struct {
+type eventUsecase struct {
 	db         repository.DB
 	fetch      controller.FetchController
 	parser     parser.DocParser
@@ -28,8 +29,8 @@ type eventApplication struct {
 	json       parser.JsonParser
 }
 
-func NewEventApplication(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser) EventApplication {
-	return &eventApplication{
+func NewEventApplication(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser) Event {
+	return &eventUsecase{
 		db:         db,
 		fetch:      fetch,
 		parser:     parser,
@@ -38,17 +39,25 @@ func NewEventApplication(db repository.DB, fetch controller.FetchController, par
 	}
 }
 
-func (a *eventApplication) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
+func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
 	id := cmd.MakeRamdomID(eventIDLength)
 
 	artists, _ := a.db.GetArtistsByIDs(e.ArtistIDs)
+	venue, _ := a.db.GetVenueByID(e.VenueID)
+	jst, _ := time.LoadLocation(Locale)
+
+	date, err := time.ParseInLocation("2006-01-02", e.Date, jst)
+
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Println(artists)
 
 	event := &model.Event{
 		EventID:     id,
 		Name:        e.Name,
-		Date:        e.Date,
+		Date:        &date,
 		Description: e.Description,
 		OpenTime:    e.OpenTime,
 		StartTime:   e.StartTime,
@@ -56,17 +65,18 @@ func (a *eventApplication) CreateEvent(e *model.CreateEvent) (*model.Event, erro
 		Url:         e.Url,
 		TicketURL:   e.TicketURL,
 		Artists:     artists,
+		Venue:       venue,
 	}
 	fmt.Println(event)
 
 	return a.db.CreateEvent(event)
 }
 
-func (a *eventApplication) GetEventsByName(name string) ([]model.Event, error) {
+func (a *eventUsecase) GetEventsByName(name string) ([]model.Event, error) {
 	return nil, nil
 }
 
-func (a *eventApplication) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
+func (a *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
 	artist, err := a.db.GetArtistByName(name)
 
 	if err != nil {
@@ -133,7 +143,7 @@ func (a *eventApplication) GetEventsByArtistName(name string) ([]*model.Event, *
 	}
 }
 
-func (a *eventApplication) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
+func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
 	artist, err := a.db.GetArtistByID(id)
 
 	if err != nil {
@@ -248,10 +258,10 @@ func (a *eventApplication) CreateArtistEventsFromCrawlData(id string) ([]*model.
 
 }
 
-func (a *eventApplication) GetEventByID(ID string) (*model.Event, error) {
+func (a *eventUsecase) GetEventByID(ID string) (*model.Event, error) {
 	return a.db.GetEventByID(ID)
 }
 
-func (a *eventApplication) DeleteEvent(event *model.Event) error {
+func (a *eventUsecase) DeleteEvent(event *model.Event) error {
 	return a.db.DeleteEvent(event)
 }

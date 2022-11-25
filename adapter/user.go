@@ -31,10 +31,10 @@ type UserAdapter interface {
 }
 
 type userAdapter struct {
-	user usecase.UserApplication
+	user usecase.User
 }
 
-func NewUserAdapter(user usecase.UserApplication) UserAdapter {
+func NewUserAdapter(user usecase.User) UserAdapter {
 	return &userAdapter{
 		user: user,
 	}
