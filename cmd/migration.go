@@ -8,7 +8,14 @@ import (
 
 func MigrationDB(db *gorm.DB) {
 
-	db.Debug().AutoMigrate(&schema.User{}, &schema.Artist{}, &schema.Event{}, &schema.Venue{})
+	db.Debug().AutoMigrate(
+		&schema.User{},
+		&schema.Artist{},
+		&schema.Event{},
+		&schema.Venue{},
+		&schema.RyzmEvent{},
+		&schema.UnStructuredEventInformation{},
+	)
 
 	db.Exec("ALTER TABLE `events` CHANGE `description` `description` longtext COLLATE 'utf8mb4_bin' NULL AFTER `end_time`,CHANGE `venue_name` `venue_name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `description`;")
 	db.Exec("ALTER TABLE `artists` CHANGE `name` `name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NOT NULL AFTER `artist_id`;")
@@ -45,6 +52,16 @@ func MigrationDB(db *gorm.DB) {
 				Name:           "On the treat Super Season",
 				URL:            "https://onthetreatsuperseason.com",
 				RyzmHost:       "onthetreatsuperseason.com",
+				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
+				CrawlSiteType:  "ryzm",
+			},
+		},
+		{
+			Artist: model.Artist{
+				ArtistID:       "Y5KIY8GI4PJ1AT7G",
+				Name:           "yosugala",
+				URL:            "https://yosugala2022.ryzm.jp",
+				RyzmHost:       "yosugala2022.ryzm.jp",
 				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
 				CrawlSiteType:  "ryzm",
 			},

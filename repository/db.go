@@ -17,7 +17,7 @@ type DB interface {
 	DeleteEvent(*model.Event) error
 	GetEventsByArtistID(artistID string) ([]*model.Event, error)
 	GetEventByID(ID string) (*model.Event, error)
-	GetEventsByUUIDs(IDs []string) ([]*model.Event, error)
+	GetRyzmEventsByUUDIDs(IDs []string) ([]*model.RyzmEvent, error)
 
 	CreateArtist(*model.Artist) (*model.Artist, error)
 	GetArtistByName(name string) (*model.Artist, error)
@@ -25,8 +25,8 @@ type DB interface {
 	GetArtistsByIDs(ids []string) ([]*model.Artist, error)
 
 	CreateVenue(*model.Venue) (*model.Venue, error)
-	//GetVenueByName(name string) (*model.Venue, error)
+	GetVenueByName(name string) (*model.Venue, error)
 	GetVenueByID(id string) (*model.Venue, error)
-	//GetAllVenues() ([]*model.Venue, error)
+	GetVenuesByNames(names []string) ([]*model.Venue, error)
 	UpdateVenue(*model.Venue) (*model.Venue, error)
 }

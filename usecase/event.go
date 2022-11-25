@@ -209,21 +209,16 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			}
 		}
 
-		uuids := []string{}
-		eventAlreadyRegistered := map[string]*model.Event{}
-
+		//Ryzmから取得したイベントのUUIDをsliceに格納しすでに登録されているかを確認する
+		fetchedRyzmEventUUIDs := []string{}
 		for _, event := range result {
-			uuids = append(uuids, event.UUID)
+			for _, v := range event.RelatedRyzmEvents {
+				fetchedRyzmEventUUIDs = append(fetchedRyzmEventUUIDs, v.UUID)
+			}
 		}
 
-		registeredEvents, err := a.db.GetEventsByUUIDs(uuids)
+		registeredEvents, err := a.db.GetRyzmEventsByUUDIDs(fetchedRyzmEventUUIDs)
 
-		for _, event := range registeredEvents {
-			eventAlreadyRegistered[event.UUID] = event
-		}
-
-		//TODO: 既に登録されているイベントは更新する
-		//FIXME: データベースから更新できない場合の処理を考える
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
@@ -231,20 +226,68 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			}
 		}
 
+		//すでに登録されているイベントのUUIDをmapに格納
+		existedEventUUID := map[string]bool{}
+		for _, event := range registeredEvents {
+			existedEventUUID[event.UUID] = true
+		}
+
 		registrationExpectedEvents := []*model.Event{}
 
+		//登録されているかどうかmapから確認し、登録されていないイベントを登録する
+
+		var c int
 		for _, event := range result {
-			_, ok := eventAlreadyRegistered[event.UUID]
-			if ok {
-				continue
+			c = 0
+			for _, ryzm := range event.RelatedRyzmEvents {
+				_, ok := existedEventUUID[ryzm.UUID]
+				if ok {
+					c++
+				}
 			}
-			event.EventID = cmd.MakeRamdomID(eventIDLength)
-			event.Artists = append(event.Artists, artist)
-			registrationExpectedEvents = append(registrationExpectedEvents, event)
+			if c == 0 {
+				event.EventID = cmd.MakeRamdomID(eventIDLength)
+				event.Artists = append(event.Artists, artist)
+				registrationExpectedEvents = append(registrationExpectedEvents, event)
+			}
 		}
 
 		if len(registrationExpectedEvents) <= 0 {
 			return []*model.Event{}, nil
+		}
+
+		//会場を登録出来たらする
+		//会場の登録は会場の名前で行う
+
+		//会場の名前をsliceに格納
+		venueNames := []string{}
+		for _, event := range registrationExpectedEvents {
+			venueNames = append(venueNames, event.UnStructuredInformation.VenueName)
+		}
+
+		//会場の名前から会場を取得
+		venues, err := a.db.GetVenuesByNames(venueNames)
+		fmt.Printf("venues: %v", venueNames)
+		if err != nil {
+			return nil, &model.AppError{
+				Code: 500,
+				Msg:  "Failed to get venues",
+			}
+		}
+		venueMap := map[string]*model.Venue{}
+
+		for _, venue := range venues {
+			venueMap[venue.Name] = venue
+		}
+
+		//会場が登録されていない場合は会場を登録する
+
+		for _, event := range registrationExpectedEvents {
+			venue, ok := venueMap[event.UnStructuredInformation.VenueName]
+			if !ok {
+				continue
+			}
+			event.Venue = venue
 		}
 
 		return a.db.CreateEvents(registrationExpectedEvents)
@@ -306,4 +349,9 @@ func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	req.Venue = venue
 
 	return a.db.UpdateEvent(req)
+}
+
+func MergeEvents(base *model.Event, target *model.Event) (*model.Event, error) {
+	//TODO: 実装する
+	return nil, nil
 }

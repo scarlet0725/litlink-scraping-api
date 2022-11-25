@@ -161,20 +161,19 @@ func (g *gormDB) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
 
 func (g *gormDB) GetEventsByID(ID string) (*model.Event, error) {
 	var event *model.Event
-	err := g.db.Preload("Artist").Where("event_id = ?", ID).First(&event).Error
+	err := g.db.Preload("Artist").Preload("RyzmEvent").Where("event_id = ?", ID).First(&event).Error
 	if err != nil {
 		return nil, err
 	}
 	return event, nil
 }
 
-func (g *gormDB) GetEventsByUUIDs(IDs []string) ([]*model.Event, error) {
-	var events []*model.Event
-	err := g.db.Where("uuid IN ?", IDs).Find(&events).Error
-	if err != nil {
+func (g *gormDB) GetRyzmEventsByUUDIDs(ids []string) ([]*model.RyzmEvent, error) {
+	var ryzmEvents []*model.RyzmEvent
+	if err := g.db.Where("uuid IN ?", ids).Find(&ryzmEvents).Error; err != nil {
 		return nil, err
 	}
-	return events, nil
+	return ryzmEvents, nil
 }
 
 func (g *gormDB) CreateVenue(v *model.Venue) (*model.Venue, error) {
@@ -216,4 +215,21 @@ func (g *gormDB) UpdateVenue(v *model.Venue) (*model.Venue, error) {
 
 func (g *gormDB) DeleteUser(user *model.User) error {
 	return g.db.Delete(user).Error
+}
+
+func (g *gormDB) GetVenueByName(name string) (*model.Venue, error) {
+	var venue *model.Venue
+	var v schema.Venue
+	v.Venue = *venue
+	err := g.db.Where("name = ?", name).Take(&v).Error
+	return venue, err
+}
+
+func (g *gormDB) GetVenuesByNames(names []string) ([]*model.Venue, error) {
+	var venues []*model.Venue
+	err := g.db.Where("name IN ?", names).Find(&venues).Error
+	if err != nil {
+		return nil, err
+	}
+	return venues, nil
 }
