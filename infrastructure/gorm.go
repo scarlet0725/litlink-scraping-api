@@ -175,9 +175,9 @@ func (g *gormDB) GetEventsByUUIDs(IDs []string) ([]*model.Event, error) {
 }
 
 func (g *gormDB) CreateVenue(v *model.Venue) (*model.Venue, error) {
-	var s *schema.Venue
+	var s schema.Venue
 	s.Venue = *v
-	err := g.db.Create(s).Error
+	err := g.db.Create(&s).Error
 	if err != nil {
 		return nil, err
 	}

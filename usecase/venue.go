@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/repository"
 )
@@ -16,13 +17,19 @@ type venueUsecase struct {
 	db repository.DB
 }
 
-func NewVenueApplication(db repository.DB) Venue {
+func NewVenueUsecase(db repository.DB) Venue {
 	return &venueUsecase{
 		db: db,
 	}
 }
 
 func (a *venueUsecase) CreateVenue(venue *model.Venue) (*model.Venue, error) {
+	id := cmd.MakeRamdomID(venueIDLength)
+
+	venue.VenueID = id
+	venue.ID = 0
+	venue.IsOpen = true
+
 	venue, err := a.db.CreateVenue(venue)
 
 	if err != nil {

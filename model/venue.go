@@ -11,5 +11,5 @@ type Venue struct {
 	City        string   `json:"city"`
 	Street      string   `json:"street"`
 	IsOpen      bool     `json:"is_open" gorm:"not null;default:true"`
-	Events      []*Event `json:"events"  gorm:"foreignkey:VenueID"`
+	Events      []*Event `json:"-"  gorm:"foreignkey:VenueID"`
 }

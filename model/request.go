@@ -42,3 +42,13 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type CreateVenue struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	WebSite     string `json:"website"`
+	Postcode    string `json:"post_code"`
+	Prefecture  string `json:"prefecture"`
+	City        string `json:"city"`
+	Street      string `json:"street"`
+}
