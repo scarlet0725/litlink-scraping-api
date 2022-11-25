@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
@@ -42,13 +43,21 @@ func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
 	id := cmd.MakeRamdomID(eventIDLength)
 
 	artists, _ := a.db.GetArtistsByIDs(e.ArtistIDs)
+	venue, _ := a.db.GetVenueByID(e.VenueID)
+	jst, _ := time.LoadLocation(Locale)
+
+	date, err := time.ParseInLocation("2006-01-02", e.Date, jst)
+
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Println(artists)
 
 	event := &model.Event{
 		EventID:     id,
 		Name:        e.Name,
-		Date:        e.Date,
+		Date:        &date,
 		Description: e.Description,
 		OpenTime:    e.OpenTime,
 		StartTime:   e.StartTime,
@@ -56,6 +65,7 @@ func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
 		Url:         e.Url,
 		TicketURL:   e.TicketURL,
 		Artists:     artists,
+		Venue:       venue,
 	}
 	fmt.Println(event)
 

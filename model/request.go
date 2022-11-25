@@ -21,7 +21,7 @@ type CreateArtist struct {
 
 type CreateEvent struct {
 	Name        string     `json:"name"`
-	Date        *time.Time `json:"date"`
+	Date        string     `json:"date"`
 	Description string     `json:"description"`
 	OpenTime    *time.Time `json:"open_time"`
 	StartTime   *time.Time `json:"start_time"`
@@ -32,6 +32,7 @@ type CreateEvent struct {
 	TicketURL   string     `json:"ticket_url"`
 	ArtistName  string     `json:"artist_name"`
 	ArtistIDs   []string   `json:"artist_ids"`
+	VenueID     string     `json:"venue_id"`
 }
 
 type GetEvent struct {
