@@ -60,7 +60,29 @@ func (a *eventAdapter) CreateEvent(ctx *gin.Context) {
 }
 
 func (a *eventAdapter) UpdateEvent(ctx *gin.Context) {
-	//TODO: 実装する
+	var req model.UpdateEvent
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		return
+	}
+
+	eventID := ctx.Param("event_id")
+	req.EventID = eventID
+
+	_, err := a.event.UpdateEvent(&req)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"ok":      true,
+		"updated": req,
+		"message": "Successfully updated",
+	})
+
 }
 
 func (a *eventAdapter) DeleteEvent(ctx *gin.Context) {

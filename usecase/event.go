@@ -15,6 +15,7 @@ import (
 type Event interface {
 	CreateEvent(*model.CreateEvent) (*model.Event, error)
 	DeleteEvent(*model.Event) error
+	UpdateEvent(*model.UpdateEvent) (*model.Event, error)
 	//GetEvent(string) (*model.Event, error)
 	GetEventsByArtistName(string) ([]*model.Event, *model.AppError)
 	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
@@ -264,4 +265,45 @@ func (a *eventUsecase) GetEventByID(ID string) (*model.Event, error) {
 
 func (a *eventUsecase) DeleteEvent(event *model.Event) error {
 	return a.db.DeleteEvent(event)
+}
+
+func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, error) {
+
+	if event.EventID == "" {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "Event id is required",
+		}
+	}
+
+	req, err := a.db.GetEventByID(event.EventID)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "Event not found",
+		}
+	}
+
+	var venue *model.Venue
+
+	if event.VenueID != "" {
+		venue, err = a.db.GetVenueByID(event.VenueID)
+		if err != nil {
+			return nil, &model.AppError{
+				Code: 404,
+				Msg:  "Venue not found",
+			}
+		}
+	}
+
+	req.Name = event.Name
+	req.Description = event.Description
+	req.Date = event.Date
+	req.OpenTime = event.OpenTime
+	req.StartTime = event.StartTime
+	req.EndTime = event.EndTime
+	req.Venue = venue
+
+	return a.db.UpdateEvent(req)
 }

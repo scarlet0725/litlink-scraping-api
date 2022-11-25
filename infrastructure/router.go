@@ -75,6 +75,7 @@ func (r *ginRouter) SetRoute() {
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
 	v1.GET("event/:event_id", event.GetEventByID)
 	v1.DELETE("event/:event_id", event.DeleteEvent)
+	v1.POST("event/:event_id", event.UpdateEvent)
 	v1.POST("event", event.CreateEvent)
 
 	v1.POST("artist", artist.CreateArtist)
