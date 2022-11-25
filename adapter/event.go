@@ -102,16 +102,9 @@ func (a *eventAdapter) GetEventsByArtistName(ctx *gin.Context) {
 }
 
 func (a *eventAdapter) GetEventByID(ctx *gin.Context) {
-	var params model.GetEvent
+	params := ctx.Param("event_id")
 
-	if err := ctx.ShouldBind(&params); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"ok": false, "error": "Parameter event_id is invalid",
-		})
-		return
-	}
-
-	event, err := a.event.GetEventByID(params.EventID)
+	event, err := a.event.GetEventByID(params)
 	if err != nil {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"ok":    false,
@@ -127,9 +120,13 @@ func (a *eventAdapter) GetEventByID(ctx *gin.Context) {
 }
 
 func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
-	artistID := ctx.Param("artist_id")
+	var req model.CrawlerRequest
 
-	result, err := a.event.CreateArtistEventsFromCrawlData(artistID)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Invalid request"})
+	}
+
+	result, err := a.event.CreateArtistEventsFromCrawlData(req.ArtistID)
 
 	if err != nil {
 		var appErr *model.AppError

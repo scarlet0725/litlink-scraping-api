@@ -1,7 +1,7 @@
 package model
 
 type Venue struct {
-	ID          int      `json:"-" gorm:"primary_key;unique;not null"`
+	ID          uint     `json:"-" gorm:"primary_key;unique;not null"`
 	VenueID     string   `json:"venue_id" gorm:"unique;not null"`
 	Name        string   `json:"name" gorm:"not null"`
 	Description string   `json:"description"`

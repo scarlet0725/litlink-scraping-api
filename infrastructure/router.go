@@ -78,7 +78,7 @@ func (r *ginRouter) SetRoute() {
 	v1.POST("event", event.CreateEvent)
 
 	v1.POST("artist", artist.CreateArtist)
-	v1.POST("artist/:artist_id/events/auto_update", event.CreateArtistEventsFromCrawlData)
+	v1.POST("artist/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
 	v1.POST("venue", venue.CreateVenue)
 

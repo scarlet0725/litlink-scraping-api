@@ -20,7 +20,7 @@ type CreateArtist struct {
 }
 
 type CreateEvent struct {
-	Name        string     `json:"name"`
+	Name        string     `json:"name" binding:"required"`
 	Date        string     `json:"date"`
 	Description string     `json:"description"`
 	OpenTime    *time.Time `json:"open_time"`
@@ -52,4 +52,9 @@ type CreateVenue struct {
 	Prefecture  string `json:"prefecture"`
 	City        string `json:"city"`
 	Street      string `json:"street"`
+}
+
+type CrawlerRequest struct {
+	ArtistID   string `json:"artist_id"`
+	ArtistName string `json:"artist_name"`
 }

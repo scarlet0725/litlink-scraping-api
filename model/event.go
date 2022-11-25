@@ -16,7 +16,7 @@ type Event struct {
 	Description string     `json:"description"`
 	VenueName   string     `json:"venue_name"`
 	Venue       *Venue     `json:"venue"`
-	VenueID     uint       `json:"-"`
+	VenueID     *uint      `json:"-"`
 	Url         string     `json:"url"`
 	TicketURL   string     `json:"ticket_url"`
 	ArtistName  string     `json:"artist_name"`
