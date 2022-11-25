@@ -110,13 +110,16 @@ func (g *gormDB) CreateEvents(events []*model.Event) ([]*model.Event, error) {
 }
 
 func (g *gormDB) UpdateEvent(event *model.Event) (*model.Event, error) {
+	if event.ID == 0 {
+		return nil, errors.New("invalid id")
+	}
 	var e schema.Event
 	e.Event = *event
-	err := g.db.Save(e).Error
+	err := g.db.Model(&e).Where("id = ?", e.Event.ID).Updates(&e).Error
 	if err != nil {
 		return nil, err
 	}
-	return event, nil
+	return &e.Event, nil
 }
 
 func (g *gormDB) GetEventsByArtistID(artistID string) ([]*model.Event, error) {

@@ -63,3 +63,18 @@ type EventMergeRequest struct {
 	EventID             string   `json:"event_id"`
 	MergeTargetEventIDs []string `json:"merge_target_ids"`
 }
+
+type UpdateEvent struct {
+	EventID     string     `json:"event_id"`
+	Name        string     `json:"name,omitempty"`
+	Date        *time.Time `json:"date,omitempty"`
+	Description string     `json:"description,omitempty"`
+	OpenTime    *time.Time `json:"open_time,omitempty"`
+	StartTime   *time.Time `json:"start_time,omitempty"`
+	EndTime     *time.Time `json:"end_time,omitempty"`
+	VenueID     string     `json:"venue_id,omitempty"`
+	Url         string     `json:"url,omitempty"`
+	TicketURL   string     `json:"ticket_url,omitempty"`
+	ArtistName  string     `json:"artist_name,omitempty"`
+	//ArtistIDs   []string   `json:"artist_ids"`
+}
