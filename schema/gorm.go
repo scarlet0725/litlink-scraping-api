@@ -24,3 +24,11 @@ type Venue struct {
 	gorm.Model
 	model.Venue
 }
+
+type RyzmEvent struct {
+	model.RyzmEvent
+}
+
+type UnStructuredEventInformation struct {
+	model.UnStructuredEventInformation
+}

@@ -57,12 +57,14 @@ func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]*model.E
 			UUID: v.ID,
 		}
 		event := &model.Event{
-			UUID:              v.ID,
 			Name:              v.Title,
-			ArtistName:        v.Artist,
 			Date:              &date,
-			VenueName:         v.Venue,
 			RelatedRyzmEvents: []*model.RyzmEvent{ryzmEvent},
+			UnStructuredInformation: &model.UnStructuredEventInformation{
+				ArtistName: v.Artist,
+				VenueName:  v.Venue,
+				Price:      v.Price,
+			},
 		}
 
 		if len(v.ReservationSetting.Platforms) > 0 {
