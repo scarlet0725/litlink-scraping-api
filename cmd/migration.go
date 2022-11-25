@@ -10,6 +10,10 @@ func MigrationDB(db *gorm.DB) {
 
 	db.Debug().AutoMigrate(&schema.User{}, &schema.Artist{}, &schema.Event{}, &schema.Venue{})
 
+	db.Exec("ALTER TABLE `events` CHANGE `description` `description` longtext COLLATE 'utf8mb4_bin' NULL AFTER `end_time`,CHANGE `venue_name` `venue_name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `description`;")
+	db.Exec("ALTER TABLE `artists` CHANGE `name` `name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NOT NULL AFTER `artist_id`;")
+	db.Exec("ALTER TABLE `venues`CHANGE `name` `name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NOT NULL AFTER `venue_id`,CHANGE `description` `description` longtext COLLATE 'utf8mb4_bin' NULL AFTER `name`,CHANGE `prefecture` `prefecture` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `postcode`,CHANGE `city` `city` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `prefecture`,CHANGE `street` `street` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `city`;")
+
 	user := &schema.User{
 		User: model.User{
 			Username:        "Admin",
@@ -38,7 +42,7 @@ func MigrationDB(db *gorm.DB) {
 		{
 			Artist: model.Artist{
 				ArtistID:       "7MHK8G565KEFQERZ",
-				Name:           "onthetreatsuperseason",
+				Name:           "On the treat Super Season",
 				URL:            "https://onthetreatsuperseason.com",
 				RyzmHost:       "onthetreatsuperseason.com",
 				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
