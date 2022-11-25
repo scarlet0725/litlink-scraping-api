@@ -15,9 +15,10 @@ type Event struct {
 	EndTime     *time.Time `json:"end_time"`
 	Description string     `json:"description"`
 	VenueName   string     `json:"venue_name"`
-	//Venue       Venue     `json:"venue"`
-	Url        string    `json:"url"`
-	TicketURL  string    `json:"ticket_url"`
-	ArtistName string    `json:"artist_name"`
-	Artists    []*Artist `json:"artists" gorm:"many2many:events_artists"`
+	Venue       *Venue     `json:"venue"`
+	VenueID     uint       `json:"-"`
+	Url         string     `json:"url"`
+	TicketURL   string     `json:"ticket_url"`
+	ArtistName  string     `json:"artist_name"`
+	Artists     []*Artist  `json:"artists" gorm:"many2many:events_artists"`
 }

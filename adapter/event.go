@@ -25,11 +25,11 @@ type EventAdapter interface {
 }
 
 type eventAdapter struct {
-	event      usecase.EventApplication
+	event      usecase.Event
 	selializer selializer.ResponseSerializer
 }
 
-func NewEventAdapter(eventController usecase.EventApplication) EventAdapter {
+func NewEventAdapter(eventController usecase.Event) EventAdapter {
 	selializer := selializer.NewResponseSerializer()
 	return &eventAdapter{
 		selializer: selializer,

@@ -5,24 +5,24 @@ import (
 	"github.com/scarlet0725/prism-api/repository"
 )
 
-type VenueApplication interface {
+type Venue interface {
 	CreateVenue(*model.Venue) (*model.Venue, error)
 	UpdateVenue(*model.Venue) (*model.Venue, error)
 	//GetVenueByName(string) (*model.Venue, error)
 	GetVenueByID(string) (*model.Venue, error)
 }
 
-type venueApplication struct {
+type venueUsecase struct {
 	db repository.DB
 }
 
-func NewVenueApplication(db repository.DB) VenueApplication {
-	return &venueApplication{
+func NewVenueApplication(db repository.DB) Venue {
+	return &venueUsecase{
 		db: db,
 	}
 }
 
-func (a *venueApplication) CreateVenue(venue *model.Venue) (*model.Venue, error) {
+func (a *venueUsecase) CreateVenue(venue *model.Venue) (*model.Venue, error) {
 	venue, err := a.db.CreateVenue(venue)
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (a *venueApplication) CreateVenue(venue *model.Venue) (*model.Venue, error)
 	return venue, nil
 }
 
-func (a *venueApplication) UpdateVenue(venue *model.Venue) (*model.Venue, error) {
+func (a *venueUsecase) UpdateVenue(venue *model.Venue) (*model.Venue, error) {
 	venue, err := a.db.UpdateVenue(venue)
 
 	if err != nil {
@@ -42,7 +42,7 @@ func (a *venueApplication) UpdateVenue(venue *model.Venue) (*model.Venue, error)
 	return venue, nil
 }
 
-func (a *venueApplication) GetVenueByID(id string) (*model.Venue, error) {
+func (a *venueUsecase) GetVenueByID(id string) (*model.Venue, error) {
 	venue, err := a.db.GetVenueByID(id)
 
 	if err != nil {
