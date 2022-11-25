@@ -44,7 +44,7 @@ func (a *eventAdapter) CreateEvent(ctx *gin.Context) {
 	var req model.CreateEvent
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Invalid request"})
 		return
 	}
 
