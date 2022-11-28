@@ -78,3 +78,7 @@ type UpdateEvent struct {
 	ArtistName  string     `json:"artist_name,omitempty"`
 	//ArtistIDs   []string   `json:"artist_ids"`
 }
+
+type AdminVerify struct {
+	UserID string `json:"user_id"`
+}

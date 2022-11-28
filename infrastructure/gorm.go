@@ -20,7 +20,7 @@ func NewGORMClient(db *gorm.DB) repository.DB {
 
 func (g *gormDB) GetUser(id string) (*model.User, error) {
 	var user model.User
-	err := g.db.Where("user_id = ?", id).First(&user).Error
+	err := g.db.Preload(clause.Associations).Where("user_id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (g *gormDB) CreateUser(user *model.User) (*model.User, error) {
 
 func (g *gormDB) GetArtistByName(name string) (*model.Artist, error) {
 	var artist model.Artist
-	err := g.db.Where("name = ?", name).First(&artist).Error
+	err := g.db.Preload(clause.Associations).Where("name = ?", name).First(&artist).Error
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (g *gormDB) GetArtistByName(name string) (*model.Artist, error) {
 
 func (g *gormDB) GetUserByAPIKey(apiKey string) (*model.User, error) {
 	var user model.User
-	err := g.db.Where("api_key = ?", apiKey).First(&user).Error
+	err := g.db.Preload(clause.Associations).Where("api_key = ?", apiKey).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

@@ -21,13 +21,10 @@ var (
 
 type UserAdapter interface {
 	Register(ctx *gin.Context)
-	//Login(ctx *gin.Context)
-	//GetUser(ctx *gin.Context)
-	//CreateUser(ctx *gin.Context)
-	//UpdateUser(ctx *gin.Context)
 	Delete(ctx *gin.Context)
-	//CreateAPIKey(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
+	Verify(ctx *gin.Context)
+	GetUserFromContext(ctx *gin.Context) (*model.User, error)
 }
 
 type userAdapter struct {
@@ -105,8 +102,8 @@ func (a *userAdapter) Register(ctx *gin.Context) {
 }
 
 func (c *userAdapter) GetMe(ctx *gin.Context) {
-	k := ctx.GetHeader("X-Api-Key")
-	user, err := c.user.GetUserByAPIKey(k)
+	user, err := c.GetUserFromContext(ctx)
+
 	if err != nil {
 		var appErr *model.AppError
 		if ok := errors.As(err, &appErr); ok {
@@ -121,7 +118,7 @@ func (c *userAdapter) GetMe(ctx *gin.Context) {
 		OK:   true,
 		User: user,
 	}
-	ctx.JSON(200, resp)
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (c *userAdapter) Delete(ctx *gin.Context) {
@@ -151,10 +148,74 @@ func (c *userAdapter) Delete(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "InternalServerError"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "Internal Server Error"})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"ok": true, "message": "User deleted"})
+
+}
+
+func (c *userAdapter) GetUserFromContext(ctx *gin.Context) (*model.User, error) {
+	val, ok := ctx.Get("user")
+	if !ok {
+		return nil, errors.New("user not found")
+	}
+
+	user, ok := val.(*model.User)
+	if !ok {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
+}
+
+func (c *userAdapter) Verify(ctx *gin.Context) {
+	var appErr *model.AppError
+
+	user, err := c.GetUserFromContext(ctx)
+	if err != nil {
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"ok": false, "error": "invalid api key"})
+		return
+	}
+
+	if user == nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "Internal Server Error"})
+		return
+	}
+
+	var isAdmin bool
+
+	for _, role := range user.Roles {
+		if role.Name == "administrator" {
+			isAdmin = true
+			break
+		}
+	}
+
+	if !isAdmin {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"ok": false, "error": "Permission denied"})
+		return
+	}
+
+	var req model.AdminVerify
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		return
+	}
+
+	_, err = c.user.VerifyAccount(req.UserID)
+
+	if err != nil {
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "Internal Server Error"})
+		return
+	}
 
 }

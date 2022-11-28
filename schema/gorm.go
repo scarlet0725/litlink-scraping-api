@@ -32,3 +32,8 @@ type RyzmEvent struct {
 type UnStructuredEventInformation struct {
 	model.UnStructuredEventInformation
 }
+
+type Role struct {
+	gorm.Model
+	model.Role
+}

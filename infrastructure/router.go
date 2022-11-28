@@ -5,6 +5,7 @@ import (
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/selializer"
@@ -68,19 +69,32 @@ func (r *ginRouter) SetRoute() {
 	venue := adapter.NewVenueAdapter(venueUsecase)
 	v1 := r.router.Group("/v1")
 
-	v1.GET("user/me", user.GetMe)
-	v1.POST("user/register", user.Register)
-	v1.DELETE("user/delete", user.Delete)
+	auth := middleware.NewAuthMiddleware(r.db)
+
+	userEndpoint := v1.Group("/user")
+	eventEndpoint := v1.Group("/event")
+	artistEndpoint := v1.Group("/artist")
+	venueEndpoint := v1.Group("/venue")
+	adminEndpoint := v1.Group("/admin")
+
+	v1.POST("/register", user.Register)
+
+	userEndpoint.Use(auth.Middleware())
+	userEndpoint.GET("/", user.GetMe)
+	userEndpoint.GET("/me", user.GetMe)
+	userEndpoint.DELETE("/delete", user.Delete)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
-	v1.GET("event/:event_id", event.GetEventByID)
-	v1.DELETE("event/:event_id", event.DeleteEvent)
-	v1.POST("event/:event_id", event.UpdateEvent)
-	v1.POST("event", event.CreateEvent)
+	eventEndpoint.GET("/:event_id", event.GetEventByID)
+	eventEndpoint.DELETE("/:event_id", event.DeleteEvent)
+	eventEndpoint.POST("/:event_id", event.UpdateEvent)
+	eventEndpoint.POST("/", event.CreateEvent)
 
-	v1.POST("artist", artist.CreateArtist)
-	v1.POST("artist/events/auto_update", event.CreateArtistEventsFromCrawlData)
+	artistEndpoint.POST("/", artist.CreateArtist)
+	artistEndpoint.POST("/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
-	v1.POST("venue", venue.CreateVenue)
+	venueEndpoint.POST("/", venue.CreateVenue)
+
+	adminEndpoint.POST("/verify_account", user.Verify)
 
 }
