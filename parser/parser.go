@@ -1,4 +1,4 @@
-package serializer
+package parser
 
 import (
 	"encoding/json"
@@ -9,24 +9,24 @@ import (
 	"github.com/scarlet0725/prism-api/model"
 )
 
-type Serializer interface {
+type DocParser interface {
 	Execute(io.Reader) (model.APIResponse, error)
-	Litlink(io.Reader) (model.APIResponse, error)
-	Livepocket(io.Reader) (model.APIResponse, error)
+	Litlink(io.Reader) (model.LitlinkParseResult, error)
+	Livepocket(io.Reader) (model.LivepocketParseResult, error)
 	Kolokol(io.Reader) (model.APIResponse, error)
 }
 
-type serializer struct {
+type docParser struct {
 }
 
-func CreateSerializer() Serializer {
-	return &serializer{}
+func NewParser() DocParser {
+	return &docParser{}
 }
 
-func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Litlink(r io.Reader) (model.LitlinkParseResult, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.APIResponse{}, err
+		return model.LitlinkParseResult{}, err
 	}
 
 	selection := doc.Find("#__NEXT_DATA__")
@@ -37,7 +37,7 @@ func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 	json.Unmarshal(b, &data)
 
 	if err != nil {
-		return model.APIResponse{}, err
+		return model.LitlinkParseResult{}, err
 	}
 
 	b = []byte(data.Props.PageProps.ProfileString)
@@ -45,14 +45,14 @@ func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 	var profile model.LitlinkProfile
 	err = json.Unmarshal(b, &profile)
 	if err != nil {
-		return model.APIResponse{}, err
+		return model.LitlinkParseResult{}, err
 	}
 
 	var profileDetails []model.LitlinkProfileDetail
 
 	for _, v := range profile.ProfileLink.Details {
 
-		//TODO: この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
+		//HACK: この処理をjsonと構造体のMarshallとUnmarshallでやりたい(たぶんできる)
 		if v.ButtonLink.URL == "" {
 			continue
 		}
@@ -64,19 +64,17 @@ func (s *serializer) Litlink(r io.Reader) (model.APIResponse, error) {
 		})
 	}
 
-	result := model.APIResponse{
-		Ok:         true,
-		Livepocket: []model.LivepocketApplicationData{},
-		Litlink:    model.LitlinkData{Name: profile.Name, ProfileLinks: profileDetails},
+	result := model.LitlinkParseResult{
+		Data: model.LitlinkData{Name: profile.Name, ProfileLinks: profileDetails},
 	}
 
 	return result, nil
 }
 
-func (s *serializer) Livepocket(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Livepocket(r io.Reader) (model.LivepocketParseResult, error) {
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return model.APIResponse{}, err
+		return model.LivepocketParseResult{}, err
 	}
 	selection, _ := doc.Find("#event_ticket_groups").Attr("value")
 	b := []byte(selection)
@@ -86,23 +84,27 @@ func (s *serializer) Livepocket(r io.Reader) (model.APIResponse, error) {
 	json.Unmarshal(b, &data)
 
 	if err != nil {
-		return model.APIResponse{}, err
+		return model.LivepocketParseResult{}, err
 	}
 
-	result := model.APIResponse{
-		Ok:         true,
-		Livepocket: data,
+	result := model.LivepocketParseResult{
+		Data: data,
 	}
 
 	return result, nil
 }
 
-func (s *serializer) Kolokol(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Kolokol(r io.Reader) (model.APIResponse, error) {
 	//Todo
 	return model.APIResponse{}, nil
 }
 
-func (s *serializer) Execute(r io.Reader) (model.APIResponse, error) {
+func (s *docParser) Execute(r io.Reader) (model.APIResponse, error) {
 	//Todo
 	return model.APIResponse{}, nil
+}
+
+func (s *docParser) Ryzm(r io.Reader) (model.RyzmAPIResponse, error) {
+	//Todo
+	return model.RyzmAPIResponse{}, nil
 }

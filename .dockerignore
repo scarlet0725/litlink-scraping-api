@@ -1,0 +1,10 @@
+.git/
+.github/
+.vscode/
+.gitignore
+/tmp
+/temp
+/sandbox
+README.md
+LICENSE
+docker-compose.yaml

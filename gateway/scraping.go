@@ -1,4 +1,4 @@
-package scraping
+package gateway
 
 import (
 	"bytes"
@@ -19,7 +19,10 @@ func (c *client) Execute(url string) (model.ScrapingResult, error) {
 	res, err := http.Get(url)
 
 	if err != nil {
-		return model.ScrapingResult{}, err
+		return model.ScrapingResult{}, &model.AppError{
+			Code: http.StatusInternalServerError,
+			Msg:  "Failed to get response from url",
+		}
 	}
 
 	defer res.Body.Close()
@@ -35,6 +38,6 @@ func (c *client) Execute(url string) (model.ScrapingResult, error) {
 	return s, nil
 }
 
-func CreateClient() Client {
+func NewScrapingClient() Client {
 	return &client{}
 }
