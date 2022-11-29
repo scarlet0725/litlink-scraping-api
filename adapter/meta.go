@@ -13,6 +13,10 @@ func NewMetaController() MetaController {
 	return MetaController{}
 }
 
+func (c *MetaController) GetInfo(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "message": "ok"})
+}
+
 func (c *MetaController) HealthCheck(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"ok":      true,
@@ -22,14 +26,14 @@ func (c *MetaController) HealthCheck(ctx *gin.Context) {
 
 func (c *MetaController) NoMethod(ctx *gin.Context) {
 	ctx.JSON(http.StatusMethodNotAllowed, gin.H{
-		"ok":      false,
-		"message": "Method Not Allowed",
+		"ok":    false,
+		"error": "Method Not Allowed",
 	})
 }
 
 func (c *MetaController) NoRoute(ctx *gin.Context) {
 	ctx.JSON(http.StatusNotFound, gin.H{
-		"ok":      false,
-		"message": "Not Found",
+		"ok":    false,
+		"error": "Not Found",
 	})
 }

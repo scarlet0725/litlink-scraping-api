@@ -10,13 +10,11 @@ import (
 )
 
 type User interface {
-	//GetUser(id string) (*model.User, *model.AppError)
+	GetUserByUserID(id string) (*model.User, error)
 	CreateUser(user *model.User) (*model.User, error)
-	//UpdateUser(user *model.User) (*model.User, *model.AppError)
 	DeleteUser(*model.User) error
-	//CreateAPIKey(id int) (*model.User, *model.AppError)
-	//DeleteAPIKey(id int) (*model.User, *model.AppError)
 	GetUserByAPIKey(apiKey string) (*model.User, error)
+	VerifyAccount(userID string) (*model.User, error)
 }
 
 type userUsecase struct {
@@ -85,4 +83,38 @@ func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
 
 	return user, nil
 
+}
+
+func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
+	user, err := a.db.GetUser(userID)
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "User not found",
+		}
+	}
+
+	user.IsAdminVerified = true
+	user, err = a.db.UpdateUser(user)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "Failed to update user",
+		}
+	}
+	return user, nil
+}
+
+func (a *userUsecase) GetUserByUserID(userID string) (*model.User, error) {
+	user, err := a.db.GetUser(userID)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "Failed to update user",
+		}
+	}
+
+	return user, nil
 }

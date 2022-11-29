@@ -17,4 +17,5 @@ type User struct {
 	UpdatedAt       time.Time
 	DeletedAt       *time.Time `sql:"index" json:"-"`
 	Events          []*Event   `json:"-" gorm:"many2many:user_events"`
+	Roles           []*Role    `json:"-" gorm:"many2many:user_roles"`
 }

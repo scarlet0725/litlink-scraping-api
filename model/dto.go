@@ -27,6 +27,7 @@ type LivepocketParseResult struct {
 
 type FetchOptions struct {
 	IsUseCache bool
+	CacheKey   string
 	HTTPHeader map[string]string
 	HTTPParams map[string]string
 }
