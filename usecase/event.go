@@ -367,21 +367,8 @@ func (a *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 		}
 	}
 
-	mergedArtists := []*model.Artist{}
-
-	for _, artist := range merge.Artists {
-		_ = append(mergedArtists, artist)
-	}
-
-	base.Artists = mergedArtists
-
-	mergedRelatedRyzmEvents := []*model.RyzmEvent{}
-
-	for _, v := range merge.RelatedRyzmEvents {
-		_ = append(mergedRelatedRyzmEvents, v)
-	}
-
-	base.RelatedRyzmEvents = mergedRelatedRyzmEvents
+	base.Artists = append(base.Artists, merge.Artists...)
+	base.RelatedRyzmEvents = append(base.RelatedRyzmEvents, merge.RelatedRyzmEvents...)
 
 	return a.db.MergeEvents(base, merge)
 

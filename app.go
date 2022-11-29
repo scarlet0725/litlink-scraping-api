@@ -17,6 +17,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	AppVersion = "0.1."
+)
+
 func main() {
 
 	var (
@@ -34,8 +38,6 @@ func main() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	db.Debug()
 
 	if err != nil {
 		log.Fatal(err)

@@ -238,10 +238,14 @@ func (g *gormDB) MergeEvents(base *model.Event, target *model.Event) (*model.Eve
 	tx := g.db.Begin()
 	var e schema.Event
 	e.Event = *base
+	e.Model.ID = base.ID
 
 	if tx.Updates(&e).Error != nil {
 		tx.Rollback()
-		return nil, errors.New("failed to update base event")
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "Base event not found",
+		}
 	}
 
 	if err := tx.Model(target).Association("Artists").Clear(); err != nil {
@@ -264,7 +268,7 @@ func (g *gormDB) MergeEvents(base *model.Event, target *model.Event) (*model.Eve
 		return nil, err
 	}
 
-	if tx.Delete(&schema.Event{Event: *target}).Error != nil {
+	if tx.Where("id = ?", target.ID).Delete(&schema.Event{Event: *target}).Error != nil {
 		tx.Rollback()
 		return nil, errors.New("failed to delete target event")
 	}
