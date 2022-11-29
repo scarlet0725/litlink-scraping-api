@@ -190,7 +190,7 @@ func (c *userAdapter) Verify(ctx *gin.Context) {
 	var isAdmin bool
 
 	for _, role := range user.Roles {
-		if role.Name == "administrator" {
+		if role.Name == "Administrator" {
 			isAdmin = true
 			break
 		}

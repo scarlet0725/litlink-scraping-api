@@ -22,6 +22,7 @@ type EventAdapter interface {
 	GetEventsByArtistName(ctx *gin.Context)
 	GetEventByID(ctx *gin.Context)
 	CreateArtistEventsFromCrawlData(ctx *gin.Context)
+	MergeEvents(ctx *gin.Context)
 }
 
 type eventAdapter struct {
@@ -170,4 +171,25 @@ func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
 		"message": "Successfully created",
 		"data":    result,
 	})
+}
+
+func (a *eventAdapter) MergeEvents(ctx *gin.Context) {
+	var req model.MergeEvent
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Invalid request"})
+		return
+	}
+
+	merged, err := a.event.MergeEvents(&req)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"ok":    false,
+			"error": "Merge Error",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"ok": true, "events": merged})
 }

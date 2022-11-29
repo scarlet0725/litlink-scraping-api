@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/scarlet0725/prism-api/cmd"
@@ -20,6 +19,7 @@ type Event interface {
 	GetEventsByArtistName(string) ([]*model.Event, *model.AppError)
 	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
 	GetEventByID(string) (*model.Event, error)
+	MergeEvents(*model.MergeEvent) (*model.Event, error)
 }
 
 type eventUsecase struct {
@@ -53,8 +53,6 @@ func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
 		return nil, err
 	}
 
-	fmt.Println(artists)
-
 	event := &model.Event{
 		EventID:     id,
 		Name:        e.Name,
@@ -68,7 +66,6 @@ func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
 		Artists:     artists,
 		Venue:       venue,
 	}
-	fmt.Println(event)
 
 	return a.db.CreateEvent(event)
 }
@@ -178,6 +175,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			HTTPParams: map[string]string{
 				"archived": "0",
 			},
+			CacheKey: artist.RyzmHost,
 		}
 	}
 
@@ -267,7 +265,6 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 
 		//会場の名前から会場を取得
 		venues, err := a.db.GetVenuesByNames(venueNames)
-		fmt.Printf("venues: %v", venueNames)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
@@ -351,7 +348,41 @@ func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	return a.db.UpdateEvent(req)
 }
 
-func MergeEvents(base *model.Event, target *model.Event) (*model.Event, error) {
-	//TODO: 実装する
-	return nil, nil
+func (a *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) {
+	base, err := a.db.GetEventByID(req.EventID)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "Event not found",
+		}
+	}
+
+	merge, err := a.db.GetEventByID(req.MergeTargetEventID)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "Event not found",
+		}
+	}
+
+	mergedArtists := []*model.Artist{}
+
+	for _, artist := range merge.Artists {
+		_ = append(mergedArtists, artist)
+	}
+
+	base.Artists = mergedArtists
+
+	mergedRelatedRyzmEvents := []*model.RyzmEvent{}
+
+	for _, v := range merge.RelatedRyzmEvents {
+		_ = append(mergedRelatedRyzmEvents, v)
+	}
+
+	base.RelatedRyzmEvents = mergedRelatedRyzmEvents
+
+	return a.db.MergeEvents(base, merge)
+
 }

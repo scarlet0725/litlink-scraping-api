@@ -67,6 +67,7 @@ func (r *ginRouter) SetRoute() {
 	user := adapter.NewUserAdapter(userUsecase)
 	artist := adapter.NewArtistAdapter(artistUsecase)
 	venue := adapter.NewVenueAdapter(venueUsecase)
+
 	v1 := r.router.Group("/v1")
 
 	auth := middleware.NewAuthMiddleware(r.db)
@@ -89,12 +90,14 @@ func (r *ginRouter) SetRoute() {
 	eventEndpoint.DELETE("/:event_id", event.DeleteEvent)
 	eventEndpoint.POST("/:event_id", event.UpdateEvent)
 	eventEndpoint.POST("/", event.CreateEvent)
+	eventEndpoint.POST("/merge", event.MergeEvents)
 
 	artistEndpoint.POST("/", artist.CreateArtist)
 	artistEndpoint.POST("/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
 	venueEndpoint.POST("/", venue.CreateVenue)
 
+	adminEndpoint.Use(auth.Middleware())
 	adminEndpoint.POST("/verify_account", user.Verify)
 
 }

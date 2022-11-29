@@ -43,7 +43,7 @@ func (f *fetchController) Fetch(r *model.ScrapingRequest) (*model.ScrapingResult
 			return &model.ScrapingResult{}, err
 		}
 		cacheData := model.CacheData{
-			Key:   r.URL,
+			Key:   r.Option.CacheKey,
 			Value: b,
 		}
 

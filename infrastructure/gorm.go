@@ -63,7 +63,7 @@ func (g *gormDB) GetUserByAPIKey(apiKey string) (*model.User, error) {
 func (g *gormDB) UpdateUser(user *model.User) (*model.User, error) {
 	var u schema.User
 	u.User = *user
-	err := g.db.Save(u).Error
+	err := g.db.Save(&u).Error
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (g *gormDB) DeleteEvent(model *model.Event) error {
 
 func (g *gormDB) GetEventByID(id string) (*model.Event, error) {
 	var event model.Event
-	err := g.db.Where("event_id = ?", id).First(&event).Error
+	err := g.db.Preload(clause.Associations).Where("event_id = ?", id).First(&event).Error
 	if err != nil {
 		return nil, err
 	}
@@ -232,4 +232,42 @@ func (g *gormDB) GetVenuesByNames(names []string) ([]*model.Venue, error) {
 		return nil, err
 	}
 	return venues, nil
+}
+
+func (g *gormDB) MergeEvents(base *model.Event, target *model.Event) (*model.Event, error) {
+	tx := g.db.Begin()
+	var e schema.Event
+	e.Event = *base
+
+	if tx.Updates(&e).Error != nil {
+		tx.Rollback()
+		return nil, errors.New("failed to update base event")
+	}
+
+	if err := tx.Model(target).Association("Artists").Clear(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Model(target).Association("Users").Clear(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Model(target).Association("RelatedRyzmEvents").Clear(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Model(target).Association("Venue").Clear(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if tx.Delete(&schema.Event{Event: *target}).Error != nil {
+		tx.Rollback()
+		return nil, errors.New("failed to delete target event")
+	}
+
+	return base, tx.Commit().Error
 }
