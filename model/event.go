@@ -18,7 +18,7 @@ type Event struct {
 	Artists                 []*Artist                     `json:"artists" gorm:"many2many:events_artists"`
 	Venue                   *Venue                        `json:"venue"`
 	VenueID                 *uint                         `json:"-"`
-	RelatedRyzmEvents       []*RyzmEvent                  `json:"ryzm" gorm:"foreignkey:EventID"`
+	RelatedRyzmEvents       []*RyzmEvent                  `json:"-" gorm:"foreignkey:EventID"`
 	Users                   []*User                       `json:"-" gorm:"many2many:user_events"`
 	UserCreated             *User                         `json:"-" gorm:"foreignkey:UserCreatedID"`
 	UserCreatedID           *uint                         `json:"-"`
