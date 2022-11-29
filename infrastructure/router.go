@@ -86,15 +86,18 @@ func (r *ginRouter) SetRoute() {
 	userEndpoint.DELETE("/delete", user.Delete)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
+	eventEndpoint.Use(auth.Middleware())
 	eventEndpoint.GET("/:event_id", event.GetEventByID)
 	eventEndpoint.DELETE("/:event_id", event.DeleteEvent)
 	eventEndpoint.POST("/:event_id", event.UpdateEvent)
 	eventEndpoint.POST("/", event.CreateEvent)
 	eventEndpoint.POST("/merge", event.MergeEvents)
 
+	artistEndpoint.Use(auth.Middleware())
 	artistEndpoint.POST("/", artist.CreateArtist)
 	artistEndpoint.POST("/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
+	adminEndpoint.Use(auth.Middleware())
 	venueEndpoint.POST("/", venue.CreateVenue)
 
 	adminEndpoint.Use(auth.Middleware())
