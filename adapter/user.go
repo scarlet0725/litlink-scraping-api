@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/scarlet0725/prism-api/adapter/util"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/usecase"
 )
@@ -24,11 +25,10 @@ type UserAdapter interface {
 	Delete(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
 	Verify(ctx *gin.Context)
-	GetUserFromContext(ctx *gin.Context) (*model.User, error)
 }
 
 type userAdapter struct {
-	user usecase.User
+	user  usecase.User
 }
 
 func NewUserAdapter(user usecase.User) UserAdapter {
@@ -102,7 +102,7 @@ func (a *userAdapter) Register(ctx *gin.Context) {
 }
 
 func (c *userAdapter) GetMe(ctx *gin.Context) {
-	user, err := c.GetUserFromContext(ctx)
+	user, err := util.GetUserFromContext(ctx)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -156,23 +156,10 @@ func (c *userAdapter) Delete(ctx *gin.Context) {
 
 }
 
-func (c *userAdapter) GetUserFromContext(ctx *gin.Context) (*model.User, error) {
-	val, ok := ctx.Get("user")
-	if !ok {
-		return nil, errors.New("user not found")
-	}
-
-	user, ok := val.(*model.User)
-	if !ok {
-		return nil, errors.New("user not found")
-	}
-	return user, nil
-}
-
 func (c *userAdapter) Verify(ctx *gin.Context) {
 	var appErr *model.AppError
 
-	user, err := c.GetUserFromContext(ctx)
+	user, err := util.GetUserFromContext(ctx)
 	if err != nil {
 		if ok := errors.As(err, &appErr); ok {
 			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})

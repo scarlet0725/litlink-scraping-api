@@ -37,3 +37,8 @@ type Role struct {
 	gorm.Model
 	model.Role
 }
+
+type GoogleOAuthState struct {
+	gorm.Model
+	model.GoogleOAuthState
+}

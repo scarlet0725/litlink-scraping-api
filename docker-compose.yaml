@@ -7,6 +7,10 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - type: bind
+        source: "./data/credentials.json"
+        target: "/app/credentials.json"
     environment:
       - PORT=8080
       - REDIS_ADDR=cache
@@ -16,6 +20,8 @@ services:
       - DB_NAME=prism_api
       - DB_PORT=3306
       - DB_HOST=db
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
     healthcheck:
       test: ["CMD", "/bin/healthcheck"]
       interval: 10s
@@ -76,7 +82,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
 
   adminer:
     container_name: adminer

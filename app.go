@@ -70,7 +70,11 @@ func main() {
 	parser := parser.NewParser()
 	serializer := selializer.NewResponseSerializer()
 
-	gin := infrastructure.NewGinRouter(fetchController, parser, serializer, orm)
+	gin, err := infrastructure.NewGinRouter(fetchController, parser, serializer, orm)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = gin.Serve(serverAddr)
 

@@ -1,10 +1,14 @@
 package infrastructure
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/scarlet0725/prism-api/adapter"
+	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/repository"
@@ -14,18 +18,19 @@ import (
 
 type GinRouter interface {
 	Serve(addr string) error
-	SetRoute()
+	SetRoute() error
 }
 
 type ginRouter struct {
-	fetch      controller.FetchController
-	paser      parser.DocParser
-	selializer selializer.ResponseSerializer
-	router     *gin.Engine
-	db         repository.DB
+	fetch        controller.FetchController
+	paser        parser.DocParser
+	selializer   selializer.ResponseSerializer
+	router       *gin.Engine
+	db           repository.DB
+	prismAPIHost string
 }
 
-func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) GinRouter {
+func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
 	r := gin.Default()
 
 	router := &ginRouter{
@@ -35,11 +40,13 @@ func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, sel
 		router:     r,
 		db:         db,
 	}
-	router.SetMeta()
-	router.SetRoute()
 	r.HandleMethodNotAllowed = true
 
-	return router
+	router.SetAPIHost(os.Getenv("PRISM_API_HOST"))
+	router.SetMeta()
+	err := router.SetRoute()
+
+	return router, err
 
 }
 
@@ -57,16 +64,24 @@ func (r *ginRouter) SetMeta() {
 
 }
 
-func (r *ginRouter) SetRoute() {
+func (r *ginRouter) SetRoute() error {
+	oauthConfig, err := cmd.GetGoogleOAuthConfig(r.prismAPIHost)
+
+	if err != nil {
+		return err
+	}
+
 	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
 	userUsecase := usecase.NewUserApplication(r.db)
 	artistUsecase := usecase.NewArtistUsecase(r.db)
 	venueUsecase := usecase.NewVenueUsecase(r.db)
+	oauthUsecase := usecase.NewOAuthApplication(r.db, framework.NewRamdomIDGenerator(), framework.NewGoogleOAuth(oauthConfig))
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
 	artist := adapter.NewArtistAdapter(artistUsecase)
 	venue := adapter.NewVenueAdapter(venueUsecase)
+	oauth := adapter.NewOAuthAdapter(oauthUsecase)
 
 	v1 := r.router.Group("/v1")
 
@@ -77,6 +92,7 @@ func (r *ginRouter) SetRoute() {
 	artistEndpoint := v1.Group("/artist")
 	venueEndpoint := v1.Group("/venue")
 	adminEndpoint := v1.Group("/admin")
+	oauthEndpoint := v1.Group("/oauth")
 
 	v1.POST("/register", user.Register)
 
@@ -84,6 +100,7 @@ func (r *ginRouter) SetRoute() {
 	userEndpoint.GET("/", user.GetMe)
 	userEndpoint.GET("/me", user.GetMe)
 	userEndpoint.DELETE("/delete", user.Delete)
+	userEndpoint.POST("/google", oauth.GoogleLinkage)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
 	eventEndpoint.Use(auth.Middleware())
@@ -102,5 +119,17 @@ func (r *ginRouter) SetRoute() {
 
 	adminEndpoint.Use(auth.Middleware())
 	adminEndpoint.POST("/verify_account", user.Verify)
+
+	oauthEndpoint.GET("/google/callback", oauth.GoogleOAuthCallback)
+
+	return nil
+}
+
+func (r *ginRouter) SetAPIHost(host string) {
+	if host == "" {
+		r.prismAPIHost = "http://localhost:8080"
+		return
+	}
+	r.prismAPIHost = host
 
 }
