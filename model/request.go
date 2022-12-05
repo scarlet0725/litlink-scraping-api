@@ -82,3 +82,9 @@ type UpdateEvent struct {
 type AdminVerify struct {
 	UserID string `json:"user_id"`
 }
+
+type GoogleOauthCallback struct {
+	Code  string `json:"code" form:"code"`
+	State string `json:"state" form:"state"`
+}
+

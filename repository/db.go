@@ -30,4 +30,8 @@ type DB interface {
 	GetVenueByID(id string) (*model.Venue, error)
 	GetVenuesByNames(names []string) ([]*model.Venue, error)
 	UpdateVenue(*model.Venue) (*model.Venue, error)
+
+	SaveGoogleOAuthState(*model.GoogleOAuthState) (*model.GoogleOAuthState, error)
+	GetGoogleOAuthStateByState(state string) (*model.GoogleOAuthState, error)
+	SaveGoogleOAuthToken(*model.GoogleOAuthToken) (*model.GoogleOAuthToken, error)
 }

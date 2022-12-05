@@ -275,3 +275,29 @@ func (g *gormDB) MergeEvents(base *model.Event, target *model.Event) (*model.Eve
 
 	return base, tx.Commit().Error
 }
+
+func (g *gormDB) GetGoogleOAuthStateByState(state string) (*model.GoogleOAuthState, error) {
+	var s *model.GoogleOAuthState
+	err := g.db.Where("state = ?", state).First(&s).Error
+	return s, err
+}
+
+func (g *gormDB) SaveGoogleOAuthState(s *model.GoogleOAuthState) (*model.GoogleOAuthState, error) {
+	err := g.db.Clauses(
+		clause.OnConflict{
+			UpdateAll: true,
+		},
+	).Create(s).Error
+
+	return s, err
+}
+
+func (g *gormDB) SaveGoogleOAuthToken(s *model.GoogleOAuthToken) (*model.GoogleOAuthToken, error) {
+	err := g.db.Clauses(
+		clause.OnConflict{
+			UpdateAll: true,
+		},
+	).Create(s).Error
+
+	return s, err
+}

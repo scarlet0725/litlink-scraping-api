@@ -2,9 +2,11 @@
 .github/
 .vscode/
 .gitignore
+.env
 /tmp
 /temp
 /sandbox
 README.md
 LICENSE
 docker-compose.yaml
+/data

@@ -16,6 +16,8 @@ func MigrationDB(db *gorm.DB) {
 		&schema.RyzmEvent{},
 		&schema.UnStructuredEventInformation{},
 		&schema.Role{},
+		&model.GoogleOAuthState{},
+		&model.GoogleOAuthToken{},
 	)
 
 	db.Exec("ALTER TABLE `events` CHANGE `description` `description` longtext COLLATE 'utf8mb4_bin' NULL AFTER `end_time`,CHANGE `venue_name` `venue_name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NULL AFTER `description`;")
