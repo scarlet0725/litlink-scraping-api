@@ -70,16 +70,17 @@ func (r *ginRouter) SetMeta() {
 
 func (r *ginRouter) SetRoute() error {
 	oauthConfig, err := cmd.GetGoogleOAuthConfig(r.prismAPIHost)
+	random := framework.NewRamdomIDGenerator()
 
 	if err != nil {
 		return err
 	}
 
-	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
-	userUsecase := usecase.NewUserApplication(r.db)
-	artistUsecase := usecase.NewArtistUsecase(r.db)
-	venueUsecase := usecase.NewVenueUsecase(r.db)
-	oauthUsecase := usecase.NewOAuthApplication(r.db, framework.NewRamdomIDGenerator(), framework.NewGoogleOAuth(oauthConfig))
+	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser(), random)
+	userUsecase := usecase.NewUserApplication(r.db, random)
+	artistUsecase := usecase.NewArtistUsecase(r.db, random)
+	venueUsecase := usecase.NewVenueUsecase(r.db, random)
+	oauthUsecase := usecase.NewOAuthApplication(r.db, random, framework.NewGoogleOAuth(oauthConfig))
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
