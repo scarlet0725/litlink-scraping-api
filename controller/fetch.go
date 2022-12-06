@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/scarlet0725/prism-api/infrastructure/gateway"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 )
@@ -10,11 +11,11 @@ type FetchController interface {
 }
 
 type fetchController struct {
-	cache repository.CacheRepository
-	http  repository.HTTPRepository
+	cache repository.Cache
+	http  gateway.HTTP
 }
 
-func NewFetchController(http repository.HTTPRepository, cache repository.CacheRepository) FetchController {
+func NewFetchController(http gateway.HTTP, cache repository.Cache) FetchController {
 	return &fetchController{
 		http:  http,
 		cache: cache,

@@ -1,5 +1,5 @@
-package repository
+package gateway
 
-type HTTPRepository interface {
+type HTTP interface {
 	Get(string, map[string]string, map[string]string) ([]byte, error)
 }
