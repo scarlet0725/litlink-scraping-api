@@ -15,11 +15,11 @@ type OAuth interface {
 
 type oauthUsecase struct {
 	db     repository.DB
-	ramdom framework.RamdomIDGenerator
+	ramdom framework.RandomID
 	google framework.GoogleOAuth
 }
 
-func NewOAuthApplication(db repository.DB, ramdom framework.RamdomIDGenerator, google framework.GoogleOAuth) OAuth {
+func NewOAuthApplication(db repository.DB, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
 	return &oauthUsecase{
 		ramdom: ramdom,
 		db:     db,

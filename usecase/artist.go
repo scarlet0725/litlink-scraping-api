@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"github.com/scarlet0725/prism-api/cmd"
-	"github.com/scarlet0725/prism-api/model"
+	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
+	"github.com/scarlet0725/prism-api/model"
 )
 
 type Artist interface {
@@ -14,7 +14,8 @@ type Artist interface {
 }
 
 type artistUsecase struct {
-	db repository.DB
+	db     repository.DB
+	random framework.RandomID
 }
 
 func NewArtistUsecase(db repository.DB) Artist {
@@ -24,7 +25,7 @@ func NewArtistUsecase(db repository.DB) Artist {
 }
 
 func (a *artistUsecase) CreateArtist(artist *model.Artist) (*model.Artist, error) {
-	id := cmd.MakeRamdomID(artistIDLength)
+	id := a.random.Generate(artistIDLength)
 
 	artist.ArtistID = id
 

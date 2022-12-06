@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/scarlet0725/prism-api/cmd"
+	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 )
@@ -14,7 +14,8 @@ type Venue interface {
 }
 
 type venueUsecase struct {
-	db repository.DB
+	db     repository.DB
+	ramdom framework.RandomID
 }
 
 func NewVenueUsecase(db repository.DB) Venue {
@@ -24,7 +25,7 @@ func NewVenueUsecase(db repository.DB) Venue {
 }
 
 func (a *venueUsecase) CreateVenue(venue *model.Venue) (*model.Venue, error) {
-	id := cmd.MakeRamdomID(venueIDLength)
+	id := a.ramdom.Generate(venueIDLength)
 
 	venue.VenueID = id
 	venue.ID = 0

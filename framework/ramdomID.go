@@ -2,22 +2,23 @@ package framework
 
 import (
 	"crypto/rand"
+
 	"github.com/google/uuid"
 )
 
-type RamdomIDGenerator interface {
+type RandomID interface {
 	Generate(int) string
 	GenerateUUID4() (string, error)
 }
 
-type RamdomIDGeneratorImpl struct {
+type ramdomIDGeneratorImpl struct {
 }
 
-func NewRamdomIDGenerator() RamdomIDGenerator {
-	return &RamdomIDGeneratorImpl{}
+func NewRamdomIDGenerator() RandomID {
+	return &ramdomIDGeneratorImpl{}
 }
 
-func (r *RamdomIDGeneratorImpl) Generate(length int) string {
+func (r *ramdomIDGeneratorImpl) Generate(length int) string {
 	const chars = "ABCDEFGHIJKLMNPQRSTWXYZ123456789"
 	b := make([]byte, length)
 
@@ -31,7 +32,7 @@ func (r *RamdomIDGeneratorImpl) Generate(length int) string {
 	return result
 }
 
-func (r *RamdomIDGeneratorImpl) GenerateUUID4() (string, error) {
+func (r *ramdomIDGeneratorImpl) GenerateUUID4() (string, error) {
 	uuidObj, err := uuid.NewRandom()
 	return uuidObj.String(), err
 }
