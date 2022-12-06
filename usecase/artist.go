@@ -18,9 +18,10 @@ type artistUsecase struct {
 	random framework.RandomID
 }
 
-func NewArtistUsecase(db repository.DB) Artist {
+func NewArtistUsecase(db repository.DB, r framework.RandomID) Artist {
 	return &artistUsecase{
-		db: db,
+		db:     db,
+		random: r,
 	}
 }
 

@@ -18,9 +18,10 @@ type venueUsecase struct {
 	ramdom framework.RandomID
 }
 
-func NewVenueUsecase(db repository.DB) Venue {
+func NewVenueUsecase(db repository.DB, r framework.RandomID) Venue {
 	return &venueUsecase{
-		db: db,
+		db:     db,
+		ramdom: r,
 	}
 }
 
