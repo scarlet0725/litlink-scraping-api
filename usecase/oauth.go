@@ -19,7 +19,7 @@ type oauthUsecase struct {
 	google framework.GoogleOAuth
 }
 
-func NewOAuthApplication(db repository.DB, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
+func NewOAuthUsecase(db repository.DB, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
 	return &oauthUsecase{
 		ramdom: ramdom,
 		db:     db,

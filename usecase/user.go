@@ -22,7 +22,7 @@ type userUsecase struct {
 	random framework.RandomID
 }
 
-func NewUserApplication(db repository.DB, r framework.RandomID) User {
+func NewUserUsecase(db repository.DB, r framework.RandomID) User {
 	return &userUsecase{
 		db:     db,
 		random: r,

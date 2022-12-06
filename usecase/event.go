@@ -31,7 +31,7 @@ type eventUsecase struct {
 	random     framework.RandomID
 }
 
-func NewEventApplication(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser, r framework.RandomID) Event {
+func NewEventUsecase(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser, r framework.RandomID) Event {
 	return &eventUsecase{
 		db:         db,
 		fetch:      fetch,

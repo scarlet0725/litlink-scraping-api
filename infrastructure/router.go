@@ -76,11 +76,11 @@ func (r *ginRouter) SetRoute() error {
 		return err
 	}
 
-	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser(), random)
-	userUsecase := usecase.NewUserApplication(r.db, random)
+	eventUsecase := usecase.NewEventUsecase(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser(), random)
+	userUsecase := usecase.NewUserUsecase(r.db, random)
 	artistUsecase := usecase.NewArtistUsecase(r.db, random)
 	venueUsecase := usecase.NewVenueUsecase(r.db, random)
-	oauthUsecase := usecase.NewOAuthApplication(r.db, random, framework.NewGoogleOAuth(oauthConfig))
+	oauthUsecase := usecase.NewOAuthUsecase(r.db, random, framework.NewGoogleOAuth(oauthConfig))
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
