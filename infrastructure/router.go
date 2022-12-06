@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
@@ -30,8 +31,10 @@ type ginRouter struct {
 	prismAPIHost string
 }
 
-func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
-	r := gin.Default()
+func NewGinRouter(logger *zap.Logger, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
+	r := gin.New()
+
+	r.Use(middleware.Logger(logger), gin.Recovery())
 
 	router := &ginRouter{
 		fetch:      fetch,
@@ -41,6 +44,7 @@ func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, sel
 		db:         db,
 	}
 	r.HandleMethodNotAllowed = true
+	r.TrustedPlatform = gin.PlatformCloudflare
 
 	router.SetAPIHost(os.Getenv("PRISM_API_HOST"))
 	router.SetMeta()
