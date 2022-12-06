@@ -4,14 +4,15 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/framework"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/selializer"
 	"github.com/scarlet0725/prism-api/usecase"
 )
@@ -30,8 +31,10 @@ type ginRouter struct {
 	prismAPIHost string
 }
 
-func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
-	r := gin.Default()
+func NewGinRouter(logger *zap.Logger, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
+	r := gin.New()
+
+	r.Use(middleware.Logger(logger), gin.Recovery())
 
 	router := &ginRouter{
 		fetch:      fetch,
@@ -41,6 +44,7 @@ func NewGinRouter(fetch controller.FetchController, parser parser.DocParser, sel
 		db:         db,
 	}
 	r.HandleMethodNotAllowed = true
+	r.TrustedPlatform = gin.PlatformCloudflare
 
 	router.SetAPIHost(os.Getenv("PRISM_API_HOST"))
 	router.SetMeta()
@@ -66,16 +70,17 @@ func (r *ginRouter) SetMeta() {
 
 func (r *ginRouter) SetRoute() error {
 	oauthConfig, err := cmd.GetGoogleOAuthConfig(r.prismAPIHost)
+	random := framework.NewRamdomIDGenerator()
 
 	if err != nil {
 		return err
 	}
 
-	eventUsecase := usecase.NewEventApplication(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser())
-	userUsecase := usecase.NewUserApplication(r.db)
-	artistUsecase := usecase.NewArtistUsecase(r.db)
-	venueUsecase := usecase.NewVenueUsecase(r.db)
-	oauthUsecase := usecase.NewOAuthApplication(r.db, framework.NewRamdomIDGenerator(), framework.NewGoogleOAuth(oauthConfig))
+	eventUsecase := usecase.NewEventUsecase(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser(), random)
+	userUsecase := usecase.NewUserUsecase(r.db, random)
+	artistUsecase := usecase.NewArtistUsecase(r.db, random)
+	venueUsecase := usecase.NewVenueUsecase(r.db, random)
+	oauthUsecase := usecase.NewOAuthUsecase(r.db, random, framework.NewGoogleOAuth(oauthConfig))
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)

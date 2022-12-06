@@ -9,10 +9,10 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
-	"github.com/scarlet0725/prism-api/gateway"
 	"github.com/scarlet0725/prism-api/infrastructure"
 	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/selializer"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -22,6 +22,12 @@ const (
 )
 
 func main() {
+
+	logger, err := zap.NewProduction()
+
+	if err != nil {
+		log.Fatalf("can't initialize zap logger: %v", err)
+	}
 
 	var (
 		mg = flag.Bool("migration", false, "migration")
@@ -63,14 +69,14 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	cache := gateway.NewRedisManager(redisClient)
-	httpClient := gateway.NewHTTPClient()
+	cache := infrastructure.NewRedisManager(redisClient)
+	httpClient := infrastructure.NewHTTPClient()
 	fetchController := controller.NewFetchController(httpClient, cache)
 
 	parser := parser.NewParser()
 	serializer := selializer.NewResponseSerializer()
 
-	gin, err := infrastructure.NewGinRouter(fetchController, parser, serializer, orm)
+	gin, err := infrastructure.NewGinRouter(logger, fetchController, parser, serializer, orm)
 
 	if err != nil {
 		log.Fatal(err)

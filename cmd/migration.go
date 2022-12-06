@@ -8,7 +8,7 @@ import (
 
 func MigrationDB(db *gorm.DB) {
 
-	db.Debug().AutoMigrate(
+	db.AutoMigrate(
 		&schema.User{},
 		&schema.Artist{},
 		&schema.Event{},

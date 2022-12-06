@@ -22,12 +22,6 @@ services:
       - DB_HOST=db
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-    healthcheck:
-      test: ["CMD", "/bin/healthcheck"]
-      interval: 10s
-      timeout: 1s
-      retries: 3
-      start_period: 5s
     depends_on:
       cache:
         condition: service_healthy

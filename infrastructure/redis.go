@@ -1,18 +1,18 @@
-package gateway
+package infrastructure
 
 import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
 )
 
 type redisCache struct {
 	Client *redis.Client
 }
 
-func NewRedisManager(c *redis.Client) repository.CacheRepository {
+func NewRedisManager(c *redis.Client) repository.Cache {
 	client := &redisCache{
 		Client: c,
 	}

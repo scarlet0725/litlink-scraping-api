@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/scarlet0725/prism-api/framework"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
 )
 
 type OAuth interface {
@@ -15,11 +15,11 @@ type OAuth interface {
 
 type oauthUsecase struct {
 	db     repository.DB
-	ramdom framework.RamdomIDGenerator
+	ramdom framework.RandomID
 	google framework.GoogleOAuth
 }
 
-func NewOAuthApplication(db repository.DB, ramdom framework.RamdomIDGenerator, google framework.GoogleOAuth) OAuth {
+func NewOAuthUsecase(db repository.DB, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
 	return &oauthUsecase{
 		ramdom: ramdom,
 		db:     db,

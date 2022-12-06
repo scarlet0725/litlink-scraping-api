@@ -4,9 +4,9 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 
-	"github.com/scarlet0725/prism-api/cmd"
+	"github.com/scarlet0725/prism-api/framework"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
 )
 
 type User interface {
@@ -18,12 +18,14 @@ type User interface {
 }
 
 type userUsecase struct {
-	db repository.DB
+	db     repository.DB
+	random framework.RandomID
 }
 
-func NewUserApplication(db repository.DB) User {
+func NewUserUsecase(db repository.DB, r framework.RandomID) User {
 	return &userUsecase{
-		db: db,
+		db:     db,
+		random: r,
 	}
 }
 
@@ -41,7 +43,7 @@ func (a *userUsecase) GetUser(id string) (*model.User, *model.AppError) {
 }
 
 func (a *userUsecase) CreateUser(user *model.User) (*model.User, error) {
-	id := cmd.MakeRamdomID(userIDLength)
+	id := a.random.Generate(userIDLength)
 
 	user.UserID = id
 

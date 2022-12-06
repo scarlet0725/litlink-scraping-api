@@ -3,11 +3,11 @@ package usecase
 import (
 	"time"
 
-	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/framework"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/selializer"
 )
 
@@ -28,20 +28,22 @@ type eventUsecase struct {
 	parser     parser.DocParser
 	selializer selializer.ResponseSerializer
 	json       parser.JsonParser
+	random     framework.RandomID
 }
 
-func NewEventApplication(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser) Event {
+func NewEventUsecase(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser, r framework.RandomID) Event {
 	return &eventUsecase{
 		db:         db,
 		fetch:      fetch,
 		parser:     parser,
 		selializer: selializer,
 		json:       json,
+		random:     r,
 	}
 }
 
 func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
-	id := cmd.MakeRamdomID(eventIDLength)
+	id := a.random.Generate(eventIDLength)
 
 	artists, _ := a.db.GetArtistsByIDs(e.ArtistIDs)
 	venue, _ := a.db.GetVenueByID(e.VenueID)
@@ -244,7 +246,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 				}
 			}
 			if c == 0 {
-				event.EventID = cmd.MakeRamdomID(eventIDLength)
+				event.EventID = a.random.Generate(eventIDLength)
 				event.Artists = append(event.Artists, artist)
 				registrationExpectedEvents = append(registrationExpectedEvents, event)
 			}
