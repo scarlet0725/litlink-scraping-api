@@ -3,7 +3,7 @@ package usecase
 import (
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 )
 
 type Artist interface {

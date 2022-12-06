@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/scarlet0725/prism-api/repository"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 )
 
 type Auth interface {

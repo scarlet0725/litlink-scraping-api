@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 
 	"github.com/scarlet0725/prism-api/cmd"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
 )
 
 type User interface {

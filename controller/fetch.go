@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/repository"
 )
 
 type FetchController interface {

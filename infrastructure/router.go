@@ -10,9 +10,9 @@ import (
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/framework"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/repository"
 	"github.com/scarlet0725/prism-api/selializer"
 	"github.com/scarlet0725/prism-api/usecase"
 )

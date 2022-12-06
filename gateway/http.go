@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/scarlet0725/prism-api/repository"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 )
 
 type HttpClient struct {
