@@ -28,7 +28,7 @@ type UserAdapter interface {
 }
 
 type userAdapter struct {
-	user  usecase.User
+	user usecase.User
 }
 
 func NewUserAdapter(user usecase.User) UserAdapter {
