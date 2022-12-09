@@ -19,7 +19,7 @@ func NewRamdomIDGenerator() RandomID {
 }
 
 func (r *ramdomIDGeneratorImpl) Generate(length int) string {
-	const chars = "ABCDEFGHIJKLMNPQRSTWXYZ123456789"
+	const chars = "ABCDEFGHIJKLMNPQRST123456789"
 	b := make([]byte, length)
 
 	rand.Read(b)
