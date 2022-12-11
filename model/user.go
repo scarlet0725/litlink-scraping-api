@@ -15,11 +15,12 @@ type User struct {
 	DeleteProtected  bool   `json:"-" gorm:"not null"`
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	DeletedAt        *time.Time        `sql:"index" json:"-"`
+	DeletedAt        *time.Time        `gorm:"index" json:"-"`
 	Events           []*Event          `json:"-" gorm:"many2many:user_events"`
 	Roles            []*Role           `json:"-" gorm:"many2many:user_roles"`
 	GoogleToken      *GoogleOAuthToken `json:"-"`
 	GoogleOAuthState *GoogleOAuthState `json:"-"`
+	ExternalCalendar *ExternalCalendar `json:"-"`
 }
 
 type GoogleOAuthToken struct {
@@ -28,6 +29,10 @@ type GoogleOAuthToken struct {
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 	Expiry       time.Time
+}
+
+func (g GoogleOAuthToken) TableName() string {
+	return "google_oauth_tokens"
 }
 
 type OAuthURLResponse struct {
@@ -39,4 +44,8 @@ type GoogleOAuthState struct {
 	ID     uint   `gorm:"primary_key;unique;not null;auto_increment"`
 	UserID *uint  `gorm:"unique;not null"`
 	State  string `gorm:"unique;not null"`
+}
+
+func (g GoogleOAuthState) TableName() string {
+	return "google_oauth_states"
 }
