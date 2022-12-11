@@ -4,13 +4,14 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/framework"
-	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
 	"github.com/scarlet0725/prism-api/selializer"
@@ -23,25 +24,22 @@ type GinRouter interface {
 }
 
 type ginRouter struct {
-	fetch        controller.FetchController
-	paser        parser.DocParser
-	selializer   selializer.ResponseSerializer
 	router       *gin.Engine
-	db           repository.DB
+	db           *gorm.DB
+	redis        *redis.Client
 	prismAPIHost string
 }
 
-func NewGinRouter(logger *zap.Logger, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, db repository.DB) (GinRouter, error) {
+func NewGinRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
 	r := gin.New()
 
 	r.Use(middleware.Logger(logger), gin.Recovery())
 
 	router := &ginRouter{
-		fetch:      fetch,
-		paser:      parser,
-		selializer: selializer,
-		router:     r,
-		db:         db,
+		router:       r,
+		db:           db,
+		redis:        redis,
+		prismAPIHost: "",
 	}
 	r.HandleMethodNotAllowed = true
 	r.TrustedPlatform = gin.PlatformCloudflare
@@ -76,11 +74,22 @@ func (r *ginRouter) SetRoute() error {
 		return err
 	}
 
-	eventUsecase := usecase.NewEventUsecase(r.db, r.fetch, r.paser, r.selializer, parser.NewJsonParser(), random)
-	userUsecase := usecase.NewUserUsecase(r.db, random)
-	artistUsecase := usecase.NewArtistUsecase(r.db, random)
-	venueUsecase := usecase.NewVenueUsecase(r.db, random)
-	oauthUsecase := usecase.NewOAuthUsecase(r.db, random, framework.NewGoogleOAuth(oauthConfig))
+	cache := NewRedisManager(r.redis)
+	httpClient := NewHTTPClient()
+	fetchController := controller.NewFetchController(httpClient, cache)
+
+	docParser := parser.NewParser()
+	serializer := selializer.NewResponseSerializer()
+
+	userRepository := NewUserRepository(r.db)
+
+	db := NewGORMClient(r.db)
+
+	eventUsecase := usecase.NewEventUsecase(db, fetchController, docParser, serializer, parser.NewJsonParser(), random)
+	userUsecase := usecase.NewUserUsecase(userRepository, random)
+	artistUsecase := usecase.NewArtistUsecase(db, random)
+	venueUsecase := usecase.NewVenueUsecase(db, random)
+	oauthUsecase := usecase.NewOAuthUsecase(db, random, framework.NewGoogleOAuth(oauthConfig))
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase)
@@ -90,7 +99,7 @@ func (r *ginRouter) SetRoute() error {
 
 	v1 := r.router.Group("/v1")
 
-	auth := middleware.NewAuthMiddleware(r.db)
+	auth := middleware.NewAuthMiddleware(db)
 
 	userEndpoint := v1.Group("/user")
 	eventEndpoint := v1.Group("/event")
@@ -106,6 +115,7 @@ func (r *ginRouter) SetRoute() error {
 	userEndpoint.GET("/me", user.GetMe)
 	userEndpoint.DELETE("/delete", user.Delete)
 	userEndpoint.POST("/google", oauth.GoogleLinkage)
+	userEndpoint.POST("/calender", user.CreateExternalCalendar)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
 	eventEndpoint.Use(auth.Middleware())

@@ -8,10 +8,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
-	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/infrastructure"
-	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/selializer"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -54,8 +51,6 @@ func main() {
 		return
 	}
 
-	orm := infrastructure.NewGORMClient(db)
-
 	serverAddr := cmd.ConfigureHTTPServer()
 	cacheAddr := cmd.ConfigureCacheServer()
 
@@ -69,14 +64,7 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	cache := infrastructure.NewRedisManager(redisClient)
-	httpClient := infrastructure.NewHTTPClient()
-	fetchController := controller.NewFetchController(httpClient, cache)
-
-	parser := parser.NewParser()
-	serializer := selializer.NewResponseSerializer()
-
-	gin, err := infrastructure.NewGinRouter(logger, fetchController, parser, serializer, orm)
+	gin, err := infrastructure.NewGinRouter(logger, db, redisClient)
 
 	if err != nil {
 		log.Fatal(err)
