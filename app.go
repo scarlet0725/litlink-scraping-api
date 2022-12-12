@@ -10,12 +10,6 @@ import (
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/infrastructure"
 	"go.uber.org/zap"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-)
-
-const (
-	AppVersion = "0.1."
 )
 
 func main() {
@@ -40,7 +34,7 @@ func main() {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := cmd.ConnectDB(dsn)
 
 	if err != nil {
 		log.Fatal(err)

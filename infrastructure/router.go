@@ -93,7 +93,7 @@ func (r *ginRouter) SetRoute() error {
 	oauthUsecase := usecase.NewOAuthUsecase(db, random, googleOAuth)
 
 	event := adapter.NewEventAdapter(eventUsecase)
-	user := adapter.NewUserAdapter(userUsecase)
+	user := adapter.NewUserAdapter(userUsecase, eventUsecase)
 	artist := adapter.NewArtistAdapter(artistUsecase)
 	venue := adapter.NewVenueAdapter(venueUsecase)
 	oauth := adapter.NewOAuthAdapter(oauthUsecase)
@@ -117,6 +117,7 @@ func (r *ginRouter) SetRoute() error {
 	userEndpoint.DELETE("/delete", user.Delete)
 	userEndpoint.POST("/google", oauth.GoogleLinkage)
 	userEndpoint.POST("/calendar", user.CreateExternalCalendar)
+	userEndpoint.POST("/event", user.RegistrationEvent)
 
 	//v1.GET("events/:arist_name", event.GetEventsByArtistName)
 	eventEndpoint.Use(auth.Middleware())
