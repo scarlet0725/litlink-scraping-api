@@ -14,11 +14,11 @@ type Artist interface {
 }
 
 type artistUsecase struct {
-	db     repository.DB
+	db     repository.Artist
 	random framework.RandomID
 }
 
-func NewArtistUsecase(db repository.DB, r framework.RandomID) Artist {
+func NewArtistUsecase(db repository.Artist, r framework.RandomID) Artist {
 	return &artistUsecase{
 		db:     db,
 		random: r,

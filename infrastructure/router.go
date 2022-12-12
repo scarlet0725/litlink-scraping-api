@@ -83,13 +83,14 @@ func (r *ginRouter) SetRoute() error {
 	serializer := selializer.NewResponseSerializer()
 
 	userRepository := NewUserRepository(r.db)
+	artistRepository := NewArtistRepository(r.db)
 
 	db := NewGORMClient(r.db)
 	googleOAuth := framework.NewGoogleOAuth(oauthConfig)
 
 	eventUsecase := usecase.NewEventUsecase(db, fetchController, docParser, serializer, parser.NewJsonParser(), random)
 	userUsecase := usecase.NewUserUsecase(userRepository, random, googleOAuth, NewGoogleCalenderClient)
-	artistUsecase := usecase.NewArtistUsecase(db, random)
+	artistUsecase := usecase.NewArtistUsecase(artistRepository, random)
 	venueUsecase := usecase.NewVenueUsecase(db, random)
 	oauthUsecase := usecase.NewOAuthUsecase(db, random, googleOAuth)
 
