@@ -18,6 +18,7 @@ type User interface {
 	GetUserByAPIKey(apiKey string) (*model.User, error)
 	VerifyAccount(userID string) (*model.User, error)
 	CreateCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
+	RegistrationEvent(*model.User, *model.Event) (*model.RegistrationEventResponse, error)
 }
 
 type userUsecase struct {
@@ -169,5 +170,69 @@ func (a *userUsecase) CreateCalendar(req *model.ExternalCalendar) (*model.Extern
 
 	result, err := srv.CreateCalendar(req)
 
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "Failed to create calendar",
+		}
+	}
+
+	a.user.SaveExternalCalendar(result)
+
 	return result, err
+}
+
+func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*model.RegistrationEventResponse, error) {
+
+	userID := int(user.ID)
+	err := a.user.AddRegistrationEvent(user, event)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "Failed to update user",
+		}
+	}
+
+	result := &model.RegistrationEventResponse{
+		CalenderAdded:   false,
+		EventRegistered: true,
+		EventID:         event.EventID,
+	}
+
+	//ユーザーのカレンダーを取得する
+	calendar, err := a.user.GetUserCalendarByUserID(userID)
+
+	if err != nil {
+		return result, nil
+	}
+
+	//ユーザーのカレンダーが存在する場合は、イベントを登録する
+	token, err := a.user.GetGoogleOAuthToken(userID)
+
+	if err != nil {
+		return result, nil
+	}
+
+	client := a.google.GetClient(token)
+
+	srv := a.srvBuilder(client)
+
+	calendarEvent := &model.CalendarEvent{
+		ExternalEventID:    event.EventID,
+		ExternalCalendarID: calendar.CalendarID,
+		Event:              event,
+		Public:             false,
+	}
+
+	_, err = srv.CreateEvent(calendarEvent)
+
+	if err != nil {
+		return result, nil
+	}
+
+	result.CalenderAdded = true
+
+	return result, err
+
 }

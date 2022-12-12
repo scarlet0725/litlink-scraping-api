@@ -48,11 +48,11 @@ func (u *userRepository) CreateUser(user *model.User) (*model.User, error) {
 func (u *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 	var schema schema.User
 	schema.User = *user
-	err := u.db.Save(&u).Error
+	err := u.db.Save(&schema).Error
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return &schema.User, nil
 }
 
 func (u *userRepository) DeleteUser(user *model.User) error {
@@ -109,4 +109,22 @@ func (u *userRepository) GetGoogleOAuthToken(id int) (*model.GoogleOAuthToken, e
 	}
 
 	return token, nil
+}
+
+func (u *userRepository) SaveExternalCalendar(cal *model.ExternalCalendar) (*model.ExternalCalendar, error) {
+	err := u.db.Create(cal).Error
+	if err != nil {
+		return nil, err
+	}
+	return cal, nil
+}
+
+func (u *userRepository) AddRegistrationEvent(user *model.User, event *model.Event) error {
+	err := u.db.Model(user).Association("Events").Append(event)
+	return err
+}
+
+func (u *userRepository) RemoveRegistrationEvent(user *model.User, event *model.Event) error {
+	err := u.db.Model(user).Association("Events").Delete(event)
+	return err
 }

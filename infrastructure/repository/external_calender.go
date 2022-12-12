@@ -12,9 +12,9 @@ var (
 )
 
 type ExternalCalendar interface {
-	CreateEvent(*model.CalenderEvent) (*model.Event, error)
-	UpdateEvent(*model.CalenderEvent) (*model.Event, error)
-	DeleteEvent(*model.CalenderEvent) error
+	CreateEvent(*model.CalendarEvent) (*model.Event, error)
+	UpdateEvent(*model.CalendarEvent) (*model.Event, error)
+	DeleteEvent(*model.CalendarEvent) error
 	GetEvent(calenderID string, eventID string) (*model.Event, error)
 	CreateCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
 }

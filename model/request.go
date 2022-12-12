@@ -92,3 +92,7 @@ type CreateExternalCalendarRequest struct {
 	User
 	ExternalCalendar
 }
+
+type EventRegistrationRequest struct {
+	EventID string `json:"event_id"`
+}

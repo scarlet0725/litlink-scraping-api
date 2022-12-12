@@ -12,4 +12,7 @@ type User interface {
 	DeleteUser(*model.User) error
 	GetUserCalendarByUserID(int) (*model.ExternalCalendar, error)
 	GetGoogleOAuthToken(int) (*model.GoogleOAuthToken, error)
+	SaveExternalCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
+	AddRegistrationEvent(*model.User, *model.Event) error
+	RemoveRegistrationEvent(*model.User, *model.Event) error
 }

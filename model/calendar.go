@@ -17,7 +17,7 @@ type ArtistCalendar struct {
 	ArtistID           *uint   `json:"-"`
 }
 
-type CalenderEvent struct {
+type CalendarEvent struct {
 	ExternalEventID    string `json:"external_event_id"`
 	ExternalCalendarID string `json:"external_calender_id"`
 	Public             bool   `json:"public"`
