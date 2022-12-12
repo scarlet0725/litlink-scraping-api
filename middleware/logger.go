@@ -11,6 +11,7 @@ func Logger(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
+		c.Next()
 		logger.Info("Logger",
 			zap.Int("status", c.Writer.Status()),
 			zap.String("method", c.Request.Method),
