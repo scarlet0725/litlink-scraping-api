@@ -31,6 +31,7 @@ type ginRouter struct {
 }
 
 func NewGinRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
 	r.Use(middleware.Logger(logger), gin.Recovery())
