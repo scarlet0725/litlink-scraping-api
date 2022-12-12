@@ -11,6 +11,7 @@ import (
 type GoogleOAuth interface {
 	GenerateAuthURL(state string) string
 	GetToken(code string) (*model.GoogleOAuthToken, error)
+	GetClient(token *model.GoogleOAuthToken) *http.Client
 }
 
 type GoogleOAuthImpl struct {

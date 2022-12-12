@@ -8,7 +8,7 @@ RUN go mod download
 COPY . /go/src
 RUN go build -o prism-api
 
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base-debian11:latest
 
 COPY --from=builder --chown=nonroot:nonroot /go/src/prism-api /bin/prism-api
 

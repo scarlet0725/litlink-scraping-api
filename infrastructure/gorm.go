@@ -161,7 +161,7 @@ func (g *gormDB) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
 
 func (g *gormDB) GetEventsByID(ID string) (*model.Event, error) {
 	var event *model.Event
-	err := g.db.Preload("Artist").Preload("RyzmEvent").Where("event_id = ?", ID).First(&event).Error
+	err := g.db.Preload(clause.Associations).Where("event_id = ?", ID).First(&event).Error
 	if err != nil {
 		return nil, err
 	}

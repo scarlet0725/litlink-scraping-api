@@ -1,7 +1,13 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/scarlet0725/prism-api/model"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
 )
 
 type DB interface {

@@ -8,17 +8,8 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
-	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/infrastructure"
-	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/selializer"
 	"go.uber.org/zap"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-)
-
-const (
-	AppVersion = "0.1."
 )
 
 func main() {
@@ -43,7 +34,7 @@ func main() {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := cmd.ConnectDB(dsn)
 
 	if err != nil {
 		log.Fatal(err)
@@ -53,8 +44,6 @@ func main() {
 		cmd.MigrationDB(db)
 		return
 	}
-
-	orm := infrastructure.NewGORMClient(db)
 
 	serverAddr := cmd.ConfigureHTTPServer()
 	cacheAddr := cmd.ConfigureCacheServer()
@@ -69,14 +58,7 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	cache := infrastructure.NewRedisManager(redisClient)
-	httpClient := infrastructure.NewHTTPClient()
-	fetchController := controller.NewFetchController(httpClient, cache)
-
-	parser := parser.NewParser()
-	serializer := selializer.NewResponseSerializer()
-
-	gin, err := infrastructure.NewGinRouter(logger, fetchController, parser, serializer, orm)
+	gin, err := infrastructure.NewGinRouter(logger, db, redisClient)
 
 	if err != nil {
 		log.Fatal(err)

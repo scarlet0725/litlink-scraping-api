@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/scarlet0725/prism-api/adapter/util"
+	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/usecase"
 )
@@ -25,15 +26,20 @@ type UserAdapter interface {
 	Delete(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
 	Verify(ctx *gin.Context)
+	CreateExternalCalendar(ctx *gin.Context)
+	RegistrationEvent(ctx *gin.Context)
 }
 
 type userAdapter struct {
-	user usecase.User
+	user  usecase.User
+	event usecase.Event
+	//cal  usecase.ExternalCalendar
 }
 
-func NewUserAdapter(user usecase.User) UserAdapter {
+func NewUserAdapter(user usecase.User, event usecase.Event) UserAdapter {
 	return &userAdapter{
-		user: user,
+		user:  user,
+		event: event,
 	}
 }
 
@@ -204,5 +210,85 @@ func (c *userAdapter) Verify(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "Internal Server Error"})
 		return
 	}
+
+}
+
+func (c *userAdapter) CreateExternalCalendar(ctx *gin.Context) {
+	user, err := util.GetUserFromContext(ctx)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"ok": false, "error": "invalid api key"})
+		return
+	}
+
+	cal := &model.ExternalCalendar{
+		UserID: int(user.ID),
+	}
+
+	result, err := c.user.CreateCalendar(cal)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.JSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "calendar": result})
+}
+
+func (c *userAdapter) RegistrationEvent(ctx *gin.Context) {
+	user, err := util.GetUserFromContext(ctx)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"ok": false, "error": "invalid api key"})
+		return
+	}
+
+	var req model.EventRegistrationRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		return
+	}
+
+	event, err := c.event.GetEventByID(req.EventID)
+
+	if err != nil {
+		switch errors.Is(err, repository.ErrNotFound) {
+		case true:
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"ok": false, "error": "event not found"})
+		case false:
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		}
+		return
+	}
+
+	result, err := c.user.RegistrationEvent(user, event)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.JSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "result": result})
 
 }
