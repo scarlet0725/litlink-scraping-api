@@ -12,7 +12,7 @@ type artist struct {
 	db *gorm.DB
 }
 
-func NewArtistRepository(db *gorm.DB) repository.ArtistRepository {
+func NewArtistRepository(db *gorm.DB) repository.Artist {
 	return &artist{
 		db: db,
 	}
