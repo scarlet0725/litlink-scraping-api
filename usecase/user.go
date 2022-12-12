@@ -3,6 +3,8 @@ package usecase
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"errors"
+	"net/http"
 
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
@@ -15,22 +17,27 @@ type User interface {
 	DeleteUser(*model.User) error
 	GetUserByAPIKey(apiKey string) (*model.User, error)
 	VerifyAccount(userID string) (*model.User, error)
+	CreateCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
 }
 
 type userUsecase struct {
-	db     repository.DB
-	random framework.RandomID
+	user       repository.User
+	random     framework.RandomID
+	google     framework.GoogleOAuth
+	srvBuilder func(*http.Client) repository.ExternalCalendar
 }
 
-func NewUserUsecase(db repository.DB, r framework.RandomID) User {
+func NewUserUsecase(u repository.User, r framework.RandomID, g framework.GoogleOAuth, f func(*http.Client) repository.ExternalCalendar) User {
 	return &userUsecase{
-		db:     db,
-		random: r,
+		user:       u,
+		random:     r,
+		google:     g,
+		srvBuilder: f,
 	}
 }
 
 func (a *userUsecase) GetUser(id string) (*model.User, *model.AppError) {
-	user, err := a.db.GetUser(id)
+	user, err := a.user.GetUser(id)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -47,7 +54,7 @@ func (a *userUsecase) CreateUser(user *model.User) (*model.User, error) {
 
 	user.UserID = id
 
-	user, err := a.db.CreateUser(user)
+	user, err := a.user.CreateUser(user)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -67,14 +74,14 @@ func (a *userUsecase) DeleteUser(user *model.User) error {
 			Msg:  "User not found",
 		}
 	}
-	err := a.db.DeleteUser(user)
+	err := a.user.DeleteUser(user)
 	return err
 }
 
 func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
 	sha512 := sha512.Sum512([]byte(key))
 	k := hex.EncodeToString(sha512[:])
-	user, err := a.db.GetUserByAPIKey(string(k))
+	user, err := a.user.GetUserByAPIKey(string(k))
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -88,7 +95,7 @@ func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
 }
 
 func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
-	user, err := a.db.GetUser(userID)
+	user, err := a.user.GetUser(userID)
 	if err != nil {
 		return nil, &model.AppError{
 			Code: 404,
@@ -97,7 +104,7 @@ func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
 	}
 
 	user.IsAdminVerified = true
-	user, err = a.db.UpdateUser(user)
+	user, err = a.user.UpdateUser(user)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -109,7 +116,7 @@ func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
 }
 
 func (a *userUsecase) GetUserByUserID(userID string) (*model.User, error) {
-	user, err := a.db.GetUser(userID)
+	user, err := a.user.GetUser(userID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -119,4 +126,48 @@ func (a *userUsecase) GetUserByUserID(userID string) (*model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (a *userUsecase) CreateCalendar(req *model.ExternalCalendar) (*model.ExternalCalendar, error) {
+
+	_, err := a.user.GetUserCalendarByUserID(req.UserID)
+
+	//エラーがNilの場合はユーザーのカレンダーが存在するのでエラーを返す
+	if err == nil {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "User already has a calendar",
+		}
+	}
+
+	if !errors.Is(err, repository.ErrNotFound) {
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "Failed to get user calendar",
+		}
+	}
+
+	//レコードがないエラーが発生した場合は、ユーザーのカレンダーが存在しないので、カレンダーを作成する
+	token, err := a.user.GetGoogleOAuthToken(req.UserID)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, &model.AppError{
+				Code: 400,
+				Msg:  "Link your google account first",
+			}
+		}
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "Failed to get google oauth token",
+		}
+	}
+
+	client := a.google.GetClient(token)
+
+	srv := a.srvBuilder(client)
+
+	result, err := srv.CreateCalendar(req)
+
+	return result, err
 }

@@ -25,10 +25,12 @@ type UserAdapter interface {
 	Delete(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
 	Verify(ctx *gin.Context)
+	CreateExternalCalendar(ctx *gin.Context)
 }
 
 type userAdapter struct {
 	user usecase.User
+	//cal  usecase.ExternalCalendar
 }
 
 func NewUserAdapter(user usecase.User) UserAdapter {
@@ -204,5 +206,38 @@ func (c *userAdapter) Verify(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "Internal Server Error"})
 		return
 	}
+
+}
+
+func (c *userAdapter) CreateExternalCalendar(ctx *gin.Context) {
+	user, err := util.GetUserFromContext(ctx)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"ok": false, "error": "invalid api key"})
+		return
+	}
+
+	cal := &model.ExternalCalendar{
+		UserID: int(user.ID),
+	}
+
+	result, err := c.user.CreateCalendar(cal)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.JSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "calendar": result})
 
 }

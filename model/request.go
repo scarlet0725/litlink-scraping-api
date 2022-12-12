@@ -88,3 +88,7 @@ type GoogleOauthCallback struct {
 	State string `json:"state" form:"state"`
 }
 
+type CreateExternalCalendarRequest struct {
+	User
+	ExternalCalendar
+}
