@@ -13,7 +13,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.2.0
 	golang.org/x/oauth2 v0.3.0
-	google.golang.org/api v0.103.0
+	google.golang.org/api v0.104.0
 	gorm.io/driver/mysql v1.4.4
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.1
@@ -75,7 +75,7 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc // indirect
+	google.golang.org/genproto v0.0.0-20221206210731-b1a01be3a5f6 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
