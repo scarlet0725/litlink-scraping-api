@@ -200,27 +200,22 @@ func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*
 		EventID:         event.EventID,
 	}
 
-	//ユーザーのカレンダーを取得する
-	calendar, err := a.user.GetUserCalendarByUserID(userID)
+	config, err := a.user.GetGoogleCalendarConfig(userID)
 
 	if err != nil {
-		return result, nil
+		return result, &model.AppError{
+			Code: 404,
+			Msg:  "Google calendar config not found",
+		}
 	}
 
-	//ユーザーのカレンダーが存在する場合は、イベントを登録する
-	token, err := a.user.GetGoogleOAuthToken(userID)
-
-	if err != nil {
-		return result, nil
-	}
-
-	client := a.google.GetClient(token)
+	client := a.google.GetClient(&config.GoogleOAuthToken)
 
 	srv := a.srvBuilder(client)
 
 	calendarEvent := &model.CalendarEvent{
 		ExternalEventID:    event.EventID,
-		ExternalCalendarID: calendar.CalendarID,
+		ExternalCalendarID: config.ExternalCalendar.CalendarID,
 		Event:              event,
 		Public:             false,
 	}

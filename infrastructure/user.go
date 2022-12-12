@@ -83,7 +83,7 @@ func (u *userRepository) GetUserCalendarByUserID(id int) (*model.ExternalCalenda
 func (u *userRepository) GetGoogleCalendarConfig(id int) (*model.GoogleCalenderConfig, error) {
 	var config *model.GoogleCalenderConfig
 
-	err := u.db.Model(&model.GoogleOAuthToken{}).Joins("INNER JOIN external_calendar ON google_oauth_tokens.user_id == external_calendar.user_id").Where("user_id = ?", id).First(&config).Error
+	err := u.db.Table("google_oauth_tokens").Select("*").Joins("INNER JOIN external_calendars ON google_oauth_tokens.user_id = external_calendars.user_id").Where("google_oauth_tokens.user_id = ? AND external_calendars.user_id = ?", id, id).Take(&config).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

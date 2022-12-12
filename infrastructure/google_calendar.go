@@ -95,13 +95,17 @@ func (g *googleCalendar) parseGoogleEvent(schedule *calendar.Event) *model.Event
 	return event
 }
 
-func (g *googleCalendar) CreateEvent(event *model.CalenderEvent) (*model.Event, error) {
+func (g *googleCalendar) CreateEvent(event *model.CalendarEvent) (*model.Event, error) {
 	//Nilチェック
 	if event.Event == nil {
 		return nil, repository.ErrInvalidEvent
 	}
 
 	cal, err := g.srv.Events.List(event.ExternalCalendarID).Do()
+
+	if err != nil {
+		return nil, repository.ErrCalendarPermissionDenied
+	}
 
 	if !(cal.AccessRole == "owner") || !(cal.AccessRole != "writer") || err != nil {
 		return nil, repository.ErrCalendarPermissionDenied
@@ -137,14 +141,14 @@ func (g *googleCalendar) GetEvent(calenderID string, eventID string) (*model.Eve
 
 }
 
-func (g *googleCalendar) UpdateEvent(event *model.CalenderEvent) (*model.Event, error) {
+func (g *googleCalendar) UpdateEvent(event *model.CalendarEvent) (*model.Event, error) {
 	if event.Event == nil {
 		return nil, repository.ErrInvalidEvent
 	}
 	cal, err := g.srv.Events.List(event.ExternalCalendarID).Do()
 
 	if !(cal.AccessRole == "owner") || !(cal.AccessRole != "writer") || err != nil {
-		return nil, errors.New("you don't have permission to update event")
+		return nil, repository.ErrCalendarPermissionDenied
 	}
 
 	schedule := g.buildGoogleEventStruct(event.Event)
@@ -167,7 +171,7 @@ func (g *googleCalendar) UpdateEvent(event *model.CalenderEvent) (*model.Event, 
 	return e, nil
 }
 
-func (g *googleCalendar) DeleteEvent(event *model.CalenderEvent) error {
+func (g *googleCalendar) DeleteEvent(event *model.CalendarEvent) error {
 	cal, err := g.srv.Events.List(event.ExternalCalendarID).Do()
 
 	if !(cal.AccessRole == "owner") || !(cal.AccessRole != "writer") || err != nil {
@@ -199,6 +203,7 @@ func (g *googleCalendar) CreateCalendar(calender *model.ExternalCalendar) (*mode
 		Description: cal.Description,
 		CalendarID:  cal.Id,
 		Type:        "google",
+		UserID:      calender.UserID,
 	}
 
 	return result, nil

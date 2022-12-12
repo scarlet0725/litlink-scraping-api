@@ -15,4 +15,5 @@ type User interface {
 	SaveExternalCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
 	AddRegistrationEvent(*model.User, *model.Event) error
 	RemoveRegistrationEvent(*model.User, *model.Event) error
+	GetGoogleCalendarConfig(int) (*model.GoogleCalenderConfig, error)
 }
