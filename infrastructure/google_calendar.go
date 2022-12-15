@@ -189,8 +189,8 @@ func (g *googleCalendar) DeleteEvent(event *model.CalendarEvent) error {
 
 func (g *googleCalendar) CreateCalendar(calender *model.ExternalCalendar) (*model.ExternalCalendar, error) {
 	cal, err := g.srv.Calendars.Insert(&calendar.Calendar{
-		Summary:     "prism calendar",
-		Description: "prismによる自動同期カレンダー",
+		Summary:     calender.Name,
+		Description: calender.Description,
 		TimeZone:    timeZone,
 	}).Do()
 
