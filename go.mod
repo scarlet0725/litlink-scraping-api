@@ -11,7 +11,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/ory/dockertest/v3 v3.9.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.2.0
+	golang.org/x/crypto v0.4.0
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.103.0
 	gorm.io/driver/mysql v1.4.4
