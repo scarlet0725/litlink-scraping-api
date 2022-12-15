@@ -8,15 +8,13 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
-	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure"
 	"go.uber.org/zap"
 )
 
 func main() {
 
-	zap, err := zap.NewProduction()
-	logger := framework.NewLogger(zap)
+	logger, err := zap.NewProduction()
 
 	if err != nil {
 		log.Fatalf("can't initialize zap logger: %v", err)

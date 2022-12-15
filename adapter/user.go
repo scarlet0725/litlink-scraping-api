@@ -226,16 +226,8 @@ func (c *userAdapter) CreateExternalCalendar(ctx *gin.Context) {
 		return
 	}
 
-	var req model.CreateExternalCalendarRequest
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "name is required"})
-		return
-	}
-
 	cal := &model.ExternalCalendar{
 		UserID: int(user.ID),
-		Name:   req.Name,
 	}
 
 	result, err := c.user.CreateCalendar(cal)

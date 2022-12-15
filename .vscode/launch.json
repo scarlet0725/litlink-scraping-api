@@ -9,8 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/app.go",
-            "envFile": "${workspaceFolder}/.env"
+            "program": "${workspaceFolder}/app.go"
         },
         {
             "name": "Run Current File",

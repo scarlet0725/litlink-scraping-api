@@ -1,15 +1,8 @@
 package usecase
 
 import (
-	"strings"
-
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-)
-
-const (
-	defaultCalendarName = "prism calendar"
-	defaultDescription  = "prismによる自動同期カレンダー"
 )
 
 type Calendar interface {
@@ -35,15 +28,6 @@ func (a *calendarUsecase) CreateEvent(event *model.Event) (*model.Event, error) 
 }
 
 func (a *calendarUsecase) CreateCalender(cal *model.ExternalCalendar) (*model.ExternalCalendar, error) {
-
-	if strings.EqualFold(cal.Name, "default") || cal.Name == "" {
-		cal.Name = defaultCalendarName
-	}
-
-	if cal.Description == "" {
-		cal.Description = defaultDescription
-	}
-
 	result, err := a.cal.CreateCalendar(cal)
 
 	return result, err
