@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/scarlet0725/prism-api/adapter"
@@ -30,11 +29,11 @@ type ginRouter struct {
 	prismAPIHost string
 }
 
-func NewGinRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
+func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
-	r.Use(middleware.Logger(logger), gin.Recovery())
+	r.Use(logger.GinLogger(), gin.Recovery())
 
 	router := &ginRouter{
 		router:       r,
