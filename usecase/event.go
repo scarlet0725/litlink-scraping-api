@@ -42,42 +42,42 @@ func NewEventUsecase(db repository.DB, fetch controller.FetchController, parser 
 	}
 }
 
-func (a *eventUsecase) CreateEvent(e *model.CreateEvent) (*model.Event, error) {
-	id := a.random.Generate(eventIDLength)
+func (e *eventUsecase) CreateEvent(event *model.CreateEvent) (*model.Event, error) {
+	id := e.random.Generate(eventIDLength)
 
-	artists, _ := a.db.GetArtistsByIDs(e.ArtistIDs)
-	venue, _ := a.db.GetVenueByID(e.VenueID)
+	artists, _ := e.db.GetArtistsByIDs(event.ArtistIDs)
+	venue, _ := e.db.GetVenueByID(event.VenueID)
 	jst, _ := time.LoadLocation(Locale)
 
-	date, err := time.ParseInLocation("2006-01-02", e.Date, jst)
+	date, err := time.ParseInLocation("2006-01-02", event.Date, jst)
 
 	if err != nil {
 		return nil, err
 	}
 
-	event := &model.Event{
+	newEvent := &model.Event{
 		EventID:     id,
-		Name:        e.Name,
+		Name:        event.Name,
 		Date:        &date,
-		Description: e.Description,
-		OpenTime:    e.OpenTime,
-		StartTime:   e.StartTime,
-		EndTime:     e.EndTime,
-		Url:         e.Url,
-		TicketURL:   e.TicketURL,
+		Description: event.Description,
+		OpenTime:    event.OpenTime,
+		StartTime:   event.StartTime,
+		EndTime:     event.EndTime,
+		Url:         event.Url,
+		TicketURL:   event.TicketURL,
 		Artists:     artists,
 		Venue:       venue,
 	}
 
-	return a.db.CreateEvent(event)
+	return e.db.CreateEvent(newEvent)
 }
 
-func (a *eventUsecase) GetEventsByName(name string) ([]model.Event, error) {
+func (e *eventUsecase) GetEventsByName(name string) ([]model.Event, error) {
 	return nil, nil
 }
 
-func (a *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
-	artist, err := a.db.GetArtistByName(name)
+func (e *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
+	artist, err := e.db.GetArtistByName(name)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -106,7 +106,7 @@ func (a *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *mode
 		}
 	}
 
-	res, err := a.fetch.Fetch(req)
+	res, err := e.fetch.Fetch(req)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -117,14 +117,14 @@ func (a *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *mode
 
 	switch artist.CrawlSiteType {
 	case "ryzm":
-		json, err := a.json.Ryzm(res.Data)
+		json, err := e.json.Ryzm(res.Data)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
 				Msg:  "failed_to_parse_json",
 			}
 		}
-		result, err := a.selializer.SelializeRyzmData(json)
+		result, err := e.selializer.SelializeRyzmData(json)
 
 		if err != nil {
 			return nil, &model.AppError{
@@ -143,8 +143,8 @@ func (a *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *mode
 	}
 }
 
-func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
-	artist, err := a.db.GetArtistByID(id)
+func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
+	artist, err := e.db.GetArtistByID(id)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -181,7 +181,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 		}
 	}
 
-	res, err := a.fetch.Fetch(req)
+	res, err := e.fetch.Fetch(req)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -193,14 +193,14 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 	switch artist.CrawlSiteType {
 	case "ryzm":
 
-		json, err := a.json.Ryzm(res.Data)
+		json, err := e.json.Ryzm(res.Data)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
 				Msg:  "failed_to_parse_json",
 			}
 		}
-		result, err := a.selializer.SelializeRyzmData(json)
+		result, err := e.selializer.SelializeRyzmData(json)
 
 		if err != nil {
 			return nil, &model.AppError{
@@ -217,7 +217,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			}
 		}
 
-		registeredEvents, err := a.db.GetRyzmEventsByUUDIDs(fetchedRyzmEventUUIDs)
+		registeredEvents, err := e.db.GetRyzmEventsByUUDIDs(fetchedRyzmEventUUIDs)
 
 		if err != nil {
 			return nil, &model.AppError{
@@ -246,7 +246,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 				}
 			}
 			if c == 0 {
-				event.EventID = a.random.Generate(eventIDLength)
+				event.EventID = e.random.Generate(eventIDLength)
 				event.Artists = append(event.Artists, artist)
 				registrationExpectedEvents = append(registrationExpectedEvents, event)
 			}
@@ -266,7 +266,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 		}
 
 		//会場の名前から会場を取得
-		venues, err := a.db.GetVenuesByNames(venueNames)
+		venues, err := e.db.GetVenuesByNames(venueNames)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
@@ -289,7 +289,7 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			event.Venue = venue
 		}
 
-		return a.db.CreateEvents(registrationExpectedEvents)
+		return e.db.CreateEvents(registrationExpectedEvents)
 
 	default:
 		return nil, &model.AppError{
@@ -301,15 +301,15 @@ func (a *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 
 }
 
-func (a *eventUsecase) GetEventByID(ID string) (*model.Event, error) {
-	return a.db.GetEventByID(ID)
+func (e *eventUsecase) GetEventByID(ID string) (*model.Event, error) {
+	return e.db.GetEventByID(ID)
 }
 
-func (a *eventUsecase) DeleteEvent(event *model.Event) error {
-	return a.db.DeleteEvent(event)
+func (e *eventUsecase) DeleteEvent(event *model.Event) error {
+	return e.db.DeleteEvent(event)
 }
 
-func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, error) {
+func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, error) {
 
 	if event.EventID == "" {
 		return nil, &model.AppError{
@@ -318,7 +318,7 @@ func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 		}
 	}
 
-	req, err := a.db.GetEventByID(event.EventID)
+	req, err := e.db.GetEventByID(event.EventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -330,7 +330,7 @@ func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	var venue *model.Venue
 
 	if event.VenueID != "" {
-		venue, err = a.db.GetVenueByID(event.VenueID)
+		venue, err = e.db.GetVenueByID(event.VenueID)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 404,
@@ -347,11 +347,11 @@ func (a *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	req.EndTime = event.EndTime
 	req.Venue = venue
 
-	return a.db.UpdateEvent(req)
+	return e.db.UpdateEvent(req)
 }
 
-func (a *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) {
-	base, err := a.db.GetEventByID(req.EventID)
+func (e *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) {
+	base, err := e.db.GetEventByID(req.EventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -360,7 +360,7 @@ func (a *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 		}
 	}
 
-	merge, err := a.db.GetEventByID(req.MergeTargetEventID)
+	merge, err := e.db.GetEventByID(req.MergeTargetEventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -372,6 +372,6 @@ func (a *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 	base.Artists = append(base.Artists, merge.Artists...)
 	base.RelatedRyzmEvents = append(base.RelatedRyzmEvents, merge.RelatedRyzmEvents...)
 
-	return a.db.MergeEvents(base, merge)
+	return e.db.MergeEvents(base, merge)
 
 }
