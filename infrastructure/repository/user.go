@@ -16,4 +16,5 @@ type User interface {
 	AddRegistrationEvent(*model.User, *model.Event) error
 	RemoveRegistrationEvent(*model.User, *model.Event) error
 	GetGoogleCalendarConfig(int) (*model.GoogleCalenderConfig, error)
+	GetUserByUsername(string) (*model.User, error)
 }

@@ -48,7 +48,7 @@ func (u *userRepository) CreateUser(user *model.User) (*model.User, error) {
 func (u *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 	var schema schema.User
 	schema.User = *user
-	err := u.db.Save(&schema).Error
+	err := u.db.Save(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -127,4 +127,13 @@ func (u *userRepository) AddRegistrationEvent(user *model.User, event *model.Eve
 func (u *userRepository) RemoveRegistrationEvent(user *model.User, event *model.Event) error {
 	err := u.db.Model(user).Association("Events").Delete(event)
 	return err
+}
+
+func (u *userRepository) GetUserByUsername(username string) (*model.User, error) {
+	var user model.User
+	err := u.db.Preload(clause.Associations).Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

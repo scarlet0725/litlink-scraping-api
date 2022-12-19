@@ -28,6 +28,7 @@ type UserAdapter interface {
 	Verify(ctx *gin.Context)
 	CreateExternalCalendar(ctx *gin.Context)
 	RegistrationEvent(ctx *gin.Context)
+	CreateAPIKey(ctx *gin.Context)
 }
 
 type userAdapter struct {
@@ -298,5 +299,29 @@ func (c *userAdapter) RegistrationEvent(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"ok": true, "result": result})
+
+}
+
+func (u *userAdapter) CreateAPIKey(ctx *gin.Context) {
+	var req model.LoginRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "invalid request"})
+		return
+	}
+
+	result, err := u.user.CreateAPIKey(&req)
+
+	if err != nil {
+		var appErr *model.AppError
+		if ok := errors.As(err, &appErr); ok {
+			ctx.JSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "api_key": result.APIKey, "message": "API Key created successfully. DO NOT SHARE your API key with anyone."})
 
 }

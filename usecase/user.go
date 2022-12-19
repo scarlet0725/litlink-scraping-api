@@ -9,6 +9,7 @@ import (
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User interface {
@@ -19,6 +20,7 @@ type User interface {
 	VerifyAccount(userID string) (*model.User, error)
 	CreateCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
 	RegistrationEvent(*model.User, *model.Event) (*model.RegistrationEventResponse, error)
+	CreateAPIKey(*model.LoginRequest) (*model.CreateAPIKeyResponse, error)
 }
 
 type userUsecase struct {
@@ -228,6 +230,47 @@ func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*
 
 	result.CalenderAdded = true
 
+	return result, err
+
+}
+
+func (u *userUsecase) CreateAPIKey(req *model.LoginRequest) (*model.CreateAPIKeyResponse, error) {
+
+	user, err := u.user.GetUserByUsername(req.Username)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "User not found",
+		}
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 400,
+			Msg:  "Invalid password",
+		}
+	}
+
+	key, err := u.random.GenerateUUID4()
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "Failed to generate api key",
+		}
+	}
+
+	hash := sha512.Sum512([]byte(key))
+	user.APIKey = hex.EncodeToString(hash[:])
+	user, err = u.user.UpdateUser(user)
+
+	result := &model.CreateAPIKeyResponse{
+		APIKey: key,
+		User:   user,
+	}
 	return result, err
 
 }
