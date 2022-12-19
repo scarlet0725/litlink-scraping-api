@@ -1,4 +1,4 @@
-FROM golang:1.19.2-bullseye as builder
+FROM golang:1.19.4-bullseye as builder
 
 WORKDIR /go/src
 COPY go.mod .
