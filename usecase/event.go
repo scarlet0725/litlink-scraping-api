@@ -16,7 +16,6 @@ type Event interface {
 	DeleteEvent(*model.Event) error
 	UpdateEvent(*model.UpdateEvent) (*model.Event, error)
 	//GetEvent(string) (*model.Event, error)
-	GetEventsByArtistName(string) ([]*model.Event, *model.AppError)
 	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
 	GetEventByID(string) (*model.Event, error)
 	MergeEvents(*model.MergeEvent) (*model.Event, error)
@@ -77,73 +76,6 @@ func (e *eventUsecase) GetEventsByName(name string) ([]model.Event, error) {
 	return nil, nil
 }
 
-func (e *eventUsecase) GetEventsByArtistName(name string) ([]*model.Event, *model.AppError) {
-	artist, err := e.db.GetArtistByName(name)
-
-	if err != nil {
-		return nil, &model.AppError{
-			Code: 404,
-			Msg:  "artist_not_found",
-		}
-	}
-
-	req := &model.ScrapingRequest{
-		Host: artist.CrawlTargetURL,
-		URL:  artist.CrawlTargetURL,
-		Type: artist.CrawlSiteType,
-		Option: model.FetchOptions{
-			IsUseCache: true,
-		},
-	}
-
-	if req.Type == "ryzm" {
-		req.Option = model.FetchOptions{
-			HTTPHeader: map[string]string{
-				"X-RYZM-HOST": artist.RyzmHost,
-			},
-			HTTPParams: map[string]string{
-				"archived": "0",
-			},
-		}
-	}
-
-	res, err := e.fetch.Fetch(req)
-
-	if err != nil {
-		return nil, &model.AppError{
-			Code: 500,
-			Msg:  "fetch_error",
-		}
-	}
-
-	switch artist.CrawlSiteType {
-	case "ryzm":
-		json, err := e.json.Ryzm(res.Data)
-		if err != nil {
-			return nil, &model.AppError{
-				Code: 500,
-				Msg:  "failed_to_parse_json",
-			}
-		}
-		result, err := e.selializer.SelializeRyzmData(json)
-
-		if err != nil {
-			return nil, &model.AppError{
-				Code: 500,
-				Msg:  "failed_to_parse_json",
-			}
-		}
-
-		return result, nil
-	default:
-		return nil, &model.AppError{
-			Code: 500,
-			Msg:  "error!",
-		}
-
-	}
-}
-
 func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
 	artist, err := e.db.GetArtistByID(id)
 
@@ -154,7 +86,7 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 		}
 	}
 
-	if artist.CrawlTargetURL == "" || artist.CrawlSiteType == "" || artist.RyzmHost == "" {
+	if artist.RyzmCrawlConfig == nil {
 		return nil, &model.AppError{
 			Code: 400,
 			Msg:  "This artist is not supported auto update",
@@ -162,9 +94,9 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 	}
 
 	req := &model.ScrapingRequest{
-		Host: artist.CrawlTargetURL,
-		URL:  artist.CrawlTargetURL,
-		Type: artist.CrawlSiteType,
+		Host: artist.RyzmCrawlConfig.CrawlTargetURL,
+		URL:  artist.RyzmCrawlConfig.CrawlTargetURL,
+		Type: artist.RyzmCrawlConfig.CrawlSiteType,
 		Option: model.FetchOptions{
 			IsUseCache: true,
 		},
@@ -173,12 +105,12 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 	if req.Type == "ryzm" {
 		req.Option = model.FetchOptions{
 			HTTPHeader: map[string]string{
-				"X-RYZM-HOST": artist.RyzmHost,
+				"X-RYZM-HOST": artist.RyzmCrawlConfig.RyzmHost,
 			},
 			HTTPParams: map[string]string{
 				"archived": "0",
 			},
-			CacheKey: artist.RyzmHost,
+			CacheKey: artist.RyzmCrawlConfig.RyzmHost,
 		}
 	}
 
@@ -191,7 +123,7 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 		}
 	}
 
-	switch artist.CrawlSiteType {
+	switch artist.RyzmCrawlConfig.CrawlSiteType {
 	case "ryzm":
 
 		json, err := e.json.Ryzm(res.Data)

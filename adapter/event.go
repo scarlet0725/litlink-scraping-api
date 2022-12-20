@@ -19,7 +19,6 @@ type EventAdapter interface {
 	CreateEvent(ctx *gin.Context)
 	UpdateEvent(ctx *gin.Context)
 	DeleteEvent(ctx *gin.Context)
-	GetEventsByArtistName(ctx *gin.Context)
 	GetEventByID(ctx *gin.Context)
 	CreateArtistEventsFromCrawlData(ctx *gin.Context)
 	MergeEvents(ctx *gin.Context)
@@ -114,19 +113,6 @@ func (a *eventAdapter) DeleteEvent(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"ok": true, "message": "Successfully deleted"})
-
-}
-
-func (a *eventAdapter) GetEventsByArtistName(ctx *gin.Context) {
-	name := ctx.Param("arist_name")
-
-	events, err := a.event.GetEventsByArtistName(name)
-	if err != nil {
-		ctx.JSON(err.Code, err)
-		return
-	}
-
-	ctx.JSON(200, gin.H{"ok": true, "events": events})
 
 }
 

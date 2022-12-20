@@ -39,7 +39,7 @@ func (a *artist) GetArtistByName(name string) (*model.Artist, error) {
 
 func (a *artist) GetArtistByID(id string) (*model.Artist, error) {
 	var artist model.Artist
-	err := a.db.Where("artist_id = ?", id).First(&artist).Error
+	err := a.db.Preload(clause.Associations).Where("artist_id = ?", id).First(&artist).Error
 	if err != nil {
 		return nil, err
 	}
