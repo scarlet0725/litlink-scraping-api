@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	zap, err := zap.NewProduction()
+	zap, err := zap.NewProduction(zap.AddCallerSkip(1))
 	logger := framework.NewLogger(zap)
 
 	if err != nil {
