@@ -27,7 +27,7 @@ func MigrationDB(db *gorm.DB) {
 
 	adminRole := &model.Role{
 		RoleID: "Y5KIY8GI4PJ1AT7G",
-		Name:   "Administartor",
+		Name:   "Administrator",
 	}
 
 	memberRole := &model.Role{
