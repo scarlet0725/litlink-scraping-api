@@ -17,6 +17,9 @@ services:
       - DB_NAME=prism_api
       - DB_PORT=3306
       - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
   
   cache:
     image: redis:7.0-alpine
@@ -34,6 +37,13 @@ services:
       - MYSQL_USER=prism
       - MYSQL_PASSWORD=password
       - MYSQL_DATABASE=prism_api
+      - TZ=Asia/Tokyo
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
       
   adminer:
     container_name: adminer
