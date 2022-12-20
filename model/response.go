@@ -14,3 +14,8 @@ type RegistrationEventResponse struct {
 	EventRegistered bool   `json:"event_registered"`
 	EventID         string `json:"event_id,omitempty"`
 }
+
+type CreateAPIKeyResponse struct {
+	APIKey string `json:"api_key"`
+	User   *User  `json:"-"`
+}

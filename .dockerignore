@@ -9,4 +9,5 @@
 README.md
 LICENSE
 docker-compose.yaml
+docker-compose.dev.yaml
 swagger.yaml

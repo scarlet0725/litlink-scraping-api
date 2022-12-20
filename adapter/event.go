@@ -74,6 +74,11 @@ func (a *eventAdapter) UpdateEvent(ctx *gin.Context) {
 	_, err := a.event.UpdateEvent(&req)
 
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			ctx.AbortWithStatusJSON(appErr.Code, gin.H{"ok": false, "error": appErr.Msg})
+			return
+		}
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
 		return
 	}
