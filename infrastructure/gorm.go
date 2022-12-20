@@ -340,9 +340,13 @@ func (g *gormDB) SearchEvents(query *model.EventSearchQuery) ([]*model.EventSear
 		}
 	}
 
+	if query.EventID != "" {
+		tx = tx.Where("events.event_id = ?", query.EventID)
+	}
+
 	var result []*model.EventSearchResult
 
-	err := tx.Scan(&result).Error
+	err := tx.Order("events.date ASC").Scan(&result).Error
 
 	if err != nil {
 		return nil, err

@@ -212,6 +212,8 @@ func (c *userAdapter) Verify(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusOK, gin.H{"ok": true, "message": "User verified"})
+
 }
 
 func (c *userAdapter) CreateExternalCalendar(ctx *gin.Context) {
