@@ -23,6 +23,7 @@ type EventAdapter interface {
 	GetEventByID(ctx *gin.Context)
 	CreateArtistEventsFromCrawlData(ctx *gin.Context)
 	MergeEvents(ctx *gin.Context)
+	SearchEvents(ctx *gin.Context)
 }
 
 type eventAdapter struct {
@@ -197,4 +198,25 @@ func (a *eventAdapter) MergeEvents(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{"ok": true, "events": merged})
+}
+
+func (a *eventAdapter) SearchEvents(ctx *gin.Context) {
+	var req model.EventSearchQuery
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "param error"})
+		return
+	}
+
+	events, err := a.event.SearchEvents(&req)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"ok":    false,
+			"error": "Search Error",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"ok": true, "events": events})
 }

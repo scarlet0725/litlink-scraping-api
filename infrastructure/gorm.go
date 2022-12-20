@@ -2,12 +2,17 @@ package infrastructure
 
 import (
 	"errors"
+	"time"
 
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 	"github.com/scarlet0725/prism-api/schema"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+)
+
+const (
+	Locale = "Asia/Tokyo"
 )
 
 type gormDB struct {
@@ -115,7 +120,8 @@ func (g *gormDB) UpdateEvent(event *model.Event) (*model.Event, error) {
 	}
 	var e schema.Event
 	e.Event = *event
-	err := g.db.Model(&e).Where("id = ?", e.Event.ID).Updates(&e).Error
+	e.Model.ID = event.ID
+	err := g.db.Model(&e).Updates(&e).Error
 	if err != nil {
 		return nil, err
 	}
@@ -300,4 +306,52 @@ func (g *gormDB) SaveGoogleOAuthToken(s *model.GoogleOAuthToken) (*model.GoogleO
 	).Create(s).Error
 
 	return s, err
+}
+
+func (g *gormDB) SearchEvents(query *model.EventSearchQuery) ([]*model.EventSearchResult, error) {
+	jst, _ := time.LoadLocation(Locale)
+
+	if query.DateAfter.IsZero() {
+		query.DateAfter = func() time.Time {
+			now := time.Now().In(jst)
+			return time.Date(now.Year(),
+				now.Month(),
+				now.Day(),
+				0, 0, 0, 0, now.Location())
+		}()
+	}
+
+	tx := g.db.Table("events").
+		Select("*").
+		Joins("INNER JOIN events_artists ON events.id = events_artists.event_id").
+		Joins("INNER JOIN artists ON events_artists.artist_id = artists.id").
+		Where("events.date >= ?", query.DateAfter)
+
+	if !query.DateBefore.IsZero() {
+		tx = tx.Where("events.date <= ?", query.DateBefore)
+	}
+
+	switch query.ArtistID == "" {
+	case false:
+		tx = tx.Where("artists.artist_id = ?", query.ArtistID)
+	case true:
+		if query.ArtistName != "" {
+			tx = tx.Where("artists.name LIKE ?", "%"+query.ArtistName+"%")
+		}
+	}
+
+	if query.EventID != "" {
+		tx = tx.Where("events.event_id = ?", query.EventID)
+	}
+
+	var result []*model.EventSearchResult
+
+	err := tx.Order("events.date ASC").Scan(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
 }

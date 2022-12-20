@@ -20,6 +20,7 @@ type Event interface {
 	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
 	GetEventByID(string) (*model.Event, error)
 	MergeEvents(*model.MergeEvent) (*model.Event, error)
+	SearchEvents(*model.EventSearchQuery) ([]*model.Event, error)
 }
 
 type eventUsecase struct {
@@ -339,6 +340,16 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 		}
 	}
 
+	artists, err := e.db.GetArtistsByIDs(event.ArtistIDs)
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 404,
+			Msg:  "Artist ID is invalid",
+		}
+	}
+
+	req.Artists = append(artists, req.Artists...)
+
 	req.Name = event.Name
 	req.Description = event.Description
 	req.Date = event.Date
@@ -346,6 +357,9 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	req.StartTime = event.StartTime
 	req.EndTime = event.EndTime
 	req.Venue = venue
+	req.RelatedRyzmEvents = nil
+	req.UnStructuredInformation = nil
+	req.Artists = append(artists, req.Artists...)
 
 	return e.db.UpdateEvent(req)
 }
@@ -373,5 +387,26 @@ func (e *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 	base.RelatedRyzmEvents = append(base.RelatedRyzmEvents, merge.RelatedRyzmEvents...)
 
 	return e.db.MergeEvents(base, merge)
+
+}
+
+func (e *eventUsecase) SearchEvents(q *model.EventSearchQuery) ([]*model.Event, error) {
+	result, err := e.db.SearchEvents(q)
+
+	if err != nil {
+		return nil, &model.AppError{
+			Code: 500,
+			Msg:  "Failed to search events",
+		}
+	}
+
+	var events []*model.Event
+
+	for _, r := range result {
+		r.Event.Artists = []*model.Artist{&r.Artist}
+		events = append(events, &r.Event)
+	}
+
+	return events, nil
 
 }

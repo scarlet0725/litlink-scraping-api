@@ -14,19 +14,20 @@ import (
 )
 
 func main() {
+	var (
+		mg          = flag.Bool("migration", false, "migration")
+		environment = flag.String("environment", "production", "environment")
+	)
 
-	zap, err := zap.NewProduction()
-	logger := framework.NewLogger(zap)
+	flag.Parse()
+
+	zapLogger, err := zap.NewProduction(zap.AddCallerSkip(1))
 
 	if err != nil {
 		log.Fatalf("can't initialize zap logger: %v", err)
 	}
 
-	var (
-		mg = flag.Bool("migration", false, "migration")
-	)
-
-	flag.Parse()
+	logger := framework.NewLogger(zapLogger)
 
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbUser := os.Getenv("DB_USER")
@@ -37,6 +38,10 @@ func main() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	db, err := cmd.ConnectDB(dsn)
+
+	if *environment == "development" {
+		db = db.Debug()
+	}
 
 	if err != nil {
 		log.Fatal(err)

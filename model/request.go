@@ -76,7 +76,7 @@ type UpdateEvent struct {
 	Url         string     `json:"url,omitempty"`
 	TicketURL   string     `json:"ticket_url,omitempty"`
 	ArtistName  string     `json:"artist_name,omitempty"`
-	//ArtistIDs   []string   `json:"artist_ids"`
+	ArtistIDs   []string   `json:"artist_ids"`
 }
 
 type AdminVerify struct {

@@ -61,6 +61,7 @@ func (a *apiResponse) SelializeRyzmData(input model.RyzmAPIResponse) ([]*model.E
 			Date:              &date,
 			RelatedRyzmEvents: []*model.RyzmEvent{ryzmEvent},
 			UnStructuredInformation: &model.UnStructuredEventInformation{
+				RyzmUUID:   v.ID,
 				ArtistName: v.Artist,
 				VenueName:  v.Venue,
 				Price:      v.Price,
