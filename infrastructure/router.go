@@ -109,6 +109,7 @@ func (r *ginRouter) SetRoute() error {
 	venueEndpoint := v1.Group("/venue")
 	adminEndpoint := v1.Group("/admin")
 	oauthEndpoint := v1.Group("/oauth")
+	authEndpoint := v1.Group("/auth")
 
 	v1.POST("/register", user.Register)
 
@@ -139,6 +140,8 @@ func (r *ginRouter) SetRoute() error {
 	adminEndpoint.POST("/verify_account", user.Verify)
 
 	oauthEndpoint.GET("/google/callback", oauth.GoogleOAuthCallback)
+
+	authEndpoint.POST("/key", user.CreateAPIKey)
 
 	return nil
 }
