@@ -110,6 +110,7 @@ func (r *ginRouter) SetRoute() error {
 	adminEndpoint := v1.Group("/admin")
 	oauthEndpoint := v1.Group("/oauth")
 	authEndpoint := v1.Group("/auth")
+	searchEndpoint := v1.Group("/search")
 
 	v1.POST("/register", user.Register)
 
@@ -142,6 +143,9 @@ func (r *ginRouter) SetRoute() error {
 	oauthEndpoint.GET("/google/callback", oauth.GoogleOAuthCallback)
 
 	authEndpoint.POST("/key", user.CreateAPIKey)
+
+	searchEndpoint.Use(auth.Middleware())
+	searchEndpoint.GET("/", event.SearchEvents)
 
 	return nil
 }

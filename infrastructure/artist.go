@@ -48,7 +48,7 @@ func (a *artist) GetArtistByID(id string) (*model.Artist, error) {
 
 func (a *artist) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
 	var artists []*model.Artist
-	err := a.db.Where("artist_id IN ?", ids).Find(&artists).Error
+	err := a.db.Preload(clause.Associations).Select("Artists").Where("artist_id IN ?", ids).Find(&artists).Error
 	if err != nil {
 		return nil, err
 	}

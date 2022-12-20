@@ -25,6 +25,7 @@ type DB interface {
 	GetEventByID(ID string) (*model.Event, error)
 	GetRyzmEventsByUUDIDs(IDs []string) ([]*model.RyzmEvent, error)
 	MergeEvents(base *model.Event, target *model.Event) (*model.Event, error)
+	SearchEvents(*model.EventSearchQuery) ([]*model.EventSearchResult, error)
 
 	CreateArtist(*model.Artist) (*model.Artist, error)
 	GetArtistByName(name string) (*model.Artist, error)
