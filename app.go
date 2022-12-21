@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure"
-	log "github.com/scarlet0725/prism-api/logger"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -20,8 +21,11 @@ func main() {
 
 	flag.Parse()
 
-	zapLogger := log.New()
-	defer zapLogger.Sync()
+	zapLogger, err := zap.NewProduction(zap.AddCallerSkip(1))
+
+	if err != nil {
+		log.Fatalf("can't initialize zap logger: %v", err)
+	}
 
 	logger := framework.NewLogger(zapLogger)
 
@@ -35,12 +39,12 @@ func main() {
 
 	db, err := cmd.ConnectDB(dsn)
 
-	if err != nil {
-		log.Fatal("failed to connect database")
-	}
-
 	if *environment == "development" {
 		db = db.Debug()
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	if *mg {
@@ -64,11 +68,11 @@ func main() {
 	gin, err := infrastructure.NewGinRouter(logger, db, redisClient)
 
 	if err != nil {
-		log.Fatal("error occurred while initializing gin router")
+		log.Fatal(err)
 	}
 
 	err = gin.Serve(serverAddr)
 
-	log.Fatal(err.Error())
+	log.Fatal(err)
 
 }
