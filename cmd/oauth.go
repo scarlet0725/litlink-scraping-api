@@ -21,7 +21,7 @@ func GetGoogleOAuthConfig(host string) (*oauth2.Config, error) {
 	conf := &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		RedirectURL:  fmt.Sprintf("%s/v1/oauth/google/callback", host),
+		RedirectURL:  fmt.Sprintf("https://%s/v1/oauth/google/callback", host),
 		Scopes: []string{
 			calendar.CalendarEventsScope,
 			calendar.CalendarScope,
