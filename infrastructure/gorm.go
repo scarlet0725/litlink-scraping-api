@@ -149,7 +149,7 @@ func (g *gormDB) CreateArtist(artist *model.Artist) (*model.Artist, error) {
 
 func (g *gormDB) GetArtistByID(id string) (*model.Artist, error) {
 	var artist model.Artist
-	err := g.db.Where("artist_id = ?", id).First(&artist).Error
+	err := g.db.Preload(clause.Associations).Where("artist_id = ?", id).First(&artist).Error
 	if err != nil {
 		return nil, err
 	}

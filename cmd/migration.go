@@ -19,6 +19,7 @@ func MigrationDB(db *gorm.DB) {
 		&model.GoogleOAuthState{},
 		&model.GoogleOAuthToken{},
 		&model.ExternalCalendar{},
+		&model.RyzmCrawlConfig{},
 	)
 
 	db.Exec("ALTER TABLE `events` CHANGE `name` `name` longtext COLLATE 'utf8mb4_ja_0900_as_cs_ks' NOT NULL AFTER `event_id`, CHANGE `description` `description` longtext COLLATE 'utf8mb4_bin' NULL AFTER `end_time`;")
@@ -56,32 +57,38 @@ func MigrationDB(db *gorm.DB) {
 	artists := []schema.Artist{
 		{
 			Artist: model.Artist{
-				ArtistID:       "2MERWD724422E6D8",
-				Name:           "prsmin",
-				URL:            "https://prsmin.com",
-				RyzmHost:       "prsmin.com",
-				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
-				CrawlSiteType:  "ryzm",
+				ArtistID: "2MERWD724422E6D8",
+				Name:     "prsmin",
+				URL:      "https://prsmin.com",
+				RyzmCrawlConfig: &model.RyzmCrawlConfig{
+					RyzmHost:       "prsmin.com",
+					CrawlTargetURL: "https://api.ryzm.jp/public/lives",
+					CrawlSiteType:  "ryzm",
+				},
 			},
 		},
 		{
 			Artist: model.Artist{
-				ArtistID:       "7MHK8G565KEFQERZ",
-				Name:           "On the treat Super Season",
-				URL:            "https://onthetreatsuperseason.com",
-				RyzmHost:       "onthetreatsuperseason.com",
-				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
-				CrawlSiteType:  "ryzm",
+				ArtistID: "7MHK8G565KEFQERZ",
+				Name:     "On the treat Super Season",
+				URL:      "https://onthetreatsuperseason.com",
+				RyzmCrawlConfig: &model.RyzmCrawlConfig{
+					RyzmHost:       "onthetreatsuperseason.com",
+					CrawlTargetURL: "https://api.ryzm.jp/public/lives",
+					CrawlSiteType:  "ryzm",
+				},
 			},
 		},
 		{
 			Artist: model.Artist{
-				ArtistID:       "Y5KIY8GI4PJ1AT7G",
-				Name:           "yosugala",
-				URL:            "https://yosugala2022.ryzm.jp",
-				RyzmHost:       "yosugala2022.ryzm.jp",
-				CrawlTargetURL: "https://api.ryzm.jp/public/lives",
-				CrawlSiteType:  "ryzm",
+				ArtistID: "Y5KIY8GI4PJ1AT7G",
+				Name:     "yosugala",
+				URL:      "https://yosugala2022.ryzm.jp",
+				RyzmCrawlConfig: &model.RyzmCrawlConfig{
+					RyzmHost:       "yosugala2022.ryzm.jp",
+					CrawlTargetURL: "https://api.ryzm.jp/public/lives",
+					CrawlSiteType:  "ryzm",
+				},
 			},
 		},
 	}
