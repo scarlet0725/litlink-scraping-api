@@ -35,7 +35,7 @@ func (a *oauthUsecase) GoogleLinkage(user *model.User) (*model.OAuthURLResponse,
 	u := a.google.GenerateAuthURL(state)
 
 	s := &model.GoogleOAuthState{
-		UserID: &user.ID,
+		UserID: user.ID,
 		State:  state,
 	}
 
