@@ -25,7 +25,7 @@ type User struct {
 
 type GoogleOAuthToken struct {
 	ID           uint   `json:"-" gorm:"primary_key;unique;not null;auto_increment"`
-	UserID       *uint  `json:"user_id" gorm:"unique;not null"`
+	UserID       uint   `json:"user_id" gorm:"unique;not null"`
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 	Expiry       time.Time
@@ -42,7 +42,7 @@ type OAuthURLResponse struct {
 
 type GoogleOAuthState struct {
 	ID     uint   `gorm:"primary_key;unique;not null;auto_increment"`
-	UserID *uint  `gorm:"unique;not null"`
+	UserID uint   `gorm:"unique;not null"`
 	State  string `gorm:"unique;not null"`
 }
 

@@ -99,7 +99,7 @@ func (u *userRepository) GetGoogleCalendarConfig(id int) (*model.GoogleCalenderC
 func (u *userRepository) GetGoogleOAuthToken(id int) (*model.GoogleOAuthToken, error) {
 	token := &model.GoogleOAuthToken{}
 
-	err := u.db.First(token, id).Error
+	err := u.db.Table("google_oauth_tokens").Select("*").Where("user_id = ?", id).Take(&token).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
