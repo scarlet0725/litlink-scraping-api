@@ -42,7 +42,7 @@ func (User) Fields() []ent.Field {
 			NotEmpty().
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "varchar(191)",
+					dialect.MySQL: "varchar(32)",
 				},
 			).
 			Annotations(
@@ -159,5 +159,10 @@ func (User) Edges() []ent.Edge {
 				edge.Column("user_id"),
 			),
 		edge.To("events", Event.Type),
+		edge.To("external_calendars", ExternalCalendar.Type).
+			Unique().
+			StorageKey(
+				edge.Column("user_id"),
+			),
 	}
 }
