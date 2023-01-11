@@ -57,13 +57,14 @@ func (ExternalCalendar) Fields() []ent.Field {
 					Collation: "utf8mb4_bin",
 				},
 			),
-		field.String("type").
+		field.String("source_type").
 			NotEmpty().
 			Annotations(
 				entsql.Annotation{
 					Collation: "utf8mb4_bin",
 				},
 			),
+		field.Int("user_id"),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).
