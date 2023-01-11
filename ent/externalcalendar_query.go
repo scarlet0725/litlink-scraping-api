@@ -24,6 +24,7 @@ type ExternalCalendarQuery struct {
 	fields     []string
 	inters     []Interceptor
 	predicates []predicate.ExternalCalendar
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -345,6 +346,9 @@ func (ecq *ExternalCalendarQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
+	if len(ecq.modifiers) > 0 {
+		_spec.Modifiers = ecq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -359,6 +363,9 @@ func (ecq *ExternalCalendarQuery) sqlAll(ctx context.Context, hooks ...queryHook
 
 func (ecq *ExternalCalendarQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ecq.querySpec()
+	if len(ecq.modifiers) > 0 {
+		_spec.Modifiers = ecq.modifiers
+	}
 	_spec.Node.Columns = ecq.fields
 	if len(ecq.fields) > 0 {
 		_spec.Unique = ecq.unique != nil && *ecq.unique
@@ -429,6 +436,9 @@ func (ecq *ExternalCalendarQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if ecq.unique != nil && *ecq.unique {
 		selector.Distinct()
 	}
+	for _, m := range ecq.modifiers {
+		m(selector)
+	}
 	for _, p := range ecq.predicates {
 		p(selector)
 	}
@@ -444,6 +454,12 @@ func (ecq *ExternalCalendarQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ecq *ExternalCalendarQuery) Modify(modifiers ...func(s *sql.Selector)) *ExternalCalendarSelect {
+	ecq.modifiers = append(ecq.modifiers, modifiers...)
+	return ecq.Select()
 }
 
 // ExternalCalendarGroupBy is the group-by builder for ExternalCalendar entities.
@@ -534,4 +550,10 @@ func (ecs *ExternalCalendarSelect) sqlScan(ctx context.Context, root *ExternalCa
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ecs *ExternalCalendarSelect) Modify(modifiers ...func(s *sql.Selector)) *ExternalCalendarSelect {
+	ecs.modifiers = append(ecs.modifiers, modifiers...)
+	return ecs
 }

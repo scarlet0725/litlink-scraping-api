@@ -18,8 +18,9 @@ import (
 // GoogleOauthStateUpdate is the builder for updating GoogleOauthState entities.
 type GoogleOauthStateUpdate struct {
 	config
-	hooks    []Hook
-	mutation *GoogleOauthStateMutation
+	hooks     []Hook
+	mutation  *GoogleOauthStateMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the GoogleOauthStateUpdate builder.
@@ -96,6 +97,12 @@ func (gosu *GoogleOauthStateUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gosu *GoogleOauthStateUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GoogleOauthStateUpdate {
+	gosu.modifiers = append(gosu.modifiers, modifiers...)
+	return gosu
+}
+
 func (gosu *GoogleOauthStateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := gosu.check(); err != nil {
 		return n, err
@@ -155,6 +162,7 @@ func (gosu *GoogleOauthStateUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gosu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gosu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{googleoauthstate.Label}
@@ -170,9 +178,10 @@ func (gosu *GoogleOauthStateUpdate) sqlSave(ctx context.Context) (n int, err err
 // GoogleOauthStateUpdateOne is the builder for updating a single GoogleOauthState entity.
 type GoogleOauthStateUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *GoogleOauthStateMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *GoogleOauthStateMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetState sets the "state" field.
@@ -248,6 +257,12 @@ func (gosuo *GoogleOauthStateUpdateOne) check() error {
 		return errors.New(`ent: clearing a required unique edge "GoogleOauthState.user"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gosuo *GoogleOauthStateUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GoogleOauthStateUpdateOne {
+	gosuo.modifiers = append(gosuo.modifiers, modifiers...)
+	return gosuo
 }
 
 func (gosuo *GoogleOauthStateUpdateOne) sqlSave(ctx context.Context) (_node *GoogleOauthState, err error) {
@@ -326,6 +341,7 @@ func (gosuo *GoogleOauthStateUpdateOne) sqlSave(ctx context.Context) (_node *Goo
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gosuo.modifiers...)
 	_node = &GoogleOauthState{config: gosuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

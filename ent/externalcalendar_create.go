@@ -48,9 +48,15 @@ func (ecc *ExternalCalendarCreate) SetCalendarID(s string) *ExternalCalendarCrea
 	return ecc
 }
 
-// SetType sets the "type" field.
-func (ecc *ExternalCalendarCreate) SetType(s string) *ExternalCalendarCreate {
-	ecc.mutation.SetType(s)
+// SetSourceType sets the "source_type" field.
+func (ecc *ExternalCalendarCreate) SetSourceType(s string) *ExternalCalendarCreate {
+	ecc.mutation.SetSourceType(s)
+	return ecc
+}
+
+// SetUserID sets the "user_id" field.
+func (ecc *ExternalCalendarCreate) SetUserID(i int) *ExternalCalendarCreate {
+	ecc.mutation.SetUserID(i)
 	return ecc
 }
 
@@ -159,13 +165,16 @@ func (ecc *ExternalCalendarCreate) check() error {
 			return &ValidationError{Name: "calendar_id", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.calendar_id": %w`, err)}
 		}
 	}
-	if _, ok := ecc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "ExternalCalendar.type"`)}
+	if _, ok := ecc.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "ExternalCalendar.source_type"`)}
 	}
-	if v, ok := ecc.mutation.GetType(); ok {
-		if err := externalcalendar.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.type": %w`, err)}
+	if v, ok := ecc.mutation.SourceType(); ok {
+		if err := externalcalendar.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
+	}
+	if _, ok := ecc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "ExternalCalendar.user_id"`)}
 	}
 	if _, ok := ecc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "ExternalCalendar.created_at"`)}
@@ -218,9 +227,13 @@ func (ecc *ExternalCalendarCreate) createSpec() (*ExternalCalendar, *sqlgraph.Cr
 		_spec.SetField(externalcalendar.FieldCalendarID, field.TypeString, value)
 		_node.CalendarID = value
 	}
-	if value, ok := ecc.mutation.GetType(); ok {
-		_spec.SetField(externalcalendar.FieldType, field.TypeString, value)
-		_node.Type = value
+	if value, ok := ecc.mutation.SourceType(); ok {
+		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
+		_node.SourceType = value
+	}
+	if value, ok := ecc.mutation.UserID(); ok {
+		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
 	}
 	if value, ok := ecc.mutation.CreatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldCreatedAt, field.TypeTime, value)
@@ -328,15 +341,33 @@ func (u *ExternalCalendarUpsert) UpdateCalendarID() *ExternalCalendarUpsert {
 	return u
 }
 
-// SetType sets the "type" field.
-func (u *ExternalCalendarUpsert) SetType(v string) *ExternalCalendarUpsert {
-	u.Set(externalcalendar.FieldType, v)
+// SetSourceType sets the "source_type" field.
+func (u *ExternalCalendarUpsert) SetSourceType(v string) *ExternalCalendarUpsert {
+	u.Set(externalcalendar.FieldSourceType, v)
 	return u
 }
 
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ExternalCalendarUpsert) UpdateType() *ExternalCalendarUpsert {
-	u.SetExcluded(externalcalendar.FieldType)
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *ExternalCalendarUpsert) UpdateSourceType() *ExternalCalendarUpsert {
+	u.SetExcluded(externalcalendar.FieldSourceType)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalCalendarUpsert) SetUserID(v int) *ExternalCalendarUpsert {
+	u.Set(externalcalendar.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalCalendarUpsert) UpdateUserID() *ExternalCalendarUpsert {
+	u.SetExcluded(externalcalendar.FieldUserID)
+	return u
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *ExternalCalendarUpsert) AddUserID(v int) *ExternalCalendarUpsert {
+	u.Add(externalcalendar.FieldUserID, v)
 	return u
 }
 
@@ -464,17 +495,38 @@ func (u *ExternalCalendarUpsertOne) UpdateCalendarID() *ExternalCalendarUpsertOn
 	})
 }
 
-// SetType sets the "type" field.
-func (u *ExternalCalendarUpsertOne) SetType(v string) *ExternalCalendarUpsertOne {
+// SetSourceType sets the "source_type" field.
+func (u *ExternalCalendarUpsertOne) SetSourceType(v string) *ExternalCalendarUpsertOne {
 	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.SetType(v)
+		s.SetSourceType(v)
 	})
 }
 
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ExternalCalendarUpsertOne) UpdateType() *ExternalCalendarUpsertOne {
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *ExternalCalendarUpsertOne) UpdateSourceType() *ExternalCalendarUpsertOne {
 	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.UpdateType()
+		s.UpdateSourceType()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalCalendarUpsertOne) SetUserID(v int) *ExternalCalendarUpsertOne {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *ExternalCalendarUpsertOne) AddUserID(v int) *ExternalCalendarUpsertOne {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalCalendarUpsertOne) UpdateUserID() *ExternalCalendarUpsertOne {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.UpdateUserID()
 	})
 }
 
@@ -769,17 +821,38 @@ func (u *ExternalCalendarUpsertBulk) UpdateCalendarID() *ExternalCalendarUpsertB
 	})
 }
 
-// SetType sets the "type" field.
-func (u *ExternalCalendarUpsertBulk) SetType(v string) *ExternalCalendarUpsertBulk {
+// SetSourceType sets the "source_type" field.
+func (u *ExternalCalendarUpsertBulk) SetSourceType(v string) *ExternalCalendarUpsertBulk {
 	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.SetType(v)
+		s.SetSourceType(v)
 	})
 }
 
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ExternalCalendarUpsertBulk) UpdateType() *ExternalCalendarUpsertBulk {
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *ExternalCalendarUpsertBulk) UpdateSourceType() *ExternalCalendarUpsertBulk {
 	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.UpdateType()
+		s.UpdateSourceType()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalCalendarUpsertBulk) SetUserID(v int) *ExternalCalendarUpsertBulk {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *ExternalCalendarUpsertBulk) AddUserID(v int) *ExternalCalendarUpsertBulk {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalCalendarUpsertBulk) UpdateUserID() *ExternalCalendarUpsertBulk {
+	return u.Update(func(s *ExternalCalendarUpsert) {
+		s.UpdateUserID()
 	})
 }
 

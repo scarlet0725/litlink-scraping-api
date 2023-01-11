@@ -2028,7 +2028,9 @@ type ExternalCalendarMutation struct {
 	name          *string
 	description   *string
 	calendar_id   *string
-	_type         *string
+	source_type   *string
+	user_id       *int
+	adduser_id    *int
 	created_at    *time.Time
 	updated_at    *time.Time
 	deleted_at    *time.Time
@@ -2257,40 +2259,96 @@ func (m *ExternalCalendarMutation) ResetCalendarID() {
 	m.calendar_id = nil
 }
 
-// SetType sets the "type" field.
-func (m *ExternalCalendarMutation) SetType(s string) {
-	m._type = &s
+// SetSourceType sets the "source_type" field.
+func (m *ExternalCalendarMutation) SetSourceType(s string) {
+	m.source_type = &s
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *ExternalCalendarMutation) GetType() (r string, exists bool) {
-	v := m._type
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *ExternalCalendarMutation) SourceType() (r string, exists bool) {
+	v := m.source_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the ExternalCalendar entity.
+// OldSourceType returns the old "source_type" field's value of the ExternalCalendar entity.
 // If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExternalCalendarMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *ExternalCalendarMutation) OldSourceType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.SourceType, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *ExternalCalendarMutation) ResetType() {
-	m._type = nil
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *ExternalCalendarMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ExternalCalendarMutation) SetUserID(i int) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ExternalCalendarMutation) UserID() (r int, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *ExternalCalendarMutation) AddUserID(i int) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *ExternalCalendarMutation) AddedUserID() (r int, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ExternalCalendarMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2448,7 +2506,7 @@ func (m *ExternalCalendarMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ExternalCalendarMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, externalcalendar.FieldName)
 	}
@@ -2458,8 +2516,11 @@ func (m *ExternalCalendarMutation) Fields() []string {
 	if m.calendar_id != nil {
 		fields = append(fields, externalcalendar.FieldCalendarID)
 	}
-	if m._type != nil {
-		fields = append(fields, externalcalendar.FieldType)
+	if m.source_type != nil {
+		fields = append(fields, externalcalendar.FieldSourceType)
+	}
+	if m.user_id != nil {
+		fields = append(fields, externalcalendar.FieldUserID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, externalcalendar.FieldCreatedAt)
@@ -2484,8 +2545,10 @@ func (m *ExternalCalendarMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case externalcalendar.FieldCalendarID:
 		return m.CalendarID()
-	case externalcalendar.FieldType:
-		return m.GetType()
+	case externalcalendar.FieldSourceType:
+		return m.SourceType()
+	case externalcalendar.FieldUserID:
+		return m.UserID()
 	case externalcalendar.FieldCreatedAt:
 		return m.CreatedAt()
 	case externalcalendar.FieldUpdatedAt:
@@ -2507,8 +2570,10 @@ func (m *ExternalCalendarMutation) OldField(ctx context.Context, name string) (e
 		return m.OldDescription(ctx)
 	case externalcalendar.FieldCalendarID:
 		return m.OldCalendarID(ctx)
-	case externalcalendar.FieldType:
-		return m.OldType(ctx)
+	case externalcalendar.FieldSourceType:
+		return m.OldSourceType(ctx)
+	case externalcalendar.FieldUserID:
+		return m.OldUserID(ctx)
 	case externalcalendar.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case externalcalendar.FieldUpdatedAt:
@@ -2545,12 +2610,19 @@ func (m *ExternalCalendarMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetCalendarID(v)
 		return nil
-	case externalcalendar.FieldType:
+	case externalcalendar.FieldSourceType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetSourceType(v)
+		return nil
+	case externalcalendar.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case externalcalendar.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2580,13 +2652,21 @@ func (m *ExternalCalendarMutation) SetField(name string, value ent.Value) error 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ExternalCalendarMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, externalcalendar.FieldUserID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ExternalCalendarMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case externalcalendar.FieldUserID:
+		return m.AddedUserID()
+	}
 	return nil, false
 }
 
@@ -2595,6 +2675,13 @@ func (m *ExternalCalendarMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ExternalCalendarMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case externalcalendar.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ExternalCalendar numeric field %s", name)
 }
@@ -2646,8 +2733,11 @@ func (m *ExternalCalendarMutation) ResetField(name string) error {
 	case externalcalendar.FieldCalendarID:
 		m.ResetCalendarID()
 		return nil
-	case externalcalendar.FieldType:
-		m.ResetType()
+	case externalcalendar.FieldSourceType:
+		m.ResetSourceType()
+		return nil
+	case externalcalendar.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case externalcalendar.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -27,6 +27,7 @@ type GoogleOauthTokenQuery struct {
 	predicates []predicate.GoogleOauthToken
 	withUser   *UserQuery
 	withFKs    bool
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -393,6 +394,9 @@ func (gotq *GoogleOauthTokenQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(gotq.modifiers) > 0 {
+		_spec.Modifiers = gotq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -443,6 +447,9 @@ func (gotq *GoogleOauthTokenQuery) loadUser(ctx context.Context, query *UserQuer
 
 func (gotq *GoogleOauthTokenQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gotq.querySpec()
+	if len(gotq.modifiers) > 0 {
+		_spec.Modifiers = gotq.modifiers
+	}
 	_spec.Node.Columns = gotq.fields
 	if len(gotq.fields) > 0 {
 		_spec.Unique = gotq.unique != nil && *gotq.unique
@@ -513,6 +520,9 @@ func (gotq *GoogleOauthTokenQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gotq.unique != nil && *gotq.unique {
 		selector.Distinct()
 	}
+	for _, m := range gotq.modifiers {
+		m(selector)
+	}
 	for _, p := range gotq.predicates {
 		p(selector)
 	}
@@ -528,6 +538,12 @@ func (gotq *GoogleOauthTokenQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gotq *GoogleOauthTokenQuery) Modify(modifiers ...func(s *sql.Selector)) *GoogleOauthTokenSelect {
+	gotq.modifiers = append(gotq.modifiers, modifiers...)
+	return gotq.Select()
 }
 
 // GoogleOauthTokenGroupBy is the group-by builder for GoogleOauthToken entities.
@@ -618,4 +634,10 @@ func (gots *GoogleOauthTokenSelect) sqlScan(ctx context.Context, root *GoogleOau
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gots *GoogleOauthTokenSelect) Modify(modifiers ...func(s *sql.Selector)) *GoogleOauthTokenSelect {
+	gots.modifiers = append(gots.modifiers, modifiers...)
+	return gots
 }

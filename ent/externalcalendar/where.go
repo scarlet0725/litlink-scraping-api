@@ -69,9 +69,14 @@ func CalendarID(v string) predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldEQ(FieldCalendarID, v))
 }
 
-// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
-func Type(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldEQ(FieldType, v))
+// SourceType applies equality check predicate on the "source_type" field. It's identical to SourceTypeEQ.
+func SourceType(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldEQ(FieldSourceType, v))
+}
+
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldEQ(FieldUserID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -294,69 +299,109 @@ func CalendarIDContainsFold(v string) predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldContainsFold(FieldCalendarID, v))
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldEQ(FieldType, v))
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldEQ(FieldSourceType, v))
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldNEQ(FieldType, v))
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldNEQ(FieldSourceType, v))
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldIn(FieldType, vs...))
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldIn(FieldSourceType, vs...))
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldNotIn(FieldType, vs...))
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldNotIn(FieldSourceType, vs...))
 }
 
-// TypeGT applies the GT predicate on the "type" field.
-func TypeGT(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldGT(FieldType, v))
+// SourceTypeGT applies the GT predicate on the "source_type" field.
+func SourceTypeGT(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldGT(FieldSourceType, v))
 }
 
-// TypeGTE applies the GTE predicate on the "type" field.
-func TypeGTE(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldGTE(FieldType, v))
+// SourceTypeGTE applies the GTE predicate on the "source_type" field.
+func SourceTypeGTE(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldGTE(FieldSourceType, v))
 }
 
-// TypeLT applies the LT predicate on the "type" field.
-func TypeLT(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldLT(FieldType, v))
+// SourceTypeLT applies the LT predicate on the "source_type" field.
+func SourceTypeLT(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldLT(FieldSourceType, v))
 }
 
-// TypeLTE applies the LTE predicate on the "type" field.
-func TypeLTE(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldLTE(FieldType, v))
+// SourceTypeLTE applies the LTE predicate on the "source_type" field.
+func SourceTypeLTE(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldLTE(FieldSourceType, v))
 }
 
-// TypeContains applies the Contains predicate on the "type" field.
-func TypeContains(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldContains(FieldType, v))
+// SourceTypeContains applies the Contains predicate on the "source_type" field.
+func SourceTypeContains(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldContains(FieldSourceType, v))
 }
 
-// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
-func TypeHasPrefix(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldHasPrefix(FieldType, v))
+// SourceTypeHasPrefix applies the HasPrefix predicate on the "source_type" field.
+func SourceTypeHasPrefix(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldHasPrefix(FieldSourceType, v))
 }
 
-// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
-func TypeHasSuffix(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldHasSuffix(FieldType, v))
+// SourceTypeHasSuffix applies the HasSuffix predicate on the "source_type" field.
+func SourceTypeHasSuffix(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldHasSuffix(FieldSourceType, v))
 }
 
-// TypeEqualFold applies the EqualFold predicate on the "type" field.
-func TypeEqualFold(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldEqualFold(FieldType, v))
+// SourceTypeEqualFold applies the EqualFold predicate on the "source_type" field.
+func SourceTypeEqualFold(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldEqualFold(FieldSourceType, v))
 }
 
-// TypeContainsFold applies the ContainsFold predicate on the "type" field.
-func TypeContainsFold(v string) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldContainsFold(FieldType, v))
+// SourceTypeContainsFold applies the ContainsFold predicate on the "source_type" field.
+func SourceTypeContainsFold(v string) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldContainsFold(FieldSourceType, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(sql.FieldLTE(FieldUserID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

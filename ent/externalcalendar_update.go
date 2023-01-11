@@ -18,8 +18,9 @@ import (
 // ExternalCalendarUpdate is the builder for updating ExternalCalendar entities.
 type ExternalCalendarUpdate struct {
 	config
-	hooks    []Hook
-	mutation *ExternalCalendarMutation
+	hooks     []Hook
+	mutation  *ExternalCalendarMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the ExternalCalendarUpdate builder.
@@ -60,9 +61,22 @@ func (ecu *ExternalCalendarUpdate) SetCalendarID(s string) *ExternalCalendarUpda
 	return ecu
 }
 
-// SetType sets the "type" field.
-func (ecu *ExternalCalendarUpdate) SetType(s string) *ExternalCalendarUpdate {
-	ecu.mutation.SetType(s)
+// SetSourceType sets the "source_type" field.
+func (ecu *ExternalCalendarUpdate) SetSourceType(s string) *ExternalCalendarUpdate {
+	ecu.mutation.SetSourceType(s)
+	return ecu
+}
+
+// SetUserID sets the "user_id" field.
+func (ecu *ExternalCalendarUpdate) SetUserID(i int) *ExternalCalendarUpdate {
+	ecu.mutation.ResetUserID()
+	ecu.mutation.SetUserID(i)
+	return ecu
+}
+
+// AddUserID adds i to the "user_id" field.
+func (ecu *ExternalCalendarUpdate) AddUserID(i int) *ExternalCalendarUpdate {
+	ecu.mutation.AddUserID(i)
 	return ecu
 }
 
@@ -145,12 +159,18 @@ func (ecu *ExternalCalendarUpdate) check() error {
 			return &ValidationError{Name: "calendar_id", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.calendar_id": %w`, err)}
 		}
 	}
-	if v, ok := ecu.mutation.GetType(); ok {
-		if err := externalcalendar.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.type": %w`, err)}
+	if v, ok := ecu.mutation.SourceType(); ok {
+		if err := externalcalendar.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (ecu *ExternalCalendarUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalCalendarUpdate {
+	ecu.modifiers = append(ecu.modifiers, modifiers...)
+	return ecu
 }
 
 func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -186,8 +206,14 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := ecu.mutation.CalendarID(); ok {
 		_spec.SetField(externalcalendar.FieldCalendarID, field.TypeString, value)
 	}
-	if value, ok := ecu.mutation.GetType(); ok {
-		_spec.SetField(externalcalendar.FieldType, field.TypeString, value)
+	if value, ok := ecu.mutation.SourceType(); ok {
+		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
+	}
+	if value, ok := ecu.mutation.UserID(); ok {
+		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := ecu.mutation.AddedUserID(); ok {
+		_spec.AddField(externalcalendar.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := ecu.mutation.UpdatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldUpdatedAt, field.TypeTime, value)
@@ -198,6 +224,7 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if ecu.mutation.DeletedAtCleared() {
 		_spec.ClearField(externalcalendar.FieldDeletedAt, field.TypeTime)
 	}
+	_spec.AddModifiers(ecu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{externalcalendar.Label}
@@ -213,9 +240,10 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 // ExternalCalendarUpdateOne is the builder for updating a single ExternalCalendar entity.
 type ExternalCalendarUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *ExternalCalendarMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *ExternalCalendarMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -250,9 +278,22 @@ func (ecuo *ExternalCalendarUpdateOne) SetCalendarID(s string) *ExternalCalendar
 	return ecuo
 }
 
-// SetType sets the "type" field.
-func (ecuo *ExternalCalendarUpdateOne) SetType(s string) *ExternalCalendarUpdateOne {
-	ecuo.mutation.SetType(s)
+// SetSourceType sets the "source_type" field.
+func (ecuo *ExternalCalendarUpdateOne) SetSourceType(s string) *ExternalCalendarUpdateOne {
+	ecuo.mutation.SetSourceType(s)
+	return ecuo
+}
+
+// SetUserID sets the "user_id" field.
+func (ecuo *ExternalCalendarUpdateOne) SetUserID(i int) *ExternalCalendarUpdateOne {
+	ecuo.mutation.ResetUserID()
+	ecuo.mutation.SetUserID(i)
+	return ecuo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (ecuo *ExternalCalendarUpdateOne) AddUserID(i int) *ExternalCalendarUpdateOne {
+	ecuo.mutation.AddUserID(i)
 	return ecuo
 }
 
@@ -342,12 +383,18 @@ func (ecuo *ExternalCalendarUpdateOne) check() error {
 			return &ValidationError{Name: "calendar_id", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.calendar_id": %w`, err)}
 		}
 	}
-	if v, ok := ecuo.mutation.GetType(); ok {
-		if err := externalcalendar.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.type": %w`, err)}
+	if v, ok := ecuo.mutation.SourceType(); ok {
+		if err := externalcalendar.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (ecuo *ExternalCalendarUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalCalendarUpdateOne {
+	ecuo.modifiers = append(ecuo.modifiers, modifiers...)
+	return ecuo
 }
 
 func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *ExternalCalendar, err error) {
@@ -400,8 +447,14 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 	if value, ok := ecuo.mutation.CalendarID(); ok {
 		_spec.SetField(externalcalendar.FieldCalendarID, field.TypeString, value)
 	}
-	if value, ok := ecuo.mutation.GetType(); ok {
-		_spec.SetField(externalcalendar.FieldType, field.TypeString, value)
+	if value, ok := ecuo.mutation.SourceType(); ok {
+		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
+	}
+	if value, ok := ecuo.mutation.UserID(); ok {
+		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := ecuo.mutation.AddedUserID(); ok {
+		_spec.AddField(externalcalendar.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := ecuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldUpdatedAt, field.TypeTime, value)
@@ -412,6 +465,7 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 	if ecuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(externalcalendar.FieldDeletedAt, field.TypeTime)
 	}
+	_spec.AddModifiers(ecuo.modifiers...)
 	_node = &ExternalCalendar{config: ecuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

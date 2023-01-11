@@ -19,8 +19,9 @@ import (
 // GoogleOauthTokenUpdate is the builder for updating GoogleOauthToken entities.
 type GoogleOauthTokenUpdate struct {
 	config
-	hooks    []Hook
-	mutation *GoogleOauthTokenMutation
+	hooks     []Hook
+	mutation  *GoogleOauthTokenMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the GoogleOauthTokenUpdate builder.
@@ -104,6 +105,12 @@ func (gotu *GoogleOauthTokenUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gotu *GoogleOauthTokenUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GoogleOauthTokenUpdate {
+	gotu.modifiers = append(gotu.modifiers, modifiers...)
+	return gotu
+}
+
 func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := gotu.check(); err != nil {
 		return n, err
@@ -169,6 +176,7 @@ func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gotu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, gotu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{googleoauthtoken.Label}
@@ -184,9 +192,10 @@ func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err err
 // GoogleOauthTokenUpdateOne is the builder for updating a single GoogleOauthToken entity.
 type GoogleOauthTokenUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *GoogleOauthTokenMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *GoogleOauthTokenMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetRefreshToken sets the "refresh_token" field.
@@ -271,6 +280,12 @@ func (gotuo *GoogleOauthTokenUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (gotuo *GoogleOauthTokenUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *GoogleOauthTokenUpdateOne {
+	gotuo.modifiers = append(gotuo.modifiers, modifiers...)
+	return gotuo
+}
+
 func (gotuo *GoogleOauthTokenUpdateOne) sqlSave(ctx context.Context) (_node *GoogleOauthToken, err error) {
 	if err := gotuo.check(); err != nil {
 		return _node, err
@@ -353,6 +368,7 @@ func (gotuo *GoogleOauthTokenUpdateOne) sqlSave(ctx context.Context) (_node *Goo
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(gotuo.modifiers...)
 	_node = &GoogleOauthToken{config: gotuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

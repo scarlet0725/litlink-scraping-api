@@ -19,8 +19,9 @@ import (
 // ArtistUpdate is the builder for updating Artist entities.
 type ArtistUpdate struct {
 	config
-	hooks    []Hook
-	mutation *ArtistMutation
+	hooks     []Hook
+	mutation  *ArtistMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the ArtistUpdate builder.
@@ -179,6 +180,12 @@ func (au *ArtistUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (au *ArtistUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ArtistUpdate {
+	au.modifiers = append(au.modifiers, modifiers...)
+	return au
+}
+
 func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := au.check(); err != nil {
 		return n, err
@@ -275,6 +282,7 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(au.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{artist.Label}
@@ -290,9 +298,10 @@ func (au *ArtistUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ArtistUpdateOne is the builder for updating a single Artist entity.
 type ArtistUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *ArtistMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *ArtistMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetArtistID sets the "artist_id" field.
@@ -452,6 +461,12 @@ func (auo *ArtistUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (auo *ArtistUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ArtistUpdateOne {
+	auo.modifiers = append(auo.modifiers, modifiers...)
+	return auo
+}
+
 func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err error) {
 	if err := auo.check(); err != nil {
 		return _node, err
@@ -565,6 +580,7 @@ func (auo *ArtistUpdateOne) sqlSave(ctx context.Context) (_node *Artist, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(auo.modifiers...)
 	_node = &Artist{config: auo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

@@ -27,6 +27,7 @@ type GoogleOauthStateQuery struct {
 	predicates []predicate.GoogleOauthState
 	withUser   *UserQuery
 	withFKs    bool
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -393,6 +394,9 @@ func (gosq *GoogleOauthStateQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(gosq.modifiers) > 0 {
+		_spec.Modifiers = gosq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -443,6 +447,9 @@ func (gosq *GoogleOauthStateQuery) loadUser(ctx context.Context, query *UserQuer
 
 func (gosq *GoogleOauthStateQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gosq.querySpec()
+	if len(gosq.modifiers) > 0 {
+		_spec.Modifiers = gosq.modifiers
+	}
 	_spec.Node.Columns = gosq.fields
 	if len(gosq.fields) > 0 {
 		_spec.Unique = gosq.unique != nil && *gosq.unique
@@ -513,6 +520,9 @@ func (gosq *GoogleOauthStateQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gosq.unique != nil && *gosq.unique {
 		selector.Distinct()
 	}
+	for _, m := range gosq.modifiers {
+		m(selector)
+	}
 	for _, p := range gosq.predicates {
 		p(selector)
 	}
@@ -528,6 +538,12 @@ func (gosq *GoogleOauthStateQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gosq *GoogleOauthStateQuery) Modify(modifiers ...func(s *sql.Selector)) *GoogleOauthStateSelect {
+	gosq.modifiers = append(gosq.modifiers, modifiers...)
+	return gosq.Select()
 }
 
 // GoogleOauthStateGroupBy is the group-by builder for GoogleOauthState entities.
@@ -618,4 +634,10 @@ func (goss *GoogleOauthStateSelect) sqlScan(ctx context.Context, root *GoogleOau
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (goss *GoogleOauthStateSelect) Modify(modifiers ...func(s *sql.Selector)) *GoogleOauthStateSelect {
+	goss.modifiers = append(goss.modifiers, modifiers...)
+	return goss
 }

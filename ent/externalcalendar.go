@@ -22,8 +22,10 @@ type ExternalCalendar struct {
 	Description string `json:"description,omitempty"`
 	// CalendarID holds the value of the "calendar_id" field.
 	CalendarID string `json:"calendar_id,omitempty"`
-	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType string `json:"source_type,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int `json:"user_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -37,9 +39,9 @@ func (*ExternalCalendar) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case externalcalendar.FieldID:
+		case externalcalendar.FieldID, externalcalendar.FieldUserID:
 			values[i] = new(sql.NullInt64)
-		case externalcalendar.FieldName, externalcalendar.FieldDescription, externalcalendar.FieldCalendarID, externalcalendar.FieldType:
+		case externalcalendar.FieldName, externalcalendar.FieldDescription, externalcalendar.FieldCalendarID, externalcalendar.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case externalcalendar.FieldCreatedAt, externalcalendar.FieldUpdatedAt, externalcalendar.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -82,11 +84,17 @@ func (ec *ExternalCalendar) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ec.CalendarID = value.String
 			}
-		case externalcalendar.FieldType:
+		case externalcalendar.FieldSourceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
 			} else if value.Valid {
-				ec.Type = value.String
+				ec.SourceType = value.String
+			}
+		case externalcalendar.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				ec.UserID = int(value.Int64)
 			}
 		case externalcalendar.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -144,8 +152,11 @@ func (ec *ExternalCalendar) String() string {
 	builder.WriteString("calendar_id=")
 	builder.WriteString(ec.CalendarID)
 	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(ec.Type)
+	builder.WriteString("source_type=")
+	builder.WriteString(ec.SourceType)
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", ec.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ec.CreatedAt.Format(time.ANSIC))

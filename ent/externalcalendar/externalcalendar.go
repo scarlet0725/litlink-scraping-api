@@ -17,8 +17,10 @@ const (
 	FieldDescription = "description"
 	// FieldCalendarID holds the string denoting the calendar_id field in the database.
 	FieldCalendarID = "calendar_id"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldSourceType holds the string denoting the source_type field in the database.
+	FieldSourceType = "source_type"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -35,7 +37,8 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCalendarID,
-	FieldType,
+	FieldSourceType,
+	FieldUserID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
@@ -56,8 +59,8 @@ var (
 	NameValidator func(string) error
 	// CalendarIDValidator is a validator for the "calendar_id" field. It is called by the builders before save.
 	CalendarIDValidator func(string) error
-	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	TypeValidator func(string) error
+	// SourceTypeValidator is a validator for the "source_type" field. It is called by the builders before save.
+	SourceTypeValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
