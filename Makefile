@@ -16,3 +16,6 @@ test:
 
 build:
 	go build -o prism-api
+
+gen-ent:
+	go generate ./ent
