@@ -12,53 +12,30 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+type Event struct {
 	ent.Schema
 }
 
-func (User) Annotations() []schema.Annotation {
+func (Event) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Annotation{
-			Table:   "users",
+			Table:   "events",
 			Charset: "utf8mb4",
 		},
 	}
 }
 
-func (User) Indexes() []ent.Index {
+func (Event) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("user_id", "username", "email").
+		index.Fields("event_id").
 			Unique(),
-		index.Fields("deleted_at", "api_key"),
+		index.Fields("date", "open_time", "start_time", "end_time", "name"), //TODO: ElasticSearchに切り替えたらインデックスを外す
 	}
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
+func (Event) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("user_id").
-			Unique().
-			NotEmpty().
-			SchemaType(
-				map[string]string{
-					dialect.MySQL: "varchar(191)",
-				},
-			).
-			Annotations(
-				entsql.Annotation{
-					Collation: "utf8mb4_0900_ai_ci",
-				},
-			),
-		field.String("username").
-			Unique().
-			NotEmpty().
-			Annotations(
-				entsql.Annotation{
-					Collation: "utf8mb4_0900_ai_ci",
-				},
-			),
-		field.String("email").
+		field.String("event_id").
 			Unique().
 			NotEmpty().
 			Annotations(
@@ -71,16 +48,8 @@ func (User) Fields() []ent.Field {
 					dialect.MySQL: "varchar(191)",
 				},
 			),
-		field.Bytes("password").
+		field.String("name").
 			NotEmpty().
-			SchemaType(
-				map[string]string{
-					dialect.MySQL: "longblob",
-				},
-			),
-		field.String("first_name").
-			Default("").
-			Optional().
 			Annotations(
 				entsql.Annotation{
 					Collation: "utf8mb4_ja_0900_as_cs_ks",
@@ -91,12 +60,44 @@ func (User) Fields() []ent.Field {
 					dialect.MySQL: "longtext",
 				},
 			),
-		field.String("last_name").
+		field.Time("date").
+			Optional().
+			Nillable().
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.Time("open_time").
+			Optional().
+			Nillable().
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.Time("start_time").
+			Optional().
+			Nillable().
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.Time("end_time").
+			Optional().
+			Nillable().
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.String("description").
 			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
-					Collation: "utf8mb4_ja_0900_as_cs_ks",
+					Collation: "utf8mb4_bin",
 				},
 			).
 			SchemaType(
@@ -104,30 +105,38 @@ func (User) Fields() []ent.Field {
 					dialect.MySQL: "longtext",
 				},
 			),
-		field.Bool("is_admin_verified").
-			Default(false),
-		field.Bool("delete_protected").
-			Default(false),
-		field.String("api_key").
+		field.String("url").
 			Default("").
-			Unique().
 			Optional().
 			Annotations(
 				entsql.Annotation{
-					Collation: "utf8mb4_0900_ai_ci",
+					Collation: "utf8mb4_bin",
 				},
 			).
 			SchemaType(
 				map[string]string{
 					dialect.MySQL: "longtext",
 				},
-			).Default(""),
+			),
+		field.String("ticket_url").
+			Default("").
+			Optional().
+			Annotations(
+				entsql.Annotation{
+					Collation: "utf8mb4_bin",
+				},
+			).
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "longtext",
+				},
+			),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			),
 		field.Time("updated_at").
@@ -135,13 +144,13 @@ func (User) Fields() []ent.Field {
 			UpdateDefault(time.Now).
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			),
 		field.Time("deleted_at").
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			).
 			Nillable().
@@ -149,13 +158,9 @@ func (User) Fields() []ent.Field {
 	}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+func (Event) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("google_oauth_tokens", GoogleOauthToken.Type).
-			Unique(),
-		edge.To("google_oauth_states", GoogleOauthState.Type).
-			Unique(),
-		edge.To("events", Event.Type),
+		edge.From("users", User.Type).
+			Ref("events"),
 	}
 }
