@@ -42,3 +42,19 @@ func UserFromEnt(source *ent.User) *model.User {
 
 	return user
 }
+
+func ExternalCalendarFromEnt(source *ent.ExternalCalendar) *model.ExternalCalendar {
+	externalCalendar := &model.ExternalCalendar{
+		ID:          source.ID,
+		Name:        source.Name,
+		Description: source.Description,
+		CalendarID:  source.CalendarID,
+		Type:        source.SourceType,
+		UserID:      source.UserID,
+		CreatedAt:   source.CreatedAt,
+		UpdatedAt:   source.UpdatedAt,
+		DeletedAt:   source.DeletedAt,
+	}
+
+	return externalCalendar
+}
