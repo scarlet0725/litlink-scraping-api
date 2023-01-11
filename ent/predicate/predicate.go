@@ -12,6 +12,9 @@ type Artist func(*sql.Selector)
 // Event is the predicate function for event builders.
 type Event func(*sql.Selector)
 
+// ExternalCalendar is the predicate function for externalcalendar builders.
+type ExternalCalendar func(*sql.Selector)
+
 // GoogleOauthState is the predicate function for googleoauthstate builders.
 type GoogleOauthState func(*sql.Selector)
 

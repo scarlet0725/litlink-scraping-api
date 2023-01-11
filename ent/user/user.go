@@ -41,6 +41,8 @@ const (
 	EdgeGoogleOauthStates = "google_oauth_states"
 	// EdgeEvents holds the string denoting the events edge name in mutations.
 	EdgeEvents = "events"
+	// EdgeExternalCalendars holds the string denoting the external_calendars edge name in mutations.
+	EdgeExternalCalendars = "external_calendars"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GoogleOauthTokensTable is the table that holds the google_oauth_tokens relation/edge.
@@ -62,6 +64,13 @@ const (
 	// EventsInverseTable is the table name for the Event entity.
 	// It exists in this package in order to avoid circular dependency with the "event" package.
 	EventsInverseTable = "events"
+	// ExternalCalendarsTable is the table that holds the external_calendars relation/edge.
+	ExternalCalendarsTable = "users"
+	// ExternalCalendarsInverseTable is the table name for the ExternalCalendar entity.
+	// It exists in this package in order to avoid circular dependency with the "externalcalendar" package.
+	ExternalCalendarsInverseTable = "external_calendars"
+	// ExternalCalendarsColumn is the table column denoting the external_calendars relation/edge.
+	ExternalCalendarsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -81,6 +90,12 @@ var Columns = []string{
 	FieldDeletedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_id",
+}
+
 var (
 	// EventsPrimaryKey and EventsColumn2 are the table columns denoting the
 	// primary key for the events relation (M2M).
@@ -91,6 +106,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

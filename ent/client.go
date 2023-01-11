@@ -12,6 +12,7 @@ import (
 
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -30,6 +31,8 @@ type Client struct {
 	Artist *ArtistClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
+	// ExternalCalendar is the client for interacting with the ExternalCalendar builders.
+	ExternalCalendar *ExternalCalendarClient
 	// GoogleOauthState is the client for interacting with the GoogleOauthState builders.
 	GoogleOauthState *GoogleOauthStateClient
 	// GoogleOauthToken is the client for interacting with the GoogleOauthToken builders.
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Artist = NewArtistClient(c.config)
 	c.Event = NewEventClient(c.config)
+	c.ExternalCalendar = NewExternalCalendarClient(c.config)
 	c.GoogleOauthState = NewGoogleOauthStateClient(c.config)
 	c.GoogleOauthToken = NewGoogleOauthTokenClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -89,6 +93,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:           cfg,
 		Artist:           NewArtistClient(cfg),
 		Event:            NewEventClient(cfg),
+		ExternalCalendar: NewExternalCalendarClient(cfg),
 		GoogleOauthState: NewGoogleOauthStateClient(cfg),
 		GoogleOauthToken: NewGoogleOauthTokenClient(cfg),
 		User:             NewUserClient(cfg),
@@ -113,6 +118,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:           cfg,
 		Artist:           NewArtistClient(cfg),
 		Event:            NewEventClient(cfg),
+		ExternalCalendar: NewExternalCalendarClient(cfg),
 		GoogleOauthState: NewGoogleOauthStateClient(cfg),
 		GoogleOauthToken: NewGoogleOauthTokenClient(cfg),
 		User:             NewUserClient(cfg),
@@ -146,6 +152,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Artist.Use(hooks...)
 	c.Event.Use(hooks...)
+	c.ExternalCalendar.Use(hooks...)
 	c.GoogleOauthState.Use(hooks...)
 	c.GoogleOauthToken.Use(hooks...)
 	c.User.Use(hooks...)
@@ -156,6 +163,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Artist.Intercept(interceptors...)
 	c.Event.Intercept(interceptors...)
+	c.ExternalCalendar.Intercept(interceptors...)
 	c.GoogleOauthState.Intercept(interceptors...)
 	c.GoogleOauthToken.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
@@ -168,6 +176,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Artist.mutate(ctx, m)
 	case *EventMutation:
 		return c.Event.mutate(ctx, m)
+	case *ExternalCalendarMutation:
+		return c.ExternalCalendar.mutate(ctx, m)
 	case *GoogleOauthStateMutation:
 		return c.GoogleOauthState.mutate(ctx, m)
 	case *GoogleOauthTokenMutation:
@@ -458,6 +468,123 @@ func (c *EventClient) mutate(ctx context.Context, m *EventMutation) (Value, erro
 		return (&EventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Event mutation op: %q", m.Op())
+	}
+}
+
+// ExternalCalendarClient is a client for the ExternalCalendar schema.
+type ExternalCalendarClient struct {
+	config
+}
+
+// NewExternalCalendarClient returns a client for the ExternalCalendar from the given config.
+func NewExternalCalendarClient(c config) *ExternalCalendarClient {
+	return &ExternalCalendarClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `externalcalendar.Hooks(f(g(h())))`.
+func (c *ExternalCalendarClient) Use(hooks ...Hook) {
+	c.hooks.ExternalCalendar = append(c.hooks.ExternalCalendar, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `externalcalendar.Intercept(f(g(h())))`.
+func (c *ExternalCalendarClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExternalCalendar = append(c.inters.ExternalCalendar, interceptors...)
+}
+
+// Create returns a builder for creating a ExternalCalendar entity.
+func (c *ExternalCalendarClient) Create() *ExternalCalendarCreate {
+	mutation := newExternalCalendarMutation(c.config, OpCreate)
+	return &ExternalCalendarCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExternalCalendar entities.
+func (c *ExternalCalendarClient) CreateBulk(builders ...*ExternalCalendarCreate) *ExternalCalendarCreateBulk {
+	return &ExternalCalendarCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExternalCalendar.
+func (c *ExternalCalendarClient) Update() *ExternalCalendarUpdate {
+	mutation := newExternalCalendarMutation(c.config, OpUpdate)
+	return &ExternalCalendarUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExternalCalendarClient) UpdateOne(ec *ExternalCalendar) *ExternalCalendarUpdateOne {
+	mutation := newExternalCalendarMutation(c.config, OpUpdateOne, withExternalCalendar(ec))
+	return &ExternalCalendarUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExternalCalendarClient) UpdateOneID(id int) *ExternalCalendarUpdateOne {
+	mutation := newExternalCalendarMutation(c.config, OpUpdateOne, withExternalCalendarID(id))
+	return &ExternalCalendarUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExternalCalendar.
+func (c *ExternalCalendarClient) Delete() *ExternalCalendarDelete {
+	mutation := newExternalCalendarMutation(c.config, OpDelete)
+	return &ExternalCalendarDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExternalCalendarClient) DeleteOne(ec *ExternalCalendar) *ExternalCalendarDeleteOne {
+	return c.DeleteOneID(ec.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExternalCalendarClient) DeleteOneID(id int) *ExternalCalendarDeleteOne {
+	builder := c.Delete().Where(externalcalendar.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExternalCalendarDeleteOne{builder}
+}
+
+// Query returns a query builder for ExternalCalendar.
+func (c *ExternalCalendarClient) Query() *ExternalCalendarQuery {
+	return &ExternalCalendarQuery{
+		config: c.config,
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExternalCalendar entity by its id.
+func (c *ExternalCalendarClient) Get(ctx context.Context, id int) (*ExternalCalendar, error) {
+	return c.Query().Where(externalcalendar.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExternalCalendarClient) GetX(ctx context.Context, id int) *ExternalCalendar {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExternalCalendarClient) Hooks() []Hook {
+	return c.hooks.ExternalCalendar
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExternalCalendarClient) Interceptors() []Interceptor {
+	return c.inters.ExternalCalendar
+}
+
+func (c *ExternalCalendarClient) mutate(ctx context.Context, m *ExternalCalendarMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExternalCalendarCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExternalCalendarUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExternalCalendarUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExternalCalendarDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExternalCalendar mutation op: %q", m.Op())
 	}
 }
 
@@ -860,6 +987,22 @@ func (c *UserClient) QueryEvents(u *User) *EventQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(event.Table, event.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.EventsTable, user.EventsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryExternalCalendars queries the external_calendars edge of a User.
+func (c *UserClient) QueryExternalCalendars(u *User) *ExternalCalendarQuery {
+	query := (&ExternalCalendarClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(externalcalendar.Table, externalcalendar.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

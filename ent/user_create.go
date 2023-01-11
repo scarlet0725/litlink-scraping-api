@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -212,6 +213,25 @@ func (uc *UserCreate) AddEvents(e ...*Event) *UserCreate {
 		ids[i] = e[i].ID
 	}
 	return uc.AddEventIDs(ids...)
+}
+
+// SetExternalCalendarsID sets the "external_calendars" edge to the ExternalCalendar entity by ID.
+func (uc *UserCreate) SetExternalCalendarsID(id int) *UserCreate {
+	uc.mutation.SetExternalCalendarsID(id)
+	return uc
+}
+
+// SetNillableExternalCalendarsID sets the "external_calendars" edge to the ExternalCalendar entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableExternalCalendarsID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetExternalCalendarsID(*id)
+	}
+	return uc
+}
+
+// SetExternalCalendars sets the "external_calendars" edge to the ExternalCalendar entity.
+func (uc *UserCreate) SetExternalCalendars(e *ExternalCalendar) *UserCreate {
+	return uc.SetExternalCalendarsID(e.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -449,6 +469,26 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ExternalCalendarsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ExternalCalendarsTable,
+			Columns: []string{user.ExternalCalendarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: externalcalendar.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

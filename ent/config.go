@@ -29,6 +29,7 @@ type (
 	hooks struct {
 		Artist           []ent.Hook
 		Event            []ent.Hook
+		ExternalCalendar []ent.Hook
 		GoogleOauthState []ent.Hook
 		GoogleOauthToken []ent.Hook
 		User             []ent.Hook
@@ -36,6 +37,7 @@ type (
 	inters struct {
 		Artist           []ent.Interceptor
 		Event            []ent.Interceptor
+		ExternalCalendar []ent.Interceptor
 		GoogleOauthState []ent.Interceptor
 		GoogleOauthToken []ent.Interceptor
 		User             []ent.Interceptor

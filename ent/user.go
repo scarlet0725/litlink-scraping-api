@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -44,7 +45,8 @@ type User struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	Edges   UserEdges `json:"edges"`
+	user_id *int
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
@@ -55,9 +57,11 @@ type UserEdges struct {
 	GoogleOauthStates *GoogleOauthState `json:"google_oauth_states,omitempty"`
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
+	// ExternalCalendars holds the value of the external_calendars edge.
+	ExternalCalendars *ExternalCalendar `json:"external_calendars,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // GoogleOauthTokensOrErr returns the GoogleOauthTokens value or an error if the edge
@@ -95,6 +99,19 @@ func (e UserEdges) EventsOrErr() ([]*Event, error) {
 	return nil, &NotLoadedError{edge: "events"}
 }
 
+// ExternalCalendarsOrErr returns the ExternalCalendars value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) ExternalCalendarsOrErr() (*ExternalCalendar, error) {
+	if e.loadedTypes[3] {
+		if e.ExternalCalendars == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: externalcalendar.Label}
+		}
+		return e.ExternalCalendars, nil
+	}
+	return nil, &NotLoadedError{edge: "external_calendars"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -110,6 +127,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
+		case user.ForeignKeys[0]: // user_id
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -204,6 +223,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.DeletedAt = new(time.Time)
 				*u.DeletedAt = value.Time
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_id", value)
+			} else if value.Valid {
+				u.user_id = new(int)
+				*u.user_id = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -222,6 +248,11 @@ func (u *User) QueryGoogleOauthStates() *GoogleOauthStateQuery {
 // QueryEvents queries the "events" edge of the User entity.
 func (u *User) QueryEvents() *EventQuery {
 	return (&UserClient{config: u.config}).QueryEvents(u)
+}
+
+// QueryExternalCalendars queries the "external_calendars" edge of the User entity.
+func (u *User) QueryExternalCalendars() *ExternalCalendarQuery {
+	return (&UserClient{config: u.config}).QueryExternalCalendars(u)
 }
 
 // Update returns a builder for updating this User.

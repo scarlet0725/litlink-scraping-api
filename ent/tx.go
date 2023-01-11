@@ -16,6 +16,8 @@ type Tx struct {
 	Artist *ArtistClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
+	// ExternalCalendar is the client for interacting with the ExternalCalendar builders.
+	ExternalCalendar *ExternalCalendarClient
 	// GoogleOauthState is the client for interacting with the GoogleOauthState builders.
 	GoogleOauthState *GoogleOauthStateClient
 	// GoogleOauthToken is the client for interacting with the GoogleOauthToken builders.
@@ -155,6 +157,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Artist = NewArtistClient(tx.config)
 	tx.Event = NewEventClient(tx.config)
+	tx.ExternalCalendar = NewExternalCalendarClient(tx.config)
 	tx.GoogleOauthState = NewGoogleOauthStateClient(tx.config)
 	tx.GoogleOauthToken = NewGoogleOauthTokenClient(tx.config)
 	tx.User = NewUserClient(tx.config)

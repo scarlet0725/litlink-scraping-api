@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/predicate"
@@ -31,6 +32,8 @@ type UserQuery struct {
 	withGoogleOauthTokens *GoogleOauthTokenQuery
 	withGoogleOauthStates *GoogleOauthStateQuery
 	withEvents            *EventQuery
+	withExternalCalendars *ExternalCalendarQuery
+	withFKs               bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -126,6 +129,28 @@ func (uq *UserQuery) QueryEvents() *EventQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(event.Table, event.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.EventsTable, user.EventsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryExternalCalendars chains the current query on the "external_calendars" edge.
+func (uq *UserQuery) QueryExternalCalendars() *ExternalCalendarQuery {
+	query := (&ExternalCalendarClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(externalcalendar.Table, externalcalendar.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -327,6 +352,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withGoogleOauthTokens: uq.withGoogleOauthTokens.Clone(),
 		withGoogleOauthStates: uq.withGoogleOauthStates.Clone(),
 		withEvents:            uq.withEvents.Clone(),
+		withExternalCalendars: uq.withExternalCalendars.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -364,6 +390,17 @@ func (uq *UserQuery) WithEvents(opts ...func(*EventQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withEvents = query
+	return uq
+}
+
+// WithExternalCalendars tells the query-builder to eager-load the nodes that are connected to
+// the "external_calendars" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithExternalCalendars(opts ...func(*ExternalCalendarQuery)) *UserQuery {
+	query := (&ExternalCalendarClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withExternalCalendars = query
 	return uq
 }
 
@@ -444,13 +481,21 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
+		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withGoogleOauthTokens != nil,
 			uq.withGoogleOauthStates != nil,
 			uq.withEvents != nil,
+			uq.withExternalCalendars != nil,
 		}
 	)
+	if uq.withExternalCalendars != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -485,6 +530,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadEvents(ctx, query, nodes,
 			func(n *User) { n.Edges.Events = []*Event{} },
 			func(n *User, e *Event) { n.Edges.Events = append(n.Edges.Events, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withExternalCalendars; query != nil {
+		if err := uq.loadExternalCalendars(ctx, query, nodes, nil,
+			func(n *User, e *ExternalCalendar) { n.Edges.ExternalCalendars = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -601,6 +652,35 @@ func (uq *UserQuery) loadEvents(ctx context.Context, query *EventQuery, nodes []
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadExternalCalendars(ctx context.Context, query *ExternalCalendarQuery, nodes []*User, init func(*User), assign func(*User, *ExternalCalendar)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*User)
+	for i := range nodes {
+		if nodes[i].user_id == nil {
+			continue
+		}
+		fk := *nodes[i].user_id
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(externalcalendar.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

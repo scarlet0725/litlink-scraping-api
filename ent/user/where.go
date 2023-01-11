@@ -806,6 +806,33 @@ func HasEventsWith(preds ...predicate.Event) predicate.User {
 	})
 }
 
+// HasExternalCalendars applies the HasEdge predicate on the "external_calendars" edge.
+func HasExternalCalendars() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasExternalCalendarsWith applies the HasEdge predicate on the "external_calendars" edge with a given conditions (other predicates).
+func HasExternalCalendarsWith(preds ...predicate.ExternalCalendar) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ExternalCalendarsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

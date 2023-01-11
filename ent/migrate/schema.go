@@ -71,6 +71,23 @@ var (
 			},
 		},
 	}
+	// ExternalCalendarsColumns holds the columns for the "external_calendars" table.
+	ExternalCalendarsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "calendar_id", Type: field.TypeString, Collation: "utf8mb4_bin"},
+		{Name: "type", Type: field.TypeString, Collation: "utf8mb4_bin"},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+	}
+	// ExternalCalendarsTable holds the schema information for the "external_calendars" table.
+	ExternalCalendarsTable = &schema.Table{
+		Name:       "external_calendars",
+		Columns:    ExternalCalendarsColumns,
+		PrimaryKey: []*schema.Column{ExternalCalendarsColumns[0]},
+	}
 	// GoogleOauthStatesColumns holds the columns for the "google_oauth_states" table.
 	GoogleOauthStatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -123,7 +140,7 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
+		{Name: "user_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(32)"}},
 		{Name: "username", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci"},
 		{Name: "email", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
 		{Name: "password", Type: field.TypeBytes, SchemaType: map[string]string{"mysql": "longblob"}},
@@ -141,6 +158,14 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_external_calendars_external_calendars",
+				Columns:    []*schema.Column{UsersColumns[1]},
+				RefColumns: []*schema.Column{ExternalCalendarsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "user_user_id_username_email",
@@ -208,6 +233,7 @@ var (
 	Tables = []*schema.Table{
 		ArtistsTable,
 		EventsTable,
+		ExternalCalendarsTable,
 		GoogleOauthStatesTable,
 		GoogleOauthTokensTable,
 		UsersTable,
@@ -225,6 +251,10 @@ func init() {
 		Table:   "events",
 		Charset: "utf8mb4",
 	}
+	ExternalCalendarsTable.Annotation = &entsql.Annotation{
+		Table:   "external_calendars",
+		Charset: "utf8mb4",
+	}
 	GoogleOauthStatesTable.ForeignKeys[0].RefTable = UsersTable
 	GoogleOauthStatesTable.Annotation = &entsql.Annotation{
 		Table:   "google_oauth_states",
@@ -235,6 +265,7 @@ func init() {
 		Table:   "google_oauth_tokens",
 		Charset: "utf8mb4",
 	}
+	UsersTable.ForeignKeys[0].RefTable = ExternalCalendarsTable
 	UsersTable.Annotation = &entsql.Annotation{
 		Table:   "users",
 		Charset: "utf8mb4",

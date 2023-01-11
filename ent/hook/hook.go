@@ -33,6 +33,18 @@ func (f EventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventMutation", m)
 }
 
+// The ExternalCalendarFunc type is an adapter to allow the use of ordinary
+// function as ExternalCalendar mutator.
+type ExternalCalendarFunc func(context.Context, *ent.ExternalCalendarMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExternalCalendarFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExternalCalendarMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExternalCalendarMutation", m)
+}
+
 // The GoogleOauthStateFunc type is an adapter to allow the use of ordinary
 // function as GoogleOauthState mutator.
 type GoogleOauthStateFunc func(context.Context, *ent.GoogleOauthStateMutation) (ent.Value, error)

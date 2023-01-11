@@ -7,6 +7,7 @@ import (
 
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/schema"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -56,6 +57,30 @@ func init() {
 	event.DefaultUpdatedAt = eventDescUpdatedAt.Default.(func() time.Time)
 	// event.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	event.UpdateDefaultUpdatedAt = eventDescUpdatedAt.UpdateDefault.(func() time.Time)
+	externalcalendarFields := schema.ExternalCalendar{}.Fields()
+	_ = externalcalendarFields
+	// externalcalendarDescName is the schema descriptor for name field.
+	externalcalendarDescName := externalcalendarFields[0].Descriptor()
+	// externalcalendar.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	externalcalendar.NameValidator = externalcalendarDescName.Validators[0].(func(string) error)
+	// externalcalendarDescCalendarID is the schema descriptor for calendar_id field.
+	externalcalendarDescCalendarID := externalcalendarFields[2].Descriptor()
+	// externalcalendar.CalendarIDValidator is a validator for the "calendar_id" field. It is called by the builders before save.
+	externalcalendar.CalendarIDValidator = externalcalendarDescCalendarID.Validators[0].(func(string) error)
+	// externalcalendarDescType is the schema descriptor for type field.
+	externalcalendarDescType := externalcalendarFields[3].Descriptor()
+	// externalcalendar.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	externalcalendar.TypeValidator = externalcalendarDescType.Validators[0].(func(string) error)
+	// externalcalendarDescCreatedAt is the schema descriptor for created_at field.
+	externalcalendarDescCreatedAt := externalcalendarFields[4].Descriptor()
+	// externalcalendar.DefaultCreatedAt holds the default value on creation for the created_at field.
+	externalcalendar.DefaultCreatedAt = externalcalendarDescCreatedAt.Default.(func() time.Time)
+	// externalcalendarDescUpdatedAt is the schema descriptor for updated_at field.
+	externalcalendarDescUpdatedAt := externalcalendarFields[5].Descriptor()
+	// externalcalendar.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	externalcalendar.DefaultUpdatedAt = externalcalendarDescUpdatedAt.Default.(func() time.Time)
+	// externalcalendar.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	externalcalendar.UpdateDefaultUpdatedAt = externalcalendarDescUpdatedAt.UpdateDefault.(func() time.Time)
 	googleoauthstateFields := schema.GoogleOauthState{}.Fields()
 	_ = googleoauthstateFields
 	// googleoauthstateDescState is the schema descriptor for state field.

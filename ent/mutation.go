@@ -11,6 +11,7 @@ import (
 
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/predicate"
@@ -31,6 +32,7 @@ const (
 	// Node types.
 	TypeArtist           = "Artist"
 	TypeEvent            = "Event"
+	TypeExternalCalendar = "ExternalCalendar"
 	TypeGoogleOauthState = "GoogleOauthState"
 	TypeGoogleOauthToken = "GoogleOauthToken"
 	TypeUser             = "User"
@@ -2017,6 +2019,697 @@ func (m *EventMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Event edge %s", name)
 }
 
+// ExternalCalendarMutation represents an operation that mutates the ExternalCalendar nodes in the graph.
+type ExternalCalendarMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	name          *string
+	description   *string
+	calendar_id   *string
+	_type         *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*ExternalCalendar, error)
+	predicates    []predicate.ExternalCalendar
+}
+
+var _ ent.Mutation = (*ExternalCalendarMutation)(nil)
+
+// externalcalendarOption allows management of the mutation configuration using functional options.
+type externalcalendarOption func(*ExternalCalendarMutation)
+
+// newExternalCalendarMutation creates new mutation for the ExternalCalendar entity.
+func newExternalCalendarMutation(c config, op Op, opts ...externalcalendarOption) *ExternalCalendarMutation {
+	m := &ExternalCalendarMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeExternalCalendar,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withExternalCalendarID sets the ID field of the mutation.
+func withExternalCalendarID(id int) externalcalendarOption {
+	return func(m *ExternalCalendarMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ExternalCalendar
+		)
+		m.oldValue = func(ctx context.Context) (*ExternalCalendar, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ExternalCalendar.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withExternalCalendar sets the old ExternalCalendar of the mutation.
+func withExternalCalendar(node *ExternalCalendar) externalcalendarOption {
+	return func(m *ExternalCalendarMutation) {
+		m.oldValue = func(context.Context) (*ExternalCalendar, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ExternalCalendarMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ExternalCalendarMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ExternalCalendarMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ExternalCalendarMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ExternalCalendar.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ExternalCalendarMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ExternalCalendarMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ExternalCalendarMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ExternalCalendarMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ExternalCalendarMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ExternalCalendarMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[externalcalendar.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ExternalCalendarMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[externalcalendar.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ExternalCalendarMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, externalcalendar.FieldDescription)
+}
+
+// SetCalendarID sets the "calendar_id" field.
+func (m *ExternalCalendarMutation) SetCalendarID(s string) {
+	m.calendar_id = &s
+}
+
+// CalendarID returns the value of the "calendar_id" field in the mutation.
+func (m *ExternalCalendarMutation) CalendarID() (r string, exists bool) {
+	v := m.calendar_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCalendarID returns the old "calendar_id" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldCalendarID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCalendarID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCalendarID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCalendarID: %w", err)
+	}
+	return oldValue.CalendarID, nil
+}
+
+// ResetCalendarID resets all changes to the "calendar_id" field.
+func (m *ExternalCalendarMutation) ResetCalendarID() {
+	m.calendar_id = nil
+}
+
+// SetType sets the "type" field.
+func (m *ExternalCalendarMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ExternalCalendarMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ExternalCalendarMutation) ResetType() {
+	m._type = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ExternalCalendarMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ExternalCalendarMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ExternalCalendarMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ExternalCalendarMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ExternalCalendarMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ExternalCalendarMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ExternalCalendarMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ExternalCalendarMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ExternalCalendar entity.
+// If the ExternalCalendar object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalCalendarMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *ExternalCalendarMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[externalcalendar.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *ExternalCalendarMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[externalcalendar.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ExternalCalendarMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, externalcalendar.FieldDeletedAt)
+}
+
+// Where appends a list predicates to the ExternalCalendarMutation builder.
+func (m *ExternalCalendarMutation) Where(ps ...predicate.ExternalCalendar) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ExternalCalendarMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ExternalCalendarMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ExternalCalendar, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ExternalCalendarMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ExternalCalendarMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ExternalCalendar).
+func (m *ExternalCalendarMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ExternalCalendarMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.name != nil {
+		fields = append(fields, externalcalendar.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, externalcalendar.FieldDescription)
+	}
+	if m.calendar_id != nil {
+		fields = append(fields, externalcalendar.FieldCalendarID)
+	}
+	if m._type != nil {
+		fields = append(fields, externalcalendar.FieldType)
+	}
+	if m.created_at != nil {
+		fields = append(fields, externalcalendar.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, externalcalendar.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, externalcalendar.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ExternalCalendarMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case externalcalendar.FieldName:
+		return m.Name()
+	case externalcalendar.FieldDescription:
+		return m.Description()
+	case externalcalendar.FieldCalendarID:
+		return m.CalendarID()
+	case externalcalendar.FieldType:
+		return m.GetType()
+	case externalcalendar.FieldCreatedAt:
+		return m.CreatedAt()
+	case externalcalendar.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case externalcalendar.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ExternalCalendarMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case externalcalendar.FieldName:
+		return m.OldName(ctx)
+	case externalcalendar.FieldDescription:
+		return m.OldDescription(ctx)
+	case externalcalendar.FieldCalendarID:
+		return m.OldCalendarID(ctx)
+	case externalcalendar.FieldType:
+		return m.OldType(ctx)
+	case externalcalendar.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case externalcalendar.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case externalcalendar.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ExternalCalendar field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExternalCalendarMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case externalcalendar.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case externalcalendar.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case externalcalendar.FieldCalendarID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCalendarID(v)
+		return nil
+	case externalcalendar.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case externalcalendar.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case externalcalendar.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case externalcalendar.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ExternalCalendar field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ExternalCalendarMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ExternalCalendarMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExternalCalendarMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ExternalCalendar numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ExternalCalendarMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(externalcalendar.FieldDescription) {
+		fields = append(fields, externalcalendar.FieldDescription)
+	}
+	if m.FieldCleared(externalcalendar.FieldDeletedAt) {
+		fields = append(fields, externalcalendar.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ExternalCalendarMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ExternalCalendarMutation) ClearField(name string) error {
+	switch name {
+	case externalcalendar.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case externalcalendar.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ExternalCalendar nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ExternalCalendarMutation) ResetField(name string) error {
+	switch name {
+	case externalcalendar.FieldName:
+		m.ResetName()
+		return nil
+	case externalcalendar.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case externalcalendar.FieldCalendarID:
+		m.ResetCalendarID()
+		return nil
+	case externalcalendar.FieldType:
+		m.ResetType()
+		return nil
+	case externalcalendar.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case externalcalendar.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case externalcalendar.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ExternalCalendar field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ExternalCalendarMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ExternalCalendarMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ExternalCalendarMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ExternalCalendarMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ExternalCalendarMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ExternalCalendarMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ExternalCalendarMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ExternalCalendar unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ExternalCalendarMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ExternalCalendar edge %s", name)
+}
+
 // GoogleOauthStateMutation represents an operation that mutates the GoogleOauthState nodes in the graph.
 type GoogleOauthStateMutation struct {
 	config
@@ -2937,6 +3630,8 @@ type UserMutation struct {
 	events                     map[int]struct{}
 	removedevents              map[int]struct{}
 	clearedevents              bool
+	external_calendars         *int
+	clearedexternal_calendars  bool
 	done                       bool
 	oldValue                   func(context.Context) (*User, error)
 	predicates                 []predicate.User
@@ -3656,6 +4351,45 @@ func (m *UserMutation) ResetEvents() {
 	m.removedevents = nil
 }
 
+// SetExternalCalendarsID sets the "external_calendars" edge to the ExternalCalendar entity by id.
+func (m *UserMutation) SetExternalCalendarsID(id int) {
+	m.external_calendars = &id
+}
+
+// ClearExternalCalendars clears the "external_calendars" edge to the ExternalCalendar entity.
+func (m *UserMutation) ClearExternalCalendars() {
+	m.clearedexternal_calendars = true
+}
+
+// ExternalCalendarsCleared reports if the "external_calendars" edge to the ExternalCalendar entity was cleared.
+func (m *UserMutation) ExternalCalendarsCleared() bool {
+	return m.clearedexternal_calendars
+}
+
+// ExternalCalendarsID returns the "external_calendars" edge ID in the mutation.
+func (m *UserMutation) ExternalCalendarsID() (id int, exists bool) {
+	if m.external_calendars != nil {
+		return *m.external_calendars, true
+	}
+	return
+}
+
+// ExternalCalendarsIDs returns the "external_calendars" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ExternalCalendarsID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) ExternalCalendarsIDs() (ids []int) {
+	if id := m.external_calendars; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetExternalCalendars resets all changes to the "external_calendars" edge.
+func (m *UserMutation) ResetExternalCalendars() {
+	m.external_calendars = nil
+	m.clearedexternal_calendars = false
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -4003,7 +4737,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.google_oauth_tokens != nil {
 		edges = append(edges, user.EdgeGoogleOauthTokens)
 	}
@@ -4012,6 +4746,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.events != nil {
 		edges = append(edges, user.EdgeEvents)
+	}
+	if m.external_calendars != nil {
+		edges = append(edges, user.EdgeExternalCalendars)
 	}
 	return edges
 }
@@ -4034,13 +4771,17 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeExternalCalendars:
+		if id := m.external_calendars; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedevents != nil {
 		edges = append(edges, user.EdgeEvents)
 	}
@@ -4063,7 +4804,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedgoogle_oauth_tokens {
 		edges = append(edges, user.EdgeGoogleOauthTokens)
 	}
@@ -4072,6 +4813,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedevents {
 		edges = append(edges, user.EdgeEvents)
+	}
+	if m.clearedexternal_calendars {
+		edges = append(edges, user.EdgeExternalCalendars)
 	}
 	return edges
 }
@@ -4086,6 +4830,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedgoogle_oauth_states
 	case user.EdgeEvents:
 		return m.clearedevents
+	case user.EdgeExternalCalendars:
+		return m.clearedexternal_calendars
 	}
 	return false
 }
@@ -4099,6 +4845,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 		return nil
 	case user.EdgeGoogleOauthStates:
 		m.ClearGoogleOauthStates()
+		return nil
+	case user.EdgeExternalCalendars:
+		m.ClearExternalCalendars()
 		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
@@ -4116,6 +4865,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeEvents:
 		m.ResetEvents()
+		return nil
+	case user.EdgeExternalCalendars:
+		m.ResetExternalCalendars()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
