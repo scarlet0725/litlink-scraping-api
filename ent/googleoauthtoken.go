@@ -25,8 +25,8 @@ type GoogleOauthToken struct {
 	Expiry time.Time `json:"expiry,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GoogleOauthTokenQuery when eager-loading is set.
-	Edges                    GoogleOauthTokenEdges `json:"edges"`
-	user_google_oauth_tokens *int
+	Edges   GoogleOauthTokenEdges `json:"edges"`
+	user_id *int
 }
 
 // GoogleOauthTokenEdges holds the relations/edges for other nodes in the graph.
@@ -62,7 +62,7 @@ func (*GoogleOauthToken) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case googleoauthtoken.FieldExpiry:
 			values[i] = new(sql.NullTime)
-		case googleoauthtoken.ForeignKeys[0]: // user_google_oauth_tokens
+		case googleoauthtoken.ForeignKeys[0]: // user_id
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GoogleOauthToken", columns[i])
@@ -105,10 +105,10 @@ func (got *GoogleOauthToken) assignValues(columns []string, values []any) error 
 			}
 		case googleoauthtoken.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_google_oauth_tokens", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_id", value)
 			} else if value.Valid {
-				got.user_google_oauth_tokens = new(int)
-				*got.user_google_oauth_tokens = int(value.Int64)
+				got.user_id = new(int)
+				*got.user_id = int(value.Int64)
 			}
 		}
 	}

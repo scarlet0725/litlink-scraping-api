@@ -415,10 +415,10 @@ func (gotq *GoogleOauthTokenQuery) loadUser(ctx context.Context, query *UserQuer
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*GoogleOauthToken)
 	for i := range nodes {
-		if nodes[i].user_google_oauth_tokens == nil {
+		if nodes[i].user_id == nil {
 			continue
 		}
-		fk := *nodes[i].user_google_oauth_tokens
+		fk := *nodes[i].user_id
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -432,7 +432,7 @@ func (gotq *GoogleOauthTokenQuery) loadUser(ctx context.Context, query *UserQuer
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_google_oauth_tokens" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

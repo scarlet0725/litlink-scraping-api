@@ -20,8 +20,8 @@ type GoogleOauthState struct {
 	State string `json:"state,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GoogleOauthStateQuery when eager-loading is set.
-	Edges                    GoogleOauthStateEdges `json:"edges"`
-	user_google_oauth_states *int
+	Edges   GoogleOauthStateEdges `json:"edges"`
+	user_id *int
 }
 
 // GoogleOauthStateEdges holds the relations/edges for other nodes in the graph.
@@ -55,7 +55,7 @@ func (*GoogleOauthState) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case googleoauthstate.FieldState:
 			values[i] = new(sql.NullString)
-		case googleoauthstate.ForeignKeys[0]: // user_google_oauth_states
+		case googleoauthstate.ForeignKeys[0]: // user_id
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type GoogleOauthState", columns[i])
@@ -86,10 +86,10 @@ func (gos *GoogleOauthState) assignValues(columns []string, values []any) error 
 			}
 		case googleoauthstate.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_google_oauth_states", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_id", value)
 			} else if value.Valid {
-				gos.user_google_oauth_states = new(int)
-				*gos.user_google_oauth_states = int(value.Int64)
+				gos.user_id = new(int)
+				*gos.user_id = int(value.Int64)
 			}
 		}
 	}

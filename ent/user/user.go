@@ -49,14 +49,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "googleoauthtoken" package.
 	GoogleOauthTokensInverseTable = "google_oauth_tokens"
 	// GoogleOauthTokensColumn is the table column denoting the google_oauth_tokens relation/edge.
-	GoogleOauthTokensColumn = "user_google_oauth_tokens"
+	GoogleOauthTokensColumn = "user_id"
 	// GoogleOauthStatesTable is the table that holds the google_oauth_states relation/edge.
 	GoogleOauthStatesTable = "google_oauth_states"
 	// GoogleOauthStatesInverseTable is the table name for the GoogleOauthState entity.
 	// It exists in this package in order to avoid circular dependency with the "googleoauthstate" package.
 	GoogleOauthStatesInverseTable = "google_oauth_states"
 	// GoogleOauthStatesColumn is the table column denoting the google_oauth_states relation/edge.
-	GoogleOauthStatesColumn = "user_google_oauth_states"
+	GoogleOauthStatesColumn = "user_id"
 	// EventsTable is the table that holds the events relation/edge. The primary key declared below.
 	EventsTable = "user_events"
 	// EventsInverseTable is the table name for the Event entity.
@@ -106,16 +106,10 @@ var (
 	EmailValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func([]byte) error
-	// DefaultFirstName holds the default value on creation for the "first_name" field.
-	DefaultFirstName string
-	// DefaultLastName holds the default value on creation for the "last_name" field.
-	DefaultLastName string
 	// DefaultIsAdminVerified holds the default value on creation for the "is_admin_verified" field.
 	DefaultIsAdminVerified bool
 	// DefaultDeleteProtected holds the default value on creation for the "delete_protected" field.
 	DefaultDeleteProtected bool
-	// DefaultAPIKey holds the default value on creation for the "api_key" field.
-	DefaultAPIKey string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

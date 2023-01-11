@@ -507,13 +507,13 @@ func (uq *UserQuery) loadGoogleOauthTokens(ctx context.Context, query *GoogleOau
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_google_oauth_tokens
+		fk := n.user_id
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_google_oauth_tokens" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_google_oauth_tokens" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -535,13 +535,13 @@ func (uq *UserQuery) loadGoogleOauthStates(ctx context.Context, query *GoogleOau
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_google_oauth_states
+		fk := n.user_id
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_google_oauth_states" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_google_oauth_states" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

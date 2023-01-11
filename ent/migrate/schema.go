@@ -14,7 +14,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "artist_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
 		{Name: "name", Type: field.TypeString, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "url", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "url", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
@@ -46,9 +46,9 @@ var (
 		{Name: "open_time", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "start_time", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "end_time", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
-		{Name: "description", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "url", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "ticket_url", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "url", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "ticket_url", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
@@ -65,9 +65,9 @@ var (
 				Columns: []*schema.Column{EventsColumns[1]},
 			},
 			{
-				Name:    "event_date_open_time_start_time_end_time_name",
+				Name:    "event_date_open_time_start_time_end_time",
 				Unique:  false,
-				Columns: []*schema.Column{EventsColumns[3], EventsColumns[4], EventsColumns[5], EventsColumns[6], EventsColumns[2]},
+				Columns: []*schema.Column{EventsColumns[3], EventsColumns[4], EventsColumns[5], EventsColumns[6]},
 			},
 		},
 	}
@@ -75,7 +75,7 @@ var (
 	GoogleOauthStatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "state", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
-		{Name: "user_google_oauth_states", Type: field.TypeInt, Unique: true},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
 	}
 	// GoogleOauthStatesTable holds the schema information for the "google_oauth_states" table.
 	GoogleOauthStatesTable = &schema.Table{
@@ -104,7 +104,7 @@ var (
 		{Name: "refresh_token", Type: field.TypeString, SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "access_token", Type: field.TypeString, SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "expiry", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
-		{Name: "user_google_oauth_tokens", Type: field.TypeInt, Unique: true},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
 	}
 	// GoogleOauthTokensTable holds the schema information for the "google_oauth_tokens" table.
 	GoogleOauthTokensTable = &schema.Table{
@@ -127,14 +127,14 @@ var (
 		{Name: "username", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci"},
 		{Name: "email", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
 		{Name: "password", Type: field.TypeBytes, SchemaType: map[string]string{"mysql": "longblob"}},
-		{Name: "first_name", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "last_name", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "first_name", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "last_name", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "is_admin_verified", Type: field.TypeBool, Default: false},
 		{Name: "delete_protected", Type: field.TypeBool, Default: false},
-		{Name: "api_key", Type: field.TypeString, Nullable: true, Default: "", Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
-		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "api_key", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(128)"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

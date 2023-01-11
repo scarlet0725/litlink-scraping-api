@@ -239,18 +239,6 @@ func (ec *EventCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ec *EventCreate) defaults() {
-	if _, ok := ec.mutation.Description(); !ok {
-		v := event.DefaultDescription
-		ec.mutation.SetDescription(v)
-	}
-	if _, ok := ec.mutation.URL(); !ok {
-		v := event.DefaultURL
-		ec.mutation.SetURL(v)
-	}
-	if _, ok := ec.mutation.TicketURL(); !ok {
-		v := event.DefaultTicketURL
-		ec.mutation.SetTicketURL(v)
-	}
 	if _, ok := ec.mutation.CreatedAt(); !ok {
 		v := event.DefaultCreatedAt()
 		ec.mutation.SetCreatedAt(v)

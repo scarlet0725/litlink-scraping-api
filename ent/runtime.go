@@ -26,10 +26,6 @@ func init() {
 	artistDescName := artistFields[1].Descriptor()
 	// artist.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	artist.NameValidator = artistDescName.Validators[0].(func(string) error)
-	// artistDescURL is the schema descriptor for url field.
-	artistDescURL := artistFields[2].Descriptor()
-	// artist.DefaultURL holds the default value on creation for the url field.
-	artist.DefaultURL = artistDescURL.Default.(string)
 	// artistDescCreatedAt is the schema descriptor for created_at field.
 	artistDescCreatedAt := artistFields[3].Descriptor()
 	// artist.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -50,18 +46,6 @@ func init() {
 	eventDescName := eventFields[1].Descriptor()
 	// event.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	event.NameValidator = eventDescName.Validators[0].(func(string) error)
-	// eventDescDescription is the schema descriptor for description field.
-	eventDescDescription := eventFields[6].Descriptor()
-	// event.DefaultDescription holds the default value on creation for the description field.
-	event.DefaultDescription = eventDescDescription.Default.(string)
-	// eventDescURL is the schema descriptor for url field.
-	eventDescURL := eventFields[7].Descriptor()
-	// event.DefaultURL holds the default value on creation for the url field.
-	event.DefaultURL = eventDescURL.Default.(string)
-	// eventDescTicketURL is the schema descriptor for ticket_url field.
-	eventDescTicketURL := eventFields[8].Descriptor()
-	// event.DefaultTicketURL holds the default value on creation for the ticket_url field.
-	event.DefaultTicketURL = eventDescTicketURL.Default.(string)
 	// eventDescCreatedAt is the schema descriptor for created_at field.
 	eventDescCreatedAt := eventFields[9].Descriptor()
 	// event.DefaultCreatedAt holds the default value on creation for the created_at field.
@@ -96,14 +80,6 @@ func init() {
 	userDescPassword := userFields[3].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = userDescPassword.Validators[0].(func([]byte) error)
-	// userDescFirstName is the schema descriptor for first_name field.
-	userDescFirstName := userFields[4].Descriptor()
-	// user.DefaultFirstName holds the default value on creation for the first_name field.
-	user.DefaultFirstName = userDescFirstName.Default.(string)
-	// userDescLastName is the schema descriptor for last_name field.
-	userDescLastName := userFields[5].Descriptor()
-	// user.DefaultLastName holds the default value on creation for the last_name field.
-	user.DefaultLastName = userDescLastName.Default.(string)
 	// userDescIsAdminVerified is the schema descriptor for is_admin_verified field.
 	userDescIsAdminVerified := userFields[6].Descriptor()
 	// user.DefaultIsAdminVerified holds the default value on creation for the is_admin_verified field.
@@ -112,10 +88,6 @@ func init() {
 	userDescDeleteProtected := userFields[7].Descriptor()
 	// user.DefaultDeleteProtected holds the default value on creation for the delete_protected field.
 	user.DefaultDeleteProtected = userDescDeleteProtected.Default.(bool)
-	// userDescAPIKey is the schema descriptor for api_key field.
-	userDescAPIKey := userFields[8].Descriptor()
-	// user.DefaultAPIKey holds the default value on creation for the api_key field.
-	user.DefaultAPIKey = userDescAPIKey.Default.(string)
 	// userDescCreatedAt is the schema descriptor for created_at field.
 	userDescCreatedAt := userFields[9].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.

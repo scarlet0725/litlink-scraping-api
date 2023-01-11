@@ -247,14 +247,6 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
-	if _, ok := uc.mutation.FirstName(); !ok {
-		v := user.DefaultFirstName
-		uc.mutation.SetFirstName(v)
-	}
-	if _, ok := uc.mutation.LastName(); !ok {
-		v := user.DefaultLastName
-		uc.mutation.SetLastName(v)
-	}
 	if _, ok := uc.mutation.IsAdminVerified(); !ok {
 		v := user.DefaultIsAdminVerified
 		uc.mutation.SetIsAdminVerified(v)
@@ -262,10 +254,6 @@ func (uc *UserCreate) defaults() {
 	if _, ok := uc.mutation.DeleteProtected(); !ok {
 		v := user.DefaultDeleteProtected
 		uc.mutation.SetDeleteProtected(v)
-	}
-	if _, ok := uc.mutation.APIKey(); !ok {
-		v := user.DefaultAPIKey
-		uc.mutation.SetAPIKey(v)
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()

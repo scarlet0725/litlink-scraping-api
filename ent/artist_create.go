@@ -139,10 +139,6 @@ func (ac *ArtistCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ac *ArtistCreate) defaults() {
-	if _, ok := ac.mutation.URL(); !ok {
-		v := artist.DefaultURL
-		ac.mutation.SetURL(v)
-	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		v := artist.DefaultCreatedAt()
 		ac.mutation.SetCreatedAt(v)
