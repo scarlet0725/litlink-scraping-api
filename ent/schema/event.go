@@ -29,7 +29,7 @@ func (Event) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("event_id").
 			Unique(),
-		index.Fields("date", "open_time", "start_time", "end_time", "name"), //TODO: ElasticSearchに切り替えたらインデックスを外す
+		index.Fields("date", "open_time", "start_time", "end_time"), //TODO: ElasticSearchに切り替えたらインデックスを外す
 	}
 }
 
@@ -93,7 +93,6 @@ func (Event) Fields() []ent.Field {
 				},
 			),
 		field.String("description").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
@@ -106,7 +105,6 @@ func (Event) Fields() []ent.Field {
 				},
 			),
 		field.String("url").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
@@ -119,7 +117,6 @@ func (Event) Fields() []ent.Field {
 				},
 			),
 		field.String("ticket_url").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{

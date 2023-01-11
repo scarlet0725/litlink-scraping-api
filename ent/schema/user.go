@@ -79,7 +79,6 @@ func (User) Fields() []ent.Field {
 				},
 			),
 		field.String("first_name").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
@@ -92,7 +91,6 @@ func (User) Fields() []ent.Field {
 				},
 			),
 		field.String("last_name").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
@@ -109,7 +107,6 @@ func (User) Fields() []ent.Field {
 		field.Bool("delete_protected").
 			Default(false),
 		field.String("api_key").
-			Default("").
 			Optional().
 			Annotations(
 				entsql.Annotation{
@@ -118,15 +115,15 @@ func (User) Fields() []ent.Field {
 			).
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "longtext",
+					dialect.MySQL: "varchar(128)",
 				},
-			).Default(""),
+			),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			),
 		field.Time("updated_at").
@@ -134,13 +131,13 @@ func (User) Fields() []ent.Field {
 			UpdateDefault(time.Now).
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			),
 		field.Time("deleted_at").
 			SchemaType(
 				map[string]string{
-					dialect.MySQL: "datetime",
+					dialect.MySQL: "datetime(3)",
 				},
 			).
 			Nillable().
@@ -152,9 +149,15 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("google_oauth_tokens", GoogleOauthToken.Type).
-			Unique(),
+			Unique().
+			StorageKey(
+				edge.Column("user_id"),
+			),
 		edge.To("google_oauth_states", GoogleOauthState.Type).
-			Unique(),
+			Unique().
+			StorageKey(
+				edge.Column("user_id"),
+			),
 		edge.To("events", Event.Type),
 	}
 }

@@ -62,7 +62,6 @@ func (Artist) Fields() []ent.Field {
 			),
 		field.String("url").
 			Optional().
-			Default("").
 			Annotations(
 				entsql.Annotation{
 					Collation: "utf8mb4_0900_ai_ci",
