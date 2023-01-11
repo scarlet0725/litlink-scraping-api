@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
@@ -18,6 +19,7 @@ type GoogleOauthStateCreate struct {
 	config
 	mutation *GoogleOauthStateMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetState sets the "state" field.
@@ -114,6 +116,7 @@ func (gosc *GoogleOauthStateCreate) createSpec() (*GoogleOauthState, *sqlgraph.C
 			},
 		}
 	)
+	_spec.OnConflict = gosc.conflict
 	if value, ok := gosc.mutation.State(); ok {
 		_spec.SetField(googleoauthstate.FieldState, field.TypeString, value)
 		_node.State = value
@@ -141,10 +144,159 @@ func (gosc *GoogleOauthStateCreate) createSpec() (*GoogleOauthState, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GoogleOauthState.Create().
+//		SetState(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GoogleOauthStateUpsert) {
+//			SetState(v+v).
+//		}).
+//		Exec(ctx)
+func (gosc *GoogleOauthStateCreate) OnConflict(opts ...sql.ConflictOption) *GoogleOauthStateUpsertOne {
+	gosc.conflict = opts
+	return &GoogleOauthStateUpsertOne{
+		create: gosc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gosc *GoogleOauthStateCreate) OnConflictColumns(columns ...string) *GoogleOauthStateUpsertOne {
+	gosc.conflict = append(gosc.conflict, sql.ConflictColumns(columns...))
+	return &GoogleOauthStateUpsertOne{
+		create: gosc,
+	}
+}
+
+type (
+	// GoogleOauthStateUpsertOne is the builder for "upsert"-ing
+	//  one GoogleOauthState node.
+	GoogleOauthStateUpsertOne struct {
+		create *GoogleOauthStateCreate
+	}
+
+	// GoogleOauthStateUpsert is the "OnConflict" setter.
+	GoogleOauthStateUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetState sets the "state" field.
+func (u *GoogleOauthStateUpsert) SetState(v string) *GoogleOauthStateUpsert {
+	u.Set(googleoauthstate.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *GoogleOauthStateUpsert) UpdateState() *GoogleOauthStateUpsert {
+	u.SetExcluded(googleoauthstate.FieldState)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *GoogleOauthStateUpsertOne) UpdateNewValues() *GoogleOauthStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *GoogleOauthStateUpsertOne) Ignore() *GoogleOauthStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GoogleOauthStateUpsertOne) DoNothing() *GoogleOauthStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GoogleOauthStateCreate.OnConflict
+// documentation for more info.
+func (u *GoogleOauthStateUpsertOne) Update(set func(*GoogleOauthStateUpsert)) *GoogleOauthStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GoogleOauthStateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *GoogleOauthStateUpsertOne) SetState(v string) *GoogleOauthStateUpsertOne {
+	return u.Update(func(s *GoogleOauthStateUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *GoogleOauthStateUpsertOne) UpdateState() *GoogleOauthStateUpsertOne {
+	return u.Update(func(s *GoogleOauthStateUpsert) {
+		s.UpdateState()
+	})
+}
+
+// Exec executes the query.
+func (u *GoogleOauthStateUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GoogleOauthStateCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GoogleOauthStateUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *GoogleOauthStateUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *GoogleOauthStateUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // GoogleOauthStateCreateBulk is the builder for creating many GoogleOauthState entities in bulk.
 type GoogleOauthStateCreateBulk struct {
 	config
 	builders []*GoogleOauthStateCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the GoogleOauthState entities in the database.
@@ -170,6 +322,7 @@ func (goscb *GoogleOauthStateCreateBulk) Save(ctx context.Context) ([]*GoogleOau
 					_, err = mutators[i+1].Mutate(root, goscb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = goscb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, goscb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -220,6 +373,121 @@ func (goscb *GoogleOauthStateCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (goscb *GoogleOauthStateCreateBulk) ExecX(ctx context.Context) {
 	if err := goscb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GoogleOauthState.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GoogleOauthStateUpsert) {
+//			SetState(v+v).
+//		}).
+//		Exec(ctx)
+func (goscb *GoogleOauthStateCreateBulk) OnConflict(opts ...sql.ConflictOption) *GoogleOauthStateUpsertBulk {
+	goscb.conflict = opts
+	return &GoogleOauthStateUpsertBulk{
+		create: goscb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (goscb *GoogleOauthStateCreateBulk) OnConflictColumns(columns ...string) *GoogleOauthStateUpsertBulk {
+	goscb.conflict = append(goscb.conflict, sql.ConflictColumns(columns...))
+	return &GoogleOauthStateUpsertBulk{
+		create: goscb,
+	}
+}
+
+// GoogleOauthStateUpsertBulk is the builder for "upsert"-ing
+// a bulk of GoogleOauthState nodes.
+type GoogleOauthStateUpsertBulk struct {
+	create *GoogleOauthStateCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *GoogleOauthStateUpsertBulk) UpdateNewValues() *GoogleOauthStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthState.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *GoogleOauthStateUpsertBulk) Ignore() *GoogleOauthStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GoogleOauthStateUpsertBulk) DoNothing() *GoogleOauthStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GoogleOauthStateCreateBulk.OnConflict
+// documentation for more info.
+func (u *GoogleOauthStateUpsertBulk) Update(set func(*GoogleOauthStateUpsert)) *GoogleOauthStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GoogleOauthStateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *GoogleOauthStateUpsertBulk) SetState(v string) *GoogleOauthStateUpsertBulk {
+	return u.Update(func(s *GoogleOauthStateUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *GoogleOauthStateUpsertBulk) UpdateState() *GoogleOauthStateUpsertBulk {
+	return u.Update(func(s *GoogleOauthStateUpsert) {
+		s.UpdateState()
+	})
+}
+
+// Exec executes the query.
+func (u *GoogleOauthStateUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GoogleOauthStateCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GoogleOauthStateCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GoogleOauthStateUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

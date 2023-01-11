@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
@@ -19,6 +20,7 @@ type GoogleOauthTokenCreate struct {
 	config
 	mutation *GoogleOauthTokenMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetRefreshToken sets the "refresh_token" field.
@@ -128,6 +130,7 @@ func (gotc *GoogleOauthTokenCreate) createSpec() (*GoogleOauthToken, *sqlgraph.C
 			},
 		}
 	)
+	_spec.OnConflict = gotc.conflict
 	if value, ok := gotc.mutation.RefreshToken(); ok {
 		_spec.SetField(googleoauthtoken.FieldRefreshToken, field.TypeString, value)
 		_node.RefreshToken = value
@@ -163,10 +166,211 @@ func (gotc *GoogleOauthTokenCreate) createSpec() (*GoogleOauthToken, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GoogleOauthToken.Create().
+//		SetRefreshToken(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GoogleOauthTokenUpsert) {
+//			SetRefreshToken(v+v).
+//		}).
+//		Exec(ctx)
+func (gotc *GoogleOauthTokenCreate) OnConflict(opts ...sql.ConflictOption) *GoogleOauthTokenUpsertOne {
+	gotc.conflict = opts
+	return &GoogleOauthTokenUpsertOne{
+		create: gotc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gotc *GoogleOauthTokenCreate) OnConflictColumns(columns ...string) *GoogleOauthTokenUpsertOne {
+	gotc.conflict = append(gotc.conflict, sql.ConflictColumns(columns...))
+	return &GoogleOauthTokenUpsertOne{
+		create: gotc,
+	}
+}
+
+type (
+	// GoogleOauthTokenUpsertOne is the builder for "upsert"-ing
+	//  one GoogleOauthToken node.
+	GoogleOauthTokenUpsertOne struct {
+		create *GoogleOauthTokenCreate
+	}
+
+	// GoogleOauthTokenUpsert is the "OnConflict" setter.
+	GoogleOauthTokenUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *GoogleOauthTokenUpsert) SetRefreshToken(v string) *GoogleOauthTokenUpsert {
+	u.Set(googleoauthtoken.FieldRefreshToken, v)
+	return u
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsert) UpdateRefreshToken() *GoogleOauthTokenUpsert {
+	u.SetExcluded(googleoauthtoken.FieldRefreshToken)
+	return u
+}
+
+// SetAccessToken sets the "access_token" field.
+func (u *GoogleOauthTokenUpsert) SetAccessToken(v string) *GoogleOauthTokenUpsert {
+	u.Set(googleoauthtoken.FieldAccessToken, v)
+	return u
+}
+
+// UpdateAccessToken sets the "access_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsert) UpdateAccessToken() *GoogleOauthTokenUpsert {
+	u.SetExcluded(googleoauthtoken.FieldAccessToken)
+	return u
+}
+
+// SetExpiry sets the "expiry" field.
+func (u *GoogleOauthTokenUpsert) SetExpiry(v time.Time) *GoogleOauthTokenUpsert {
+	u.Set(googleoauthtoken.FieldExpiry, v)
+	return u
+}
+
+// UpdateExpiry sets the "expiry" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsert) UpdateExpiry() *GoogleOauthTokenUpsert {
+	u.SetExcluded(googleoauthtoken.FieldExpiry)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *GoogleOauthTokenUpsertOne) UpdateNewValues() *GoogleOauthTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *GoogleOauthTokenUpsertOne) Ignore() *GoogleOauthTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GoogleOauthTokenUpsertOne) DoNothing() *GoogleOauthTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GoogleOauthTokenCreate.OnConflict
+// documentation for more info.
+func (u *GoogleOauthTokenUpsertOne) Update(set func(*GoogleOauthTokenUpsert)) *GoogleOauthTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GoogleOauthTokenUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *GoogleOauthTokenUpsertOne) SetRefreshToken(v string) *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetRefreshToken(v)
+	})
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertOne) UpdateRefreshToken() *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateRefreshToken()
+	})
+}
+
+// SetAccessToken sets the "access_token" field.
+func (u *GoogleOauthTokenUpsertOne) SetAccessToken(v string) *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetAccessToken(v)
+	})
+}
+
+// UpdateAccessToken sets the "access_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertOne) UpdateAccessToken() *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateAccessToken()
+	})
+}
+
+// SetExpiry sets the "expiry" field.
+func (u *GoogleOauthTokenUpsertOne) SetExpiry(v time.Time) *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetExpiry(v)
+	})
+}
+
+// UpdateExpiry sets the "expiry" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertOne) UpdateExpiry() *GoogleOauthTokenUpsertOne {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateExpiry()
+	})
+}
+
+// Exec executes the query.
+func (u *GoogleOauthTokenUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GoogleOauthTokenCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GoogleOauthTokenUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *GoogleOauthTokenUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *GoogleOauthTokenUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // GoogleOauthTokenCreateBulk is the builder for creating many GoogleOauthToken entities in bulk.
 type GoogleOauthTokenCreateBulk struct {
 	config
 	builders []*GoogleOauthTokenCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the GoogleOauthToken entities in the database.
@@ -192,6 +396,7 @@ func (gotcb *GoogleOauthTokenCreateBulk) Save(ctx context.Context) ([]*GoogleOau
 					_, err = mutators[i+1].Mutate(root, gotcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = gotcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, gotcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -242,6 +447,149 @@ func (gotcb *GoogleOauthTokenCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (gotcb *GoogleOauthTokenCreateBulk) ExecX(ctx context.Context) {
 	if err := gotcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GoogleOauthToken.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GoogleOauthTokenUpsert) {
+//			SetRefreshToken(v+v).
+//		}).
+//		Exec(ctx)
+func (gotcb *GoogleOauthTokenCreateBulk) OnConflict(opts ...sql.ConflictOption) *GoogleOauthTokenUpsertBulk {
+	gotcb.conflict = opts
+	return &GoogleOauthTokenUpsertBulk{
+		create: gotcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gotcb *GoogleOauthTokenCreateBulk) OnConflictColumns(columns ...string) *GoogleOauthTokenUpsertBulk {
+	gotcb.conflict = append(gotcb.conflict, sql.ConflictColumns(columns...))
+	return &GoogleOauthTokenUpsertBulk{
+		create: gotcb,
+	}
+}
+
+// GoogleOauthTokenUpsertBulk is the builder for "upsert"-ing
+// a bulk of GoogleOauthToken nodes.
+type GoogleOauthTokenUpsertBulk struct {
+	create *GoogleOauthTokenCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *GoogleOauthTokenUpsertBulk) UpdateNewValues() *GoogleOauthTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GoogleOauthToken.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *GoogleOauthTokenUpsertBulk) Ignore() *GoogleOauthTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GoogleOauthTokenUpsertBulk) DoNothing() *GoogleOauthTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GoogleOauthTokenCreateBulk.OnConflict
+// documentation for more info.
+func (u *GoogleOauthTokenUpsertBulk) Update(set func(*GoogleOauthTokenUpsert)) *GoogleOauthTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GoogleOauthTokenUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *GoogleOauthTokenUpsertBulk) SetRefreshToken(v string) *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetRefreshToken(v)
+	})
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertBulk) UpdateRefreshToken() *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateRefreshToken()
+	})
+}
+
+// SetAccessToken sets the "access_token" field.
+func (u *GoogleOauthTokenUpsertBulk) SetAccessToken(v string) *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetAccessToken(v)
+	})
+}
+
+// UpdateAccessToken sets the "access_token" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertBulk) UpdateAccessToken() *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateAccessToken()
+	})
+}
+
+// SetExpiry sets the "expiry" field.
+func (u *GoogleOauthTokenUpsertBulk) SetExpiry(v time.Time) *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.SetExpiry(v)
+	})
+}
+
+// UpdateExpiry sets the "expiry" field to the value that was provided on create.
+func (u *GoogleOauthTokenUpsertBulk) UpdateExpiry() *GoogleOauthTokenUpsertBulk {
+	return u.Update(func(s *GoogleOauthTokenUpsert) {
+		s.UpdateExpiry()
+	})
+}
+
+// Exec executes the query.
+func (u *GoogleOauthTokenUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GoogleOauthTokenCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GoogleOauthTokenCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GoogleOauthTokenUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

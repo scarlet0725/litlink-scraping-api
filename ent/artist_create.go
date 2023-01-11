@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/artist"
@@ -19,6 +20,7 @@ type ArtistCreate struct {
 	config
 	mutation *ArtistMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetArtistID sets the "artist_id" field.
@@ -205,6 +207,7 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = ac.conflict
 	if value, ok := ac.mutation.ArtistID(); ok {
 		_spec.SetField(artist.FieldArtistID, field.TypeString, value)
 		_node.ArtistID = value
@@ -251,10 +254,294 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Artist.Create().
+//		SetArtistID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ArtistUpsert) {
+//			SetArtistID(v+v).
+//		}).
+//		Exec(ctx)
+func (ac *ArtistCreate) OnConflict(opts ...sql.ConflictOption) *ArtistUpsertOne {
+	ac.conflict = opts
+	return &ArtistUpsertOne{
+		create: ac,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ac *ArtistCreate) OnConflictColumns(columns ...string) *ArtistUpsertOne {
+	ac.conflict = append(ac.conflict, sql.ConflictColumns(columns...))
+	return &ArtistUpsertOne{
+		create: ac,
+	}
+}
+
+type (
+	// ArtistUpsertOne is the builder for "upsert"-ing
+	//  one Artist node.
+	ArtistUpsertOne struct {
+		create *ArtistCreate
+	}
+
+	// ArtistUpsert is the "OnConflict" setter.
+	ArtistUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetArtistID sets the "artist_id" field.
+func (u *ArtistUpsert) SetArtistID(v string) *ArtistUpsert {
+	u.Set(artist.FieldArtistID, v)
+	return u
+}
+
+// UpdateArtistID sets the "artist_id" field to the value that was provided on create.
+func (u *ArtistUpsert) UpdateArtistID() *ArtistUpsert {
+	u.SetExcluded(artist.FieldArtistID)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *ArtistUpsert) SetName(v string) *ArtistUpsert {
+	u.Set(artist.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ArtistUpsert) UpdateName() *ArtistUpsert {
+	u.SetExcluded(artist.FieldName)
+	return u
+}
+
+// SetURL sets the "url" field.
+func (u *ArtistUpsert) SetURL(v string) *ArtistUpsert {
+	u.Set(artist.FieldURL, v)
+	return u
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *ArtistUpsert) UpdateURL() *ArtistUpsert {
+	u.SetExcluded(artist.FieldURL)
+	return u
+}
+
+// ClearURL clears the value of the "url" field.
+func (u *ArtistUpsert) ClearURL() *ArtistUpsert {
+	u.SetNull(artist.FieldURL)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ArtistUpsert) SetUpdatedAt(v time.Time) *ArtistUpsert {
+	u.Set(artist.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ArtistUpsert) UpdateUpdatedAt() *ArtistUpsert {
+	u.SetExcluded(artist.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ArtistUpsert) SetDeletedAt(v time.Time) *ArtistUpsert {
+	u.Set(artist.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ArtistUpsert) UpdateDeletedAt() *ArtistUpsert {
+	u.SetExcluded(artist.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ArtistUpsert) ClearDeletedAt() *ArtistUpsert {
+	u.SetNull(artist.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *ArtistUpsertOne) UpdateNewValues() *ArtistUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(artist.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ArtistUpsertOne) Ignore() *ArtistUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ArtistUpsertOne) DoNothing() *ArtistUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ArtistCreate.OnConflict
+// documentation for more info.
+func (u *ArtistUpsertOne) Update(set func(*ArtistUpsert)) *ArtistUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ArtistUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetArtistID sets the "artist_id" field.
+func (u *ArtistUpsertOne) SetArtistID(v string) *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetArtistID(v)
+	})
+}
+
+// UpdateArtistID sets the "artist_id" field to the value that was provided on create.
+func (u *ArtistUpsertOne) UpdateArtistID() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateArtistID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *ArtistUpsertOne) SetName(v string) *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ArtistUpsertOne) UpdateName() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetURL sets the "url" field.
+func (u *ArtistUpsertOne) SetURL(v string) *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetURL(v)
+	})
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *ArtistUpsertOne) UpdateURL() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateURL()
+	})
+}
+
+// ClearURL clears the value of the "url" field.
+func (u *ArtistUpsertOne) ClearURL() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.ClearURL()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ArtistUpsertOne) SetUpdatedAt(v time.Time) *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ArtistUpsertOne) UpdateUpdatedAt() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ArtistUpsertOne) SetDeletedAt(v time.Time) *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ArtistUpsertOne) UpdateDeletedAt() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ArtistUpsertOne) ClearDeletedAt() *ArtistUpsertOne {
+	return u.Update(func(s *ArtistUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ArtistUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ArtistCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ArtistUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ArtistUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ArtistUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ArtistCreateBulk is the builder for creating many Artist entities in bulk.
 type ArtistCreateBulk struct {
 	config
 	builders []*ArtistCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Artist entities in the database.
@@ -281,6 +568,7 @@ func (acb *ArtistCreateBulk) Save(ctx context.Context) ([]*Artist, error) {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = acb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, acb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -331,6 +619,198 @@ func (acb *ArtistCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (acb *ArtistCreateBulk) ExecX(ctx context.Context) {
 	if err := acb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Artist.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ArtistUpsert) {
+//			SetArtistID(v+v).
+//		}).
+//		Exec(ctx)
+func (acb *ArtistCreateBulk) OnConflict(opts ...sql.ConflictOption) *ArtistUpsertBulk {
+	acb.conflict = opts
+	return &ArtistUpsertBulk{
+		create: acb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (acb *ArtistCreateBulk) OnConflictColumns(columns ...string) *ArtistUpsertBulk {
+	acb.conflict = append(acb.conflict, sql.ConflictColumns(columns...))
+	return &ArtistUpsertBulk{
+		create: acb,
+	}
+}
+
+// ArtistUpsertBulk is the builder for "upsert"-ing
+// a bulk of Artist nodes.
+type ArtistUpsertBulk struct {
+	create *ArtistCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *ArtistUpsertBulk) UpdateNewValues() *ArtistUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(artist.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Artist.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ArtistUpsertBulk) Ignore() *ArtistUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ArtistUpsertBulk) DoNothing() *ArtistUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ArtistCreateBulk.OnConflict
+// documentation for more info.
+func (u *ArtistUpsertBulk) Update(set func(*ArtistUpsert)) *ArtistUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ArtistUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetArtistID sets the "artist_id" field.
+func (u *ArtistUpsertBulk) SetArtistID(v string) *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetArtistID(v)
+	})
+}
+
+// UpdateArtistID sets the "artist_id" field to the value that was provided on create.
+func (u *ArtistUpsertBulk) UpdateArtistID() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateArtistID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *ArtistUpsertBulk) SetName(v string) *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ArtistUpsertBulk) UpdateName() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetURL sets the "url" field.
+func (u *ArtistUpsertBulk) SetURL(v string) *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetURL(v)
+	})
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *ArtistUpsertBulk) UpdateURL() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateURL()
+	})
+}
+
+// ClearURL clears the value of the "url" field.
+func (u *ArtistUpsertBulk) ClearURL() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.ClearURL()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ArtistUpsertBulk) SetUpdatedAt(v time.Time) *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ArtistUpsertBulk) UpdateUpdatedAt() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ArtistUpsertBulk) SetDeletedAt(v time.Time) *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ArtistUpsertBulk) UpdateDeletedAt() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ArtistUpsertBulk) ClearDeletedAt() *ArtistUpsertBulk {
+	return u.Update(func(s *ArtistUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ArtistUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ArtistCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ArtistCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ArtistUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
