@@ -110,7 +110,6 @@ func (User) Fields() []ent.Field {
 			Default(false),
 		field.String("api_key").
 			Default("").
-			Unique().
 			Optional().
 			Annotations(
 				entsql.Annotation{
