@@ -7,7 +7,6 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 )
 
 // User holds the schema definition for the User entity.
@@ -21,13 +20,6 @@ func (GoogleOauthToken) Annotations() []schema.Annotation {
 			Table:   "google_oauth_tokens",
 			Charset: "utf8mb4",
 		},
-	}
-}
-
-func (GoogleOauthToken) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("user_id").
-			Unique(),
 	}
 }
 
