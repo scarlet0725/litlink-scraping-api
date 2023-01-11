@@ -1,65 +1,68 @@
 package infrastructure
 
 import (
+	"context"
+
+	"github.com/scarlet0725/prism-api/ent"
+	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
+	"github.com/scarlet0725/prism-api/infrastructure/translator"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/schema"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
-type artist struct {
-	db *gorm.DB
+//TODO: GORMの関係でuintになっているところがあるので後々修正する
+
+type artistRepository struct {
+	db *ent.Client
 }
 
-func NewArtistRepository(db *gorm.DB) repository.Artist {
-	return &artist{
-		db: db,
+func NewArtistRepository(ent *ent.Client) repository.Artist {
+	return &artistRepository{
+		db: ent,
 	}
 }
 
-func (a *artist) CreateArtist(artist *model.Artist) (*model.Artist, error) {
-	var schema schema.Artist
-	schema.Artist = *artist
-	err := a.db.Create(&artist).Error
+func (a *artistRepository) CreateArtist(artist *model.Artist) (*model.Artist, error) {
+	result, err := a.db.Artist.Create().SetArtistID(artist.ArtistID).SetName(artist.Name).SetURL(artist.URL).Save(context.Background())
 	if err != nil {
 		return nil, err
 	}
+
+	artist.ID = uint(result.ID)
+
 	return artist, nil
+
 }
 
-func (a *artist) GetArtistByName(name string) (*model.Artist, error) {
-	var artist model.Artist
-	err := a.db.Preload(clause.Associations).Where("name = ?", name).First(&artist).Error
+func (a *artistRepository) GetArtistByName(name string) (*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.Name(name)).First(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	return &artist, nil
+
+	return translator.ArtistFromEnt(result), nil
 }
 
-func (a *artist) GetArtistByID(id string) (*model.Artist, error) {
-	var artist model.Artist
-	err := a.db.Preload(clause.Associations).Where("artist_id = ?", id).First(&artist).Error
+func (a *artistRepository) GetArtistByID(id string) (*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.ArtistID(id)).First(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	return &artist, nil
+
+	return translator.ArtistFromEnt(result), nil
 }
 
-func (a *artist) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
+func (a *artistRepository) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.ArtistIDIn(ids...)).All(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
 	var artists []*model.Artist
-	err := a.db.Preload(clause.Associations).Select("Artists").Where("artist_id IN ?", ids).Find(&artists).Error
-	if err != nil {
-		return nil, err
+	for _, v := range result {
+		artists = append(artists, translator.ArtistFromEnt(v))
 	}
-	return artists, nil
-}
 
-func (a *artist) GetEventsByID(ID string) (*model.Event, error) {
-	var event *model.Event
-	err := a.db.Preload(clause.Associations).Where("event_id = ?", ID).First(&event).Error
-	if err != nil {
-		return nil, err
-	}
-	return event, nil
+	return artists, nil
 }
