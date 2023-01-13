@@ -103,6 +103,14 @@ func (ecc *ExternalCalendarCreate) SetUserID(id int) *ExternalCalendarCreate {
 	return ecc
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ecc *ExternalCalendarCreate) SetNillableUserID(id *int) *ExternalCalendarCreate {
+	if id != nil {
+		ecc = ecc.SetUserID(*id)
+	}
+	return ecc
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ecc *ExternalCalendarCreate) SetUser(u *User) *ExternalCalendarCreate {
 	return ecc.SetUserID(u.ID)
@@ -184,9 +192,6 @@ func (ecc *ExternalCalendarCreate) check() error {
 	}
 	if _, ok := ecc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ExternalCalendar.updated_at"`)}
-	}
-	if _, ok := ecc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "ExternalCalendar.user"`)}
 	}
 	return nil
 }

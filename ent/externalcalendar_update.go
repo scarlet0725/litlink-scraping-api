@@ -100,6 +100,14 @@ func (ecu *ExternalCalendarUpdate) SetUserID(id int) *ExternalCalendarUpdate {
 	return ecu
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ecu *ExternalCalendarUpdate) SetNillableUserID(id *int) *ExternalCalendarUpdate {
+	if id != nil {
+		ecu = ecu.SetUserID(*id)
+	}
+	return ecu
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ecu *ExternalCalendarUpdate) SetUser(u *User) *ExternalCalendarUpdate {
 	return ecu.SetUserID(u.ID)
@@ -168,9 +176,6 @@ func (ecu *ExternalCalendarUpdate) check() error {
 		if err := externalcalendar.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
-	}
-	if _, ok := ecu.mutation.UserID(); ecu.mutation.UserCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "ExternalCalendar.user"`)
 	}
 	return nil
 }
@@ -353,6 +358,14 @@ func (ecuo *ExternalCalendarUpdateOne) SetUserID(id int) *ExternalCalendarUpdate
 	return ecuo
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ecuo *ExternalCalendarUpdateOne) SetNillableUserID(id *int) *ExternalCalendarUpdateOne {
+	if id != nil {
+		ecuo = ecuo.SetUserID(*id)
+	}
+	return ecuo
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ecuo *ExternalCalendarUpdateOne) SetUser(u *User) *ExternalCalendarUpdateOne {
 	return ecuo.SetUserID(u.ID)
@@ -428,9 +441,6 @@ func (ecuo *ExternalCalendarUpdateOne) check() error {
 		if err := externalcalendar.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
-	}
-	if _, ok := ecuo.mutation.UserID(); ecuo.mutation.UserCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "ExternalCalendar.user"`)
 	}
 	return nil
 }

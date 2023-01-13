@@ -95,7 +95,6 @@ func (ExternalCalendar) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("external_calendars").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }

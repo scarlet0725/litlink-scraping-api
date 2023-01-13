@@ -81,7 +81,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
-		{Name: "user_id", Type: field.TypeInt, Unique: true},
+		{Name: "user_id", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// ExternalCalendarsTable holds the schema information for the "external_calendars" table.
 	ExternalCalendarsTable = &schema.Table{
@@ -93,7 +93,7 @@ var (
 				Symbol:     "external_calendars_users_external_calendars",
 				Columns:    []*schema.Column{ExternalCalendarsColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
