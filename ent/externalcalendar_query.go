@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/predicate"
+	"github.com/scarlet0725/prism-api/ent/user"
 )
 
 // ExternalCalendarQuery is the builder for querying ExternalCalendar entities.
@@ -24,6 +25,8 @@ type ExternalCalendarQuery struct {
 	fields     []string
 	inters     []Interceptor
 	predicates []predicate.ExternalCalendar
+	withUser   *UserQuery
+	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -59,6 +62,28 @@ func (ecq *ExternalCalendarQuery) Unique(unique bool) *ExternalCalendarQuery {
 func (ecq *ExternalCalendarQuery) Order(o ...OrderFunc) *ExternalCalendarQuery {
 	ecq.order = append(ecq.order, o...)
 	return ecq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (ecq *ExternalCalendarQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: ecq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ecq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ecq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(externalcalendar.Table, externalcalendar.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, externalcalendar.UserTable, externalcalendar.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ecq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ExternalCalendar entity from the query.
@@ -252,11 +277,23 @@ func (ecq *ExternalCalendarQuery) Clone() *ExternalCalendarQuery {
 		order:      append([]OrderFunc{}, ecq.order...),
 		inters:     append([]Interceptor{}, ecq.inters...),
 		predicates: append([]predicate.ExternalCalendar{}, ecq.predicates...),
+		withUser:   ecq.withUser.Clone(),
 		// clone intermediate query.
 		sql:    ecq.sql.Clone(),
 		path:   ecq.path,
 		unique: ecq.unique,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (ecq *ExternalCalendarQuery) WithUser(opts ...func(*UserQuery)) *ExternalCalendarQuery {
+	query := (&UserClient{config: ecq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	ecq.withUser = query
+	return ecq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,15 +372,26 @@ func (ecq *ExternalCalendarQuery) prepareQuery(ctx context.Context) error {
 
 func (ecq *ExternalCalendarQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ExternalCalendar, error) {
 	var (
-		nodes = []*ExternalCalendar{}
-		_spec = ecq.querySpec()
+		nodes       = []*ExternalCalendar{}
+		withFKs     = ecq.withFKs
+		_spec       = ecq.querySpec()
+		loadedTypes = [1]bool{
+			ecq.withUser != nil,
+		}
 	)
+	if ecq.withUser != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, externalcalendar.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ExternalCalendar).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ExternalCalendar{config: ecq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(ecq.modifiers) > 0 {
@@ -358,7 +406,43 @@ func (ecq *ExternalCalendarQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := ecq.withUser; query != nil {
+		if err := ecq.loadUser(ctx, query, nodes, nil,
+			func(n *ExternalCalendar, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (ecq *ExternalCalendarQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*ExternalCalendar, init func(*ExternalCalendar), assign func(*ExternalCalendar, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*ExternalCalendar)
+	for i := range nodes {
+		if nodes[i].user_id == nil {
+			continue
+		}
+		fk := *nodes[i].user_id
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (ecq *ExternalCalendarQuery) sqlCount(ctx context.Context) (int, error) {

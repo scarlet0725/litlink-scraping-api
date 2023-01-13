@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/scarlet0725/prism-api/ent/predicate"
 )
 
@@ -72,11 +73,6 @@ func CalendarID(v string) predicate.ExternalCalendar {
 // SourceType applies equality check predicate on the "source_type" field. It's identical to SourceTypeEQ.
 func SourceType(v string) predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldEQ(FieldSourceType, v))
-}
-
-// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldEQ(FieldUserID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -364,46 +360,6 @@ func SourceTypeContainsFold(v string) predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldContainsFold(FieldSourceType, v))
 }
 
-// UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldEQ(FieldUserID, v))
-}
-
-// UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldNEQ(FieldUserID, v))
-}
-
-// UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldIn(FieldUserID, vs...))
-}
-
-// UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldNotIn(FieldUserID, vs...))
-}
-
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldGT(FieldUserID, v))
-}
-
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v int) predicate.ExternalCalendar {
-	return predicate.ExternalCalendar(sql.FieldLTE(FieldUserID, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldEQ(FieldCreatedAt, v))
@@ -532,6 +488,33 @@ func DeletedAtIsNil() predicate.ExternalCalendar {
 // DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
 func DeletedAtNotNil() predicate.ExternalCalendar {
 	return predicate.ExternalCalendar(sql.FieldNotNull(FieldDeletedAt))
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.ExternalCalendar {
+	return predicate.ExternalCalendar(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

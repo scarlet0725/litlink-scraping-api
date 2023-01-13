@@ -64,7 +64,6 @@ func (ExternalCalendar) Fields() []ent.Field {
 					Collation: "utf8mb4_bin",
 				},
 			),
-		field.Int("user_id"),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).
@@ -92,7 +91,7 @@ func (ExternalCalendar) Fields() []ent.Field {
 	}
 }
 
-func (ExternalCalendar) Edge() []ent.Edge {
+func (ExternalCalendar) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("external_calendars").

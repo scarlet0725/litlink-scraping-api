@@ -811,7 +811,7 @@ func HasExternalCalendars() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -823,7 +823,7 @@ func HasExternalCalendarsWith(preds ...predicate.ExternalCalendar) predicate.Use
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ExternalCalendarsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ExternalCalendarsTable, ExternalCalendarsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

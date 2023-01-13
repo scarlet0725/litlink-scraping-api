@@ -72,11 +72,11 @@ func init() {
 	// externalcalendar.SourceTypeValidator is a validator for the "source_type" field. It is called by the builders before save.
 	externalcalendar.SourceTypeValidator = externalcalendarDescSourceType.Validators[0].(func(string) error)
 	// externalcalendarDescCreatedAt is the schema descriptor for created_at field.
-	externalcalendarDescCreatedAt := externalcalendarFields[5].Descriptor()
+	externalcalendarDescCreatedAt := externalcalendarFields[4].Descriptor()
 	// externalcalendar.DefaultCreatedAt holds the default value on creation for the created_at field.
 	externalcalendar.DefaultCreatedAt = externalcalendarDescCreatedAt.Default.(func() time.Time)
 	// externalcalendarDescUpdatedAt is the schema descriptor for updated_at field.
-	externalcalendarDescUpdatedAt := externalcalendarFields[6].Descriptor()
+	externalcalendarDescUpdatedAt := externalcalendarFields[5].Descriptor()
 	// externalcalendar.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	externalcalendar.DefaultUpdatedAt = externalcalendarDescUpdatedAt.Default.(func() time.Time)
 	// externalcalendar.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

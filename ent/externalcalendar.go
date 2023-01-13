@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
+	"github.com/scarlet0725/prism-api/ent/user"
 )
 
 // ExternalCalendar is the model entity for the ExternalCalendar schema.
@@ -24,14 +25,38 @@ type ExternalCalendar struct {
 	CalendarID string `json:"calendar_id,omitempty"`
 	// SourceType holds the value of the "source_type" field.
 	SourceType string `json:"source_type,omitempty"`
-	// UserID holds the value of the "user_id" field.
-	UserID int `json:"user_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ExternalCalendarQuery when eager-loading is set.
+	Edges   ExternalCalendarEdges `json:"edges"`
+	user_id *int
+}
+
+// ExternalCalendarEdges holds the relations/edges for other nodes in the graph.
+type ExternalCalendarEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ExternalCalendarEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -39,12 +64,14 @@ func (*ExternalCalendar) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case externalcalendar.FieldID, externalcalendar.FieldUserID:
+		case externalcalendar.FieldID:
 			values[i] = new(sql.NullInt64)
 		case externalcalendar.FieldName, externalcalendar.FieldDescription, externalcalendar.FieldCalendarID, externalcalendar.FieldSourceType:
 			values[i] = new(sql.NullString)
 		case externalcalendar.FieldCreatedAt, externalcalendar.FieldUpdatedAt, externalcalendar.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
+		case externalcalendar.ForeignKeys[0]: // user_id
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ExternalCalendar", columns[i])
 		}
@@ -90,12 +117,6 @@ func (ec *ExternalCalendar) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ec.SourceType = value.String
 			}
-		case externalcalendar.FieldUserID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value.Valid {
-				ec.UserID = int(value.Int64)
-			}
 		case externalcalendar.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -115,9 +136,21 @@ func (ec *ExternalCalendar) assignValues(columns []string, values []any) error {
 				ec.DeletedAt = new(time.Time)
 				*ec.DeletedAt = value.Time
 			}
+		case externalcalendar.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_id", value)
+			} else if value.Valid {
+				ec.user_id = new(int)
+				*ec.user_id = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the ExternalCalendar entity.
+func (ec *ExternalCalendar) QueryUser() *UserQuery {
+	return (&ExternalCalendarClient{config: ec.config}).QueryUser(ec)
 }
 
 // Update returns a builder for updating this ExternalCalendar.
@@ -154,9 +187,6 @@ func (ec *ExternalCalendar) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source_type=")
 	builder.WriteString(ec.SourceType)
-	builder.WriteString(", ")
-	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", ec.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(ec.CreatedAt.Format(time.ANSIC))

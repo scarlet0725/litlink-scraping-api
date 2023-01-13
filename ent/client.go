@@ -563,6 +563,22 @@ func (c *ExternalCalendarClient) GetX(ctx context.Context, id int) *ExternalCale
 	return obj
 }
 
+// QueryUser queries the user edge of a ExternalCalendar.
+func (c *ExternalCalendarClient) QueryUser(ec *ExternalCalendar) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ec.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(externalcalendar.Table, externalcalendar.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, externalcalendar.UserTable, externalcalendar.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ec.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ExternalCalendarClient) Hooks() []Hook {
 	return c.hooks.ExternalCalendar
@@ -1002,7 +1018,7 @@ func (c *UserClient) QueryExternalCalendars(u *User) *ExternalCalendarQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(externalcalendar.Table, externalcalendar.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

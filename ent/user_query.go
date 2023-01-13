@@ -33,7 +33,6 @@ type UserQuery struct {
 	withGoogleOauthStates *GoogleOauthStateQuery
 	withEvents            *EventQuery
 	withExternalCalendars *ExternalCalendarQuery
-	withFKs               bool
 	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -151,7 +150,7 @@ func (uq *UserQuery) QueryExternalCalendars() *ExternalCalendarQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(externalcalendar.Table, externalcalendar.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ExternalCalendarsTable, user.ExternalCalendarsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -482,7 +481,6 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
-		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
 		loadedTypes = [4]bool{
 			uq.withGoogleOauthTokens != nil,
@@ -491,12 +489,6 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withExternalCalendars != nil,
 		}
 	)
-	if uq.withExternalCalendars != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -661,31 +653,30 @@ func (uq *UserQuery) loadEvents(ctx context.Context, query *EventQuery, nodes []
 	return nil
 }
 func (uq *UserQuery) loadExternalCalendars(ctx context.Context, query *ExternalCalendarQuery, nodes []*User, init func(*User), assign func(*User, *ExternalCalendar)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*User)
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
 	for i := range nodes {
-		if nodes[i].user_id == nil {
-			continue
-		}
-		fk := *nodes[i].user_id
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 	}
-	query.Where(externalcalendar.IDIn(ids...))
+	query.withFKs = true
+	query.Where(predicate.ExternalCalendar(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.ExternalCalendarsColumn, fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.user_id
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }

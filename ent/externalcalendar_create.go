@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
+	"github.com/scarlet0725/prism-api/ent/user"
 )
 
 // ExternalCalendarCreate is the builder for creating a ExternalCalendar entity.
@@ -51,12 +52,6 @@ func (ecc *ExternalCalendarCreate) SetCalendarID(s string) *ExternalCalendarCrea
 // SetSourceType sets the "source_type" field.
 func (ecc *ExternalCalendarCreate) SetSourceType(s string) *ExternalCalendarCreate {
 	ecc.mutation.SetSourceType(s)
-	return ecc
-}
-
-// SetUserID sets the "user_id" field.
-func (ecc *ExternalCalendarCreate) SetUserID(i int) *ExternalCalendarCreate {
-	ecc.mutation.SetUserID(i)
 	return ecc
 }
 
@@ -100,6 +95,17 @@ func (ecc *ExternalCalendarCreate) SetNillableDeletedAt(t *time.Time) *ExternalC
 		ecc.SetDeletedAt(*t)
 	}
 	return ecc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ecc *ExternalCalendarCreate) SetUserID(id int) *ExternalCalendarCreate {
+	ecc.mutation.SetUserID(id)
+	return ecc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ecc *ExternalCalendarCreate) SetUser(u *User) *ExternalCalendarCreate {
+	return ecc.SetUserID(u.ID)
 }
 
 // Mutation returns the ExternalCalendarMutation object of the builder.
@@ -173,14 +179,14 @@ func (ecc *ExternalCalendarCreate) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
 	}
-	if _, ok := ecc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "ExternalCalendar.user_id"`)}
-	}
 	if _, ok := ecc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "ExternalCalendar.created_at"`)}
 	}
 	if _, ok := ecc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ExternalCalendar.updated_at"`)}
+	}
+	if _, ok := ecc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "ExternalCalendar.user"`)}
 	}
 	return nil
 }
@@ -231,10 +237,6 @@ func (ecc *ExternalCalendarCreate) createSpec() (*ExternalCalendar, *sqlgraph.Cr
 		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
 		_node.SourceType = value
 	}
-	if value, ok := ecc.mutation.UserID(); ok {
-		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
-		_node.UserID = value
-	}
 	if value, ok := ecc.mutation.CreatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -246,6 +248,26 @@ func (ecc *ExternalCalendarCreate) createSpec() (*ExternalCalendar, *sqlgraph.Cr
 	if value, ok := ecc.mutation.DeletedAt(); ok {
 		_spec.SetField(externalcalendar.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
+	}
+	if nodes := ecc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   externalcalendar.UserTable,
+			Columns: []string{externalcalendar.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -350,24 +372,6 @@ func (u *ExternalCalendarUpsert) SetSourceType(v string) *ExternalCalendarUpsert
 // UpdateSourceType sets the "source_type" field to the value that was provided on create.
 func (u *ExternalCalendarUpsert) UpdateSourceType() *ExternalCalendarUpsert {
 	u.SetExcluded(externalcalendar.FieldSourceType)
-	return u
-}
-
-// SetUserID sets the "user_id" field.
-func (u *ExternalCalendarUpsert) SetUserID(v int) *ExternalCalendarUpsert {
-	u.Set(externalcalendar.FieldUserID, v)
-	return u
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *ExternalCalendarUpsert) UpdateUserID() *ExternalCalendarUpsert {
-	u.SetExcluded(externalcalendar.FieldUserID)
-	return u
-}
-
-// AddUserID adds v to the "user_id" field.
-func (u *ExternalCalendarUpsert) AddUserID(v int) *ExternalCalendarUpsert {
-	u.Add(externalcalendar.FieldUserID, v)
 	return u
 }
 
@@ -506,27 +510,6 @@ func (u *ExternalCalendarUpsertOne) SetSourceType(v string) *ExternalCalendarUps
 func (u *ExternalCalendarUpsertOne) UpdateSourceType() *ExternalCalendarUpsertOne {
 	return u.Update(func(s *ExternalCalendarUpsert) {
 		s.UpdateSourceType()
-	})
-}
-
-// SetUserID sets the "user_id" field.
-func (u *ExternalCalendarUpsertOne) SetUserID(v int) *ExternalCalendarUpsertOne {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// AddUserID adds v to the "user_id" field.
-func (u *ExternalCalendarUpsertOne) AddUserID(v int) *ExternalCalendarUpsertOne {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.AddUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *ExternalCalendarUpsertOne) UpdateUserID() *ExternalCalendarUpsertOne {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.UpdateUserID()
 	})
 }
 
@@ -832,27 +815,6 @@ func (u *ExternalCalendarUpsertBulk) SetSourceType(v string) *ExternalCalendarUp
 func (u *ExternalCalendarUpsertBulk) UpdateSourceType() *ExternalCalendarUpsertBulk {
 	return u.Update(func(s *ExternalCalendarUpsert) {
 		s.UpdateSourceType()
-	})
-}
-
-// SetUserID sets the "user_id" field.
-func (u *ExternalCalendarUpsertBulk) SetUserID(v int) *ExternalCalendarUpsertBulk {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// AddUserID adds v to the "user_id" field.
-func (u *ExternalCalendarUpsertBulk) AddUserID(v int) *ExternalCalendarUpsertBulk {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.AddUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *ExternalCalendarUpsertBulk) UpdateUserID() *ExternalCalendarUpsertBulk {
-	return u.Update(func(s *ExternalCalendarUpsert) {
-		s.UpdateUserID()
 	})
 }
 

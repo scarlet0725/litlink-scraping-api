@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/predicate"
+	"github.com/scarlet0725/prism-api/ent/user"
 )
 
 // ExternalCalendarUpdate is the builder for updating ExternalCalendar entities.
@@ -67,19 +68,6 @@ func (ecu *ExternalCalendarUpdate) SetSourceType(s string) *ExternalCalendarUpda
 	return ecu
 }
 
-// SetUserID sets the "user_id" field.
-func (ecu *ExternalCalendarUpdate) SetUserID(i int) *ExternalCalendarUpdate {
-	ecu.mutation.ResetUserID()
-	ecu.mutation.SetUserID(i)
-	return ecu
-}
-
-// AddUserID adds i to the "user_id" field.
-func (ecu *ExternalCalendarUpdate) AddUserID(i int) *ExternalCalendarUpdate {
-	ecu.mutation.AddUserID(i)
-	return ecu
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (ecu *ExternalCalendarUpdate) SetUpdatedAt(t time.Time) *ExternalCalendarUpdate {
 	ecu.mutation.SetUpdatedAt(t)
@@ -106,9 +94,26 @@ func (ecu *ExternalCalendarUpdate) ClearDeletedAt() *ExternalCalendarUpdate {
 	return ecu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ecu *ExternalCalendarUpdate) SetUserID(id int) *ExternalCalendarUpdate {
+	ecu.mutation.SetUserID(id)
+	return ecu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ecu *ExternalCalendarUpdate) SetUser(u *User) *ExternalCalendarUpdate {
+	return ecu.SetUserID(u.ID)
+}
+
 // Mutation returns the ExternalCalendarMutation object of the builder.
 func (ecu *ExternalCalendarUpdate) Mutation() *ExternalCalendarMutation {
 	return ecu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (ecu *ExternalCalendarUpdate) ClearUser() *ExternalCalendarUpdate {
+	ecu.mutation.ClearUser()
+	return ecu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -164,6 +169,9 @@ func (ecu *ExternalCalendarUpdate) check() error {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
 	}
+	if _, ok := ecu.mutation.UserID(); ecu.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ExternalCalendar.user"`)
+	}
 	return nil
 }
 
@@ -209,12 +217,6 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := ecu.mutation.SourceType(); ok {
 		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
 	}
-	if value, ok := ecu.mutation.UserID(); ok {
-		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := ecu.mutation.AddedUserID(); ok {
-		_spec.AddField(externalcalendar.FieldUserID, field.TypeInt, value)
-	}
 	if value, ok := ecu.mutation.UpdatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -223,6 +225,41 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if ecu.mutation.DeletedAtCleared() {
 		_spec.ClearField(externalcalendar.FieldDeletedAt, field.TypeTime)
+	}
+	if ecu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   externalcalendar.UserTable,
+			Columns: []string{externalcalendar.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   externalcalendar.UserTable,
+			Columns: []string{externalcalendar.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(ecu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, _spec); err != nil {
@@ -284,19 +321,6 @@ func (ecuo *ExternalCalendarUpdateOne) SetSourceType(s string) *ExternalCalendar
 	return ecuo
 }
 
-// SetUserID sets the "user_id" field.
-func (ecuo *ExternalCalendarUpdateOne) SetUserID(i int) *ExternalCalendarUpdateOne {
-	ecuo.mutation.ResetUserID()
-	ecuo.mutation.SetUserID(i)
-	return ecuo
-}
-
-// AddUserID adds i to the "user_id" field.
-func (ecuo *ExternalCalendarUpdateOne) AddUserID(i int) *ExternalCalendarUpdateOne {
-	ecuo.mutation.AddUserID(i)
-	return ecuo
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (ecuo *ExternalCalendarUpdateOne) SetUpdatedAt(t time.Time) *ExternalCalendarUpdateOne {
 	ecuo.mutation.SetUpdatedAt(t)
@@ -323,9 +347,26 @@ func (ecuo *ExternalCalendarUpdateOne) ClearDeletedAt() *ExternalCalendarUpdateO
 	return ecuo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ecuo *ExternalCalendarUpdateOne) SetUserID(id int) *ExternalCalendarUpdateOne {
+	ecuo.mutation.SetUserID(id)
+	return ecuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ecuo *ExternalCalendarUpdateOne) SetUser(u *User) *ExternalCalendarUpdateOne {
+	return ecuo.SetUserID(u.ID)
+}
+
 // Mutation returns the ExternalCalendarMutation object of the builder.
 func (ecuo *ExternalCalendarUpdateOne) Mutation() *ExternalCalendarMutation {
 	return ecuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (ecuo *ExternalCalendarUpdateOne) ClearUser() *ExternalCalendarUpdateOne {
+	ecuo.mutation.ClearUser()
+	return ecuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -387,6 +428,9 @@ func (ecuo *ExternalCalendarUpdateOne) check() error {
 		if err := externalcalendar.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ExternalCalendar.source_type": %w`, err)}
 		}
+	}
+	if _, ok := ecuo.mutation.UserID(); ecuo.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ExternalCalendar.user"`)
 	}
 	return nil
 }
@@ -450,12 +494,6 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 	if value, ok := ecuo.mutation.SourceType(); ok {
 		_spec.SetField(externalcalendar.FieldSourceType, field.TypeString, value)
 	}
-	if value, ok := ecuo.mutation.UserID(); ok {
-		_spec.SetField(externalcalendar.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := ecuo.mutation.AddedUserID(); ok {
-		_spec.AddField(externalcalendar.FieldUserID, field.TypeInt, value)
-	}
 	if value, ok := ecuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(externalcalendar.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -464,6 +502,41 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 	}
 	if ecuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(externalcalendar.FieldDeletedAt, field.TypeTime)
+	}
+	if ecuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   externalcalendar.UserTable,
+			Columns: []string{externalcalendar.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   externalcalendar.UserTable,
+			Columns: []string{externalcalendar.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(ecuo.modifiers...)
 	_node = &ExternalCalendar{config: ecuo.config}

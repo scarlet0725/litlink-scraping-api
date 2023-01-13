@@ -78,16 +78,24 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "calendar_id", Type: field.TypeString, Collation: "utf8mb4_bin"},
 		{Name: "source_type", Type: field.TypeString, Collation: "utf8mb4_bin"},
-		{Name: "user_id", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
 	}
 	// ExternalCalendarsTable holds the schema information for the "external_calendars" table.
 	ExternalCalendarsTable = &schema.Table{
 		Name:       "external_calendars",
 		Columns:    ExternalCalendarsColumns,
 		PrimaryKey: []*schema.Column{ExternalCalendarsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "external_calendars_users_external_calendars",
+				Columns:    []*schema.Column{ExternalCalendarsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// GoogleOauthStatesColumns holds the columns for the "google_oauth_states" table.
 	GoogleOauthStatesColumns = []*schema.Column{
@@ -159,14 +167,6 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "users_external_calendars_external_calendars",
-				Columns:    []*schema.Column{UsersColumns[1]},
-				RefColumns: []*schema.Column{ExternalCalendarsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "user_user_id_username_email",
@@ -252,6 +252,7 @@ func init() {
 		Table:   "events",
 		Charset: "utf8mb4",
 	}
+	ExternalCalendarsTable.ForeignKeys[0].RefTable = UsersTable
 	ExternalCalendarsTable.Annotation = &entsql.Annotation{
 		Table:   "external_calendars",
 		Charset: "utf8mb4",
@@ -266,7 +267,6 @@ func init() {
 		Table:   "google_oauth_tokens",
 		Charset: "utf8mb4",
 	}
-	UsersTable.ForeignKeys[0].RefTable = ExternalCalendarsTable
 	UsersTable.Annotation = &entsql.Annotation{
 		Table:   "users",
 		Charset: "utf8mb4",
