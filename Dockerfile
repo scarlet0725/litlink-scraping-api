@@ -1,4 +1,4 @@
-ARG GO_VERSION 1.19.4
+ARG GO_VERSION=1.19.4
 
 FROM golang:${GO_VERSION}-bullseye as builder
 
