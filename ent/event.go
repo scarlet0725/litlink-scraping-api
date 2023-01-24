@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // Event is the model entity for the Event schema.
@@ -42,7 +43,8 @@ type Event struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EventQuery when eager-loading is set.
-	Edges EventEdges `json:"edges"`
+	Edges       EventEdges `json:"edges"`
+	event_venue *int
 }
 
 // EventEdges holds the relations/edges for other nodes in the graph.
@@ -51,9 +53,15 @@ type EventEdges struct {
 	Users []*User `json:"users,omitempty"`
 	// Artists holds the value of the artists edge.
 	Artists []*Artist `json:"artists,omitempty"`
+	// RelatedRyzmEvents holds the value of the related_ryzm_events edge.
+	RelatedRyzmEvents []*RyzmEvent `json:"related_ryzm_events,omitempty"`
+	// UnStructuredEventInformations holds the value of the un_structured_event_informations edge.
+	UnStructuredEventInformations []*UnStructuredEventInformation `json:"un_structured_event_informations,omitempty"`
+	// Venue holds the value of the venue edge.
+	Venue *Venue `json:"venue,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -74,6 +82,37 @@ func (e EventEdges) ArtistsOrErr() ([]*Artist, error) {
 	return nil, &NotLoadedError{edge: "artists"}
 }
 
+// RelatedRyzmEventsOrErr returns the RelatedRyzmEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e EventEdges) RelatedRyzmEventsOrErr() ([]*RyzmEvent, error) {
+	if e.loadedTypes[2] {
+		return e.RelatedRyzmEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "related_ryzm_events"}
+}
+
+// UnStructuredEventInformationsOrErr returns the UnStructuredEventInformations value or an error if the edge
+// was not loaded in eager-loading.
+func (e EventEdges) UnStructuredEventInformationsOrErr() ([]*UnStructuredEventInformation, error) {
+	if e.loadedTypes[3] {
+		return e.UnStructuredEventInformations, nil
+	}
+	return nil, &NotLoadedError{edge: "un_structured_event_informations"}
+}
+
+// VenueOrErr returns the Venue value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EventEdges) VenueOrErr() (*Venue, error) {
+	if e.loadedTypes[4] {
+		if e.Venue == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: venue.Label}
+		}
+		return e.Venue, nil
+	}
+	return nil, &NotLoadedError{edge: "venue"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Event) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -85,6 +124,8 @@ func (*Event) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case event.FieldDate, event.FieldOpenTime, event.FieldStartTime, event.FieldEndTime, event.FieldCreatedAt, event.FieldUpdatedAt, event.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
+		case event.ForeignKeys[0]: // event_venue
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Event", columns[i])
 		}
@@ -183,6 +224,13 @@ func (e *Event) assignValues(columns []string, values []any) error {
 				e.DeletedAt = new(time.Time)
 				*e.DeletedAt = value.Time
 			}
+		case event.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field event_venue", value)
+			} else if value.Valid {
+				e.event_venue = new(int)
+				*e.event_venue = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -196,6 +244,21 @@ func (e *Event) QueryUsers() *UserQuery {
 // QueryArtists queries the "artists" edge of the Event entity.
 func (e *Event) QueryArtists() *ArtistQuery {
 	return (&EventClient{config: e.config}).QueryArtists(e)
+}
+
+// QueryRelatedRyzmEvents queries the "related_ryzm_events" edge of the Event entity.
+func (e *Event) QueryRelatedRyzmEvents() *RyzmEventQuery {
+	return (&EventClient{config: e.config}).QueryRelatedRyzmEvents(e)
+}
+
+// QueryUnStructuredEventInformations queries the "un_structured_event_informations" edge of the Event entity.
+func (e *Event) QueryUnStructuredEventInformations() *UnStructuredEventInformationQuery {
+	return (&EventClient{config: e.config}).QueryUnStructuredEventInformations(e)
+}
+
+// QueryVenue queries the "venue" edge of the Event entity.
+func (e *Event) QueryVenue() *VenueQuery {
+	return (&EventClient{config: e.config}).QueryVenue(e)
 }
 
 // Update returns a builder for updating this Event.

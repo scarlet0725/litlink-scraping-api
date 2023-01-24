@@ -52,12 +52,21 @@ var (
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "event_venue", Type: field.TypeInt, Nullable: true},
 	}
 	// EventsTable holds the schema information for the "events" table.
 	EventsTable = &schema.Table{
 		Name:       "events",
 		Columns:    EventsColumns,
 		PrimaryKey: []*schema.Column{EventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "events_venues_venue",
+				Columns:    []*schema.Column{EventsColumns[13]},
+				RefColumns: []*schema.Column{VenuesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "event_event_id",
@@ -146,6 +155,49 @@ var (
 			},
 		},
 	}
+	// RyzmEventsColumns holds the columns for the "ryzm_events" table.
+	RyzmEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "uuid", Type: field.TypeString, Unique: true},
+		{Name: "event_related_ryzm_events", Type: field.TypeInt},
+	}
+	// RyzmEventsTable holds the schema information for the "ryzm_events" table.
+	RyzmEventsTable = &schema.Table{
+		Name:       "ryzm_events",
+		Columns:    RyzmEventsColumns,
+		PrimaryKey: []*schema.Column{RyzmEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ryzm_events_events_related_ryzm_events",
+				Columns:    []*schema.Column{RyzmEventsColumns[2]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// UnStructuredEventInformationsColumns holds the columns for the "un_structured_event_informations" table.
+	UnStructuredEventInformationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ryzmuuid", Type: field.TypeString},
+		{Name: "venue_name", Type: field.TypeString},
+		{Name: "artist_name", Type: field.TypeString},
+		{Name: "price", Type: field.TypeString},
+		{Name: "event_un_structured_event_informations", Type: field.TypeInt},
+	}
+	// UnStructuredEventInformationsTable holds the schema information for the "un_structured_event_informations" table.
+	UnStructuredEventInformationsTable = &schema.Table{
+		Name:       "un_structured_event_informations",
+		Columns:    UnStructuredEventInformationsColumns,
+		PrimaryKey: []*schema.Column{UnStructuredEventInformationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "un_structured_event_informations_events_un_structured_event_informations",
+				Columns:    []*schema.Column{UnStructuredEventInformationsColumns[5]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -179,6 +231,28 @@ var (
 				Columns: []*schema.Column{UsersColumns[12], UsersColumns[9]},
 			},
 		},
+	}
+	// VenuesColumns holds the columns for the "venues" table.
+	VenuesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "venue_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(32)"}},
+		{Name: "name", Type: field.TypeString, Collation: "utf8mb4_ja_0900_as_cs_ks"},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "web_site", Type: field.TypeBytes, Nullable: true, SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "postcode", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "varchar(8)"}},
+		{Name: "prefecture", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "city", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "street", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "is_open", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+	}
+	// VenuesTable holds the schema information for the "venues" table.
+	VenuesTable = &schema.Table{
+		Name:       "venues",
+		Columns:    VenuesColumns,
+		PrimaryKey: []*schema.Column{VenuesColumns[0]},
 	}
 	// EventArtistsColumns holds the columns for the "event_artists" table.
 	EventArtistsColumns = []*schema.Column{
@@ -237,7 +311,10 @@ var (
 		ExternalCalendarsTable,
 		GoogleOauthStatesTable,
 		GoogleOauthTokensTable,
+		RyzmEventsTable,
+		UnStructuredEventInformationsTable,
 		UsersTable,
+		VenuesTable,
 		EventArtistsTable,
 		UserEventsTable,
 	}
@@ -248,6 +325,7 @@ func init() {
 		Table:   "artists",
 		Charset: "utf8mb4",
 	}
+	EventsTable.ForeignKeys[0].RefTable = VenuesTable
 	EventsTable.Annotation = &entsql.Annotation{
 		Table:   "events",
 		Charset: "utf8mb4",
@@ -267,8 +345,22 @@ func init() {
 		Table:   "google_oauth_tokens",
 		Charset: "utf8mb4",
 	}
+	RyzmEventsTable.ForeignKeys[0].RefTable = EventsTable
+	RyzmEventsTable.Annotation = &entsql.Annotation{
+		Table:   "ryzm_events",
+		Charset: "utf8mb4",
+	}
+	UnStructuredEventInformationsTable.ForeignKeys[0].RefTable = EventsTable
+	UnStructuredEventInformationsTable.Annotation = &entsql.Annotation{
+		Table:   "un_structured_event_informations",
+		Charset: "utf8mb4",
+	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table:   "users",
+		Charset: "utf8mb4",
+	}
+	VenuesTable.Annotation = &entsql.Annotation{
+		Table:   "venues",
 		Charset: "utf8mb4",
 	}
 	EventArtistsTable.ForeignKeys[0].RefTable = EventsTable

@@ -27,20 +27,26 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Artist           []ent.Hook
-		Event            []ent.Hook
-		ExternalCalendar []ent.Hook
-		GoogleOauthState []ent.Hook
-		GoogleOauthToken []ent.Hook
-		User             []ent.Hook
+		Artist                       []ent.Hook
+		Event                        []ent.Hook
+		ExternalCalendar             []ent.Hook
+		GoogleOauthState             []ent.Hook
+		GoogleOauthToken             []ent.Hook
+		RyzmEvent                    []ent.Hook
+		UnStructuredEventInformation []ent.Hook
+		User                         []ent.Hook
+		Venue                        []ent.Hook
 	}
 	inters struct {
-		Artist           []ent.Interceptor
-		Event            []ent.Interceptor
-		ExternalCalendar []ent.Interceptor
-		GoogleOauthState []ent.Interceptor
-		GoogleOauthToken []ent.Interceptor
-		User             []ent.Interceptor
+		Artist                       []ent.Interceptor
+		Event                        []ent.Interceptor
+		ExternalCalendar             []ent.Interceptor
+		GoogleOauthState             []ent.Interceptor
+		GoogleOauthToken             []ent.Interceptor
+		RyzmEvent                    []ent.Interceptor
+		UnStructuredEventInformation []ent.Interceptor
+		User                         []ent.Interceptor
+		Venue                        []ent.Interceptor
 	}
 )
 

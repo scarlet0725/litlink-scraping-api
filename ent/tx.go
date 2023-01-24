@@ -22,8 +22,14 @@ type Tx struct {
 	GoogleOauthState *GoogleOauthStateClient
 	// GoogleOauthToken is the client for interacting with the GoogleOauthToken builders.
 	GoogleOauthToken *GoogleOauthTokenClient
+	// RyzmEvent is the client for interacting with the RyzmEvent builders.
+	RyzmEvent *RyzmEventClient
+	// UnStructuredEventInformation is the client for interacting with the UnStructuredEventInformation builders.
+	UnStructuredEventInformation *UnStructuredEventInformationClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Venue is the client for interacting with the Venue builders.
+	Venue *VenueClient
 
 	// lazily loaded.
 	client     *Client
@@ -160,7 +166,10 @@ func (tx *Tx) init() {
 	tx.ExternalCalendar = NewExternalCalendarClient(tx.config)
 	tx.GoogleOauthState = NewGoogleOauthStateClient(tx.config)
 	tx.GoogleOauthToken = NewGoogleOauthTokenClient(tx.config)
+	tx.RyzmEvent = NewRyzmEventClient(tx.config)
+	tx.UnStructuredEventInformation = NewUnStructuredEventInformationClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.Venue = NewVenueClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

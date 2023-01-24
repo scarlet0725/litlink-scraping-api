@@ -854,6 +854,87 @@ func HasArtistsWith(preds ...predicate.Artist) predicate.Event {
 	})
 }
 
+// HasRelatedRyzmEvents applies the HasEdge predicate on the "related_ryzm_events" edge.
+func HasRelatedRyzmEvents() predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RelatedRyzmEventsTable, RelatedRyzmEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRelatedRyzmEventsWith applies the HasEdge predicate on the "related_ryzm_events" edge with a given conditions (other predicates).
+func HasRelatedRyzmEventsWith(preds ...predicate.RyzmEvent) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RelatedRyzmEventsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RelatedRyzmEventsTable, RelatedRyzmEventsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUnStructuredEventInformations applies the HasEdge predicate on the "un_structured_event_informations" edge.
+func HasUnStructuredEventInformations() predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UnStructuredEventInformationsTable, UnStructuredEventInformationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUnStructuredEventInformationsWith applies the HasEdge predicate on the "un_structured_event_informations" edge with a given conditions (other predicates).
+func HasUnStructuredEventInformationsWith(preds ...predicate.UnStructuredEventInformation) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UnStructuredEventInformationsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UnStructuredEventInformationsTable, UnStructuredEventInformationsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVenue applies the HasEdge predicate on the "venue" edge.
+func HasVenue() predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, VenueTable, VenueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVenueWith applies the HasEdge predicate on the "venue" edge with a given conditions (other predicates).
+func HasVenueWith(preds ...predicate.Venue) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(VenueInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, VenueTable, VenueColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Event) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {

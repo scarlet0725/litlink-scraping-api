@@ -14,7 +14,10 @@ import (
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/predicate"
+	"github.com/scarlet0725/prism-api/ent/ryzmevent"
+	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // EventUpdate is the builder for updating Event entities.
@@ -239,6 +242,55 @@ func (eu *EventUpdate) AddArtists(a ...*Artist) *EventUpdate {
 	return eu.AddArtistIDs(ids...)
 }
 
+// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
+func (eu *EventUpdate) AddRelatedRyzmEventIDs(ids ...int) *EventUpdate {
+	eu.mutation.AddRelatedRyzmEventIDs(ids...)
+	return eu
+}
+
+// AddRelatedRyzmEvents adds the "related_ryzm_events" edges to the RyzmEvent entity.
+func (eu *EventUpdate) AddRelatedRyzmEvents(r ...*RyzmEvent) *EventUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return eu.AddRelatedRyzmEventIDs(ids...)
+}
+
+// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
+func (eu *EventUpdate) AddUnStructuredEventInformationIDs(ids ...int) *EventUpdate {
+	eu.mutation.AddUnStructuredEventInformationIDs(ids...)
+	return eu
+}
+
+// AddUnStructuredEventInformations adds the "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
+func (eu *EventUpdate) AddUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return eu.AddUnStructuredEventInformationIDs(ids...)
+}
+
+// SetVenueID sets the "venue" edge to the Venue entity by ID.
+func (eu *EventUpdate) SetVenueID(id int) *EventUpdate {
+	eu.mutation.SetVenueID(id)
+	return eu
+}
+
+// SetNillableVenueID sets the "venue" edge to the Venue entity by ID if the given value is not nil.
+func (eu *EventUpdate) SetNillableVenueID(id *int) *EventUpdate {
+	if id != nil {
+		eu = eu.SetVenueID(*id)
+	}
+	return eu
+}
+
+// SetVenue sets the "venue" edge to the Venue entity.
+func (eu *EventUpdate) SetVenue(v *Venue) *EventUpdate {
+	return eu.SetVenueID(v.ID)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (eu *EventUpdate) Mutation() *EventMutation {
 	return eu.mutation
@@ -284,6 +336,54 @@ func (eu *EventUpdate) RemoveArtists(a ...*Artist) *EventUpdate {
 		ids[i] = a[i].ID
 	}
 	return eu.RemoveArtistIDs(ids...)
+}
+
+// ClearRelatedRyzmEvents clears all "related_ryzm_events" edges to the RyzmEvent entity.
+func (eu *EventUpdate) ClearRelatedRyzmEvents() *EventUpdate {
+	eu.mutation.ClearRelatedRyzmEvents()
+	return eu
+}
+
+// RemoveRelatedRyzmEventIDs removes the "related_ryzm_events" edge to RyzmEvent entities by IDs.
+func (eu *EventUpdate) RemoveRelatedRyzmEventIDs(ids ...int) *EventUpdate {
+	eu.mutation.RemoveRelatedRyzmEventIDs(ids...)
+	return eu
+}
+
+// RemoveRelatedRyzmEvents removes "related_ryzm_events" edges to RyzmEvent entities.
+func (eu *EventUpdate) RemoveRelatedRyzmEvents(r ...*RyzmEvent) *EventUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return eu.RemoveRelatedRyzmEventIDs(ids...)
+}
+
+// ClearUnStructuredEventInformations clears all "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
+func (eu *EventUpdate) ClearUnStructuredEventInformations() *EventUpdate {
+	eu.mutation.ClearUnStructuredEventInformations()
+	return eu
+}
+
+// RemoveUnStructuredEventInformationIDs removes the "un_structured_event_informations" edge to UnStructuredEventInformation entities by IDs.
+func (eu *EventUpdate) RemoveUnStructuredEventInformationIDs(ids ...int) *EventUpdate {
+	eu.mutation.RemoveUnStructuredEventInformationIDs(ids...)
+	return eu
+}
+
+// RemoveUnStructuredEventInformations removes "un_structured_event_informations" edges to UnStructuredEventInformation entities.
+func (eu *EventUpdate) RemoveUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return eu.RemoveUnStructuredEventInformationIDs(ids...)
+}
+
+// ClearVenue clears the "venue" edge to the Venue entity.
+func (eu *EventUpdate) ClearVenue() *EventUpdate {
+	eu.mutation.ClearVenue()
+	return eu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -529,6 +629,149 @@ func (eu *EventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if eu.mutation.RelatedRyzmEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedRelatedRyzmEventsIDs(); len(nodes) > 0 && !eu.mutation.RelatedRyzmEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RelatedRyzmEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eu.mutation.UnStructuredEventInformationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedUnStructuredEventInformationsIDs(); len(nodes) > 0 && !eu.mutation.UnStructuredEventInformationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.UnStructuredEventInformationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eu.mutation.VenueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   event.VenueTable,
+			Columns: []string{event.VenueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: venue.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.VenueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   event.VenueTable,
+			Columns: []string{event.VenueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: venue.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(eu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -759,6 +1002,55 @@ func (euo *EventUpdateOne) AddArtists(a ...*Artist) *EventUpdateOne {
 	return euo.AddArtistIDs(ids...)
 }
 
+// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
+func (euo *EventUpdateOne) AddRelatedRyzmEventIDs(ids ...int) *EventUpdateOne {
+	euo.mutation.AddRelatedRyzmEventIDs(ids...)
+	return euo
+}
+
+// AddRelatedRyzmEvents adds the "related_ryzm_events" edges to the RyzmEvent entity.
+func (euo *EventUpdateOne) AddRelatedRyzmEvents(r ...*RyzmEvent) *EventUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return euo.AddRelatedRyzmEventIDs(ids...)
+}
+
+// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
+func (euo *EventUpdateOne) AddUnStructuredEventInformationIDs(ids ...int) *EventUpdateOne {
+	euo.mutation.AddUnStructuredEventInformationIDs(ids...)
+	return euo
+}
+
+// AddUnStructuredEventInformations adds the "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
+func (euo *EventUpdateOne) AddUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return euo.AddUnStructuredEventInformationIDs(ids...)
+}
+
+// SetVenueID sets the "venue" edge to the Venue entity by ID.
+func (euo *EventUpdateOne) SetVenueID(id int) *EventUpdateOne {
+	euo.mutation.SetVenueID(id)
+	return euo
+}
+
+// SetNillableVenueID sets the "venue" edge to the Venue entity by ID if the given value is not nil.
+func (euo *EventUpdateOne) SetNillableVenueID(id *int) *EventUpdateOne {
+	if id != nil {
+		euo = euo.SetVenueID(*id)
+	}
+	return euo
+}
+
+// SetVenue sets the "venue" edge to the Venue entity.
+func (euo *EventUpdateOne) SetVenue(v *Venue) *EventUpdateOne {
+	return euo.SetVenueID(v.ID)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (euo *EventUpdateOne) Mutation() *EventMutation {
 	return euo.mutation
@@ -804,6 +1096,54 @@ func (euo *EventUpdateOne) RemoveArtists(a ...*Artist) *EventUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return euo.RemoveArtistIDs(ids...)
+}
+
+// ClearRelatedRyzmEvents clears all "related_ryzm_events" edges to the RyzmEvent entity.
+func (euo *EventUpdateOne) ClearRelatedRyzmEvents() *EventUpdateOne {
+	euo.mutation.ClearRelatedRyzmEvents()
+	return euo
+}
+
+// RemoveRelatedRyzmEventIDs removes the "related_ryzm_events" edge to RyzmEvent entities by IDs.
+func (euo *EventUpdateOne) RemoveRelatedRyzmEventIDs(ids ...int) *EventUpdateOne {
+	euo.mutation.RemoveRelatedRyzmEventIDs(ids...)
+	return euo
+}
+
+// RemoveRelatedRyzmEvents removes "related_ryzm_events" edges to RyzmEvent entities.
+func (euo *EventUpdateOne) RemoveRelatedRyzmEvents(r ...*RyzmEvent) *EventUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return euo.RemoveRelatedRyzmEventIDs(ids...)
+}
+
+// ClearUnStructuredEventInformations clears all "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
+func (euo *EventUpdateOne) ClearUnStructuredEventInformations() *EventUpdateOne {
+	euo.mutation.ClearUnStructuredEventInformations()
+	return euo
+}
+
+// RemoveUnStructuredEventInformationIDs removes the "un_structured_event_informations" edge to UnStructuredEventInformation entities by IDs.
+func (euo *EventUpdateOne) RemoveUnStructuredEventInformationIDs(ids ...int) *EventUpdateOne {
+	euo.mutation.RemoveUnStructuredEventInformationIDs(ids...)
+	return euo
+}
+
+// RemoveUnStructuredEventInformations removes "un_structured_event_informations" edges to UnStructuredEventInformation entities.
+func (euo *EventUpdateOne) RemoveUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return euo.RemoveUnStructuredEventInformationIDs(ids...)
+}
+
+// ClearVenue clears the "venue" edge to the Venue entity.
+func (euo *EventUpdateOne) ClearVenue() *EventUpdateOne {
+	euo.mutation.ClearVenue()
+	return euo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1065,6 +1405,149 @@ func (euo *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: artist.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.RelatedRyzmEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedRelatedRyzmEventsIDs(); len(nodes) > 0 && !euo.mutation.RelatedRyzmEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RelatedRyzmEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.UnStructuredEventInformationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedUnStructuredEventInformationsIDs(); len(nodes) > 0 && !euo.mutation.UnStructuredEventInformationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.UnStructuredEventInformationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.VenueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   event.VenueTable,
+			Columns: []string{event.VenueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: venue.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.VenueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   event.VenueTable,
+			Columns: []string{event.VenueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: venue.FieldID,
 				},
 			},
 		}

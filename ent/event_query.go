@@ -14,22 +14,29 @@ import (
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/predicate"
+	"github.com/scarlet0725/prism-api/ent/ryzmevent"
+	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // EventQuery is the builder for querying Event entities.
 type EventQuery struct {
 	config
-	limit       *int
-	offset      *int
-	unique      *bool
-	order       []OrderFunc
-	fields      []string
-	inters      []Interceptor
-	predicates  []predicate.Event
-	withUsers   *UserQuery
-	withArtists *ArtistQuery
-	modifiers   []func(*sql.Selector)
+	limit                             *int
+	offset                            *int
+	unique                            *bool
+	order                             []OrderFunc
+	fields                            []string
+	inters                            []Interceptor
+	predicates                        []predicate.Event
+	withUsers                         *UserQuery
+	withArtists                       *ArtistQuery
+	withRelatedRyzmEvents             *RyzmEventQuery
+	withUnStructuredEventInformations *UnStructuredEventInformationQuery
+	withVenue                         *VenueQuery
+	withFKs                           bool
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +110,72 @@ func (eq *EventQuery) QueryArtists() *ArtistQuery {
 			sqlgraph.From(event.Table, event.FieldID, selector),
 			sqlgraph.To(artist.Table, artist.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, event.ArtistsTable, event.ArtistsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRelatedRyzmEvents chains the current query on the "related_ryzm_events" edge.
+func (eq *EventQuery) QueryRelatedRyzmEvents() *RyzmEventQuery {
+	query := (&RyzmEventClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, selector),
+			sqlgraph.To(ryzmevent.Table, ryzmevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, event.RelatedRyzmEventsTable, event.RelatedRyzmEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUnStructuredEventInformations chains the current query on the "un_structured_event_informations" edge.
+func (eq *EventQuery) QueryUnStructuredEventInformations() *UnStructuredEventInformationQuery {
+	query := (&UnStructuredEventInformationClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, selector),
+			sqlgraph.To(unstructuredeventinformation.Table, unstructuredeventinformation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, event.UnStructuredEventInformationsTable, event.UnStructuredEventInformationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVenue chains the current query on the "venue" edge.
+func (eq *EventQuery) QueryVenue() *VenueQuery {
+	query := (&VenueClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, selector),
+			sqlgraph.To(venue.Table, venue.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, event.VenueTable, event.VenueColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,14 +368,17 @@ func (eq *EventQuery) Clone() *EventQuery {
 		return nil
 	}
 	return &EventQuery{
-		config:      eq.config,
-		limit:       eq.limit,
-		offset:      eq.offset,
-		order:       append([]OrderFunc{}, eq.order...),
-		inters:      append([]Interceptor{}, eq.inters...),
-		predicates:  append([]predicate.Event{}, eq.predicates...),
-		withUsers:   eq.withUsers.Clone(),
-		withArtists: eq.withArtists.Clone(),
+		config:                            eq.config,
+		limit:                             eq.limit,
+		offset:                            eq.offset,
+		order:                             append([]OrderFunc{}, eq.order...),
+		inters:                            append([]Interceptor{}, eq.inters...),
+		predicates:                        append([]predicate.Event{}, eq.predicates...),
+		withUsers:                         eq.withUsers.Clone(),
+		withArtists:                       eq.withArtists.Clone(),
+		withRelatedRyzmEvents:             eq.withRelatedRyzmEvents.Clone(),
+		withUnStructuredEventInformations: eq.withUnStructuredEventInformations.Clone(),
+		withVenue:                         eq.withVenue.Clone(),
 		// clone intermediate query.
 		sql:    eq.sql.Clone(),
 		path:   eq.path,
@@ -329,6 +405,39 @@ func (eq *EventQuery) WithArtists(opts ...func(*ArtistQuery)) *EventQuery {
 		opt(query)
 	}
 	eq.withArtists = query
+	return eq
+}
+
+// WithRelatedRyzmEvents tells the query-builder to eager-load the nodes that are connected to
+// the "related_ryzm_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EventQuery) WithRelatedRyzmEvents(opts ...func(*RyzmEventQuery)) *EventQuery {
+	query := (&RyzmEventClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withRelatedRyzmEvents = query
+	return eq
+}
+
+// WithUnStructuredEventInformations tells the query-builder to eager-load the nodes that are connected to
+// the "un_structured_event_informations" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EventQuery) WithUnStructuredEventInformations(opts ...func(*UnStructuredEventInformationQuery)) *EventQuery {
+	query := (&UnStructuredEventInformationClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withUnStructuredEventInformations = query
+	return eq
+}
+
+// WithVenue tells the query-builder to eager-load the nodes that are connected to
+// the "venue" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EventQuery) WithVenue(opts ...func(*VenueQuery)) *EventQuery {
+	query := (&VenueClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withVenue = query
 	return eq
 }
 
@@ -409,12 +518,22 @@ func (eq *EventQuery) prepareQuery(ctx context.Context) error {
 func (eq *EventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Event, error) {
 	var (
 		nodes       = []*Event{}
+		withFKs     = eq.withFKs
 		_spec       = eq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [5]bool{
 			eq.withUsers != nil,
 			eq.withArtists != nil,
+			eq.withRelatedRyzmEvents != nil,
+			eq.withUnStructuredEventInformations != nil,
+			eq.withVenue != nil,
 		}
 	)
+	if eq.withVenue != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, event.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Event).scanValues(nil, columns)
 	}
@@ -447,6 +566,28 @@ func (eq *EventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Event,
 		if err := eq.loadArtists(ctx, query, nodes,
 			func(n *Event) { n.Edges.Artists = []*Artist{} },
 			func(n *Event, e *Artist) { n.Edges.Artists = append(n.Edges.Artists, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := eq.withRelatedRyzmEvents; query != nil {
+		if err := eq.loadRelatedRyzmEvents(ctx, query, nodes,
+			func(n *Event) { n.Edges.RelatedRyzmEvents = []*RyzmEvent{} },
+			func(n *Event, e *RyzmEvent) { n.Edges.RelatedRyzmEvents = append(n.Edges.RelatedRyzmEvents, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := eq.withUnStructuredEventInformations; query != nil {
+		if err := eq.loadUnStructuredEventInformations(ctx, query, nodes,
+			func(n *Event) { n.Edges.UnStructuredEventInformations = []*UnStructuredEventInformation{} },
+			func(n *Event, e *UnStructuredEventInformation) {
+				n.Edges.UnStructuredEventInformations = append(n.Edges.UnStructuredEventInformations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := eq.withVenue; query != nil {
+		if err := eq.loadVenue(ctx, query, nodes, nil,
+			func(n *Event, e *Venue) { n.Edges.Venue = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -565,6 +706,97 @@ func (eq *EventQuery) loadArtists(ctx context.Context, query *ArtistQuery, nodes
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (eq *EventQuery) loadRelatedRyzmEvents(ctx context.Context, query *RyzmEventQuery, nodes []*Event, init func(*Event), assign func(*Event, *RyzmEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Event)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.RyzmEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(event.RelatedRyzmEventsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.event_related_ryzm_events
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "event_related_ryzm_events" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_related_ryzm_events" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eq *EventQuery) loadUnStructuredEventInformations(ctx context.Context, query *UnStructuredEventInformationQuery, nodes []*Event, init func(*Event), assign func(*Event, *UnStructuredEventInformation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Event)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.UnStructuredEventInformation(func(s *sql.Selector) {
+		s.Where(sql.InValues(event.UnStructuredEventInformationsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.event_un_structured_event_informations
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "event_un_structured_event_informations" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_un_structured_event_informations" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eq *EventQuery) loadVenue(ctx context.Context, query *VenueQuery, nodes []*Event, init func(*Event), assign func(*Event, *Venue)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Event)
+	for i := range nodes {
+		if nodes[i].event_venue == nil {
+			continue
+		}
+		fk := *nodes[i].event_venue
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(venue.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_venue" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

@@ -16,7 +16,10 @@ import (
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
+	"github.com/scarlet0725/prism-api/ent/ryzmevent"
+	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -43,12 +46,15 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		artist.Table:           artist.ValidColumn,
-		event.Table:            event.ValidColumn,
-		externalcalendar.Table: externalcalendar.ValidColumn,
-		googleoauthstate.Table: googleoauthstate.ValidColumn,
-		googleoauthtoken.Table: googleoauthtoken.ValidColumn,
-		user.Table:             user.ValidColumn,
+		artist.Table:                       artist.ValidColumn,
+		event.Table:                        event.ValidColumn,
+		externalcalendar.Table:             externalcalendar.ValidColumn,
+		googleoauthstate.Table:             googleoauthstate.ValidColumn,
+		googleoauthtoken.Table:             googleoauthtoken.ValidColumn,
+		ryzmevent.Table:                    ryzmevent.ValidColumn,
+		unstructuredeventinformation.Table: unstructuredeventinformation.ValidColumn,
+		user.Table:                         user.ValidColumn,
+		venue.Table:                        venue.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

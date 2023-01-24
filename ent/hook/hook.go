@@ -69,6 +69,30 @@ func (f GoogleOauthTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GoogleOauthTokenMutation", m)
 }
 
+// The RyzmEventFunc type is an adapter to allow the use of ordinary
+// function as RyzmEvent mutator.
+type RyzmEventFunc func(context.Context, *ent.RyzmEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RyzmEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RyzmEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RyzmEventMutation", m)
+}
+
+// The UnStructuredEventInformationFunc type is an adapter to allow the use of ordinary
+// function as UnStructuredEventInformation mutator.
+type UnStructuredEventInformationFunc func(context.Context, *ent.UnStructuredEventInformationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UnStructuredEventInformationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UnStructuredEventInformationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UnStructuredEventInformationMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
@@ -79,6 +103,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The VenueFunc type is an adapter to allow the use of ordinary
+// function as Venue mutator.
+type VenueFunc func(context.Context, *ent.VenueMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VenueFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.VenueMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VenueMutation", m)
 }
 
 // Condition is a hook condition function.

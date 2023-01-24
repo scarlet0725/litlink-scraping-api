@@ -15,7 +15,10 @@ import (
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/predicate"
+	"github.com/scarlet0725/prism-api/ent/ryzmevent"
+	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -30,12 +33,15 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeArtist           = "Artist"
-	TypeEvent            = "Event"
-	TypeExternalCalendar = "ExternalCalendar"
-	TypeGoogleOauthState = "GoogleOauthState"
-	TypeGoogleOauthToken = "GoogleOauthToken"
-	TypeUser             = "User"
+	TypeArtist                       = "Artist"
+	TypeEvent                        = "Event"
+	TypeExternalCalendar             = "ExternalCalendar"
+	TypeGoogleOauthState             = "GoogleOauthState"
+	TypeGoogleOauthToken             = "GoogleOauthToken"
+	TypeRyzmEvent                    = "RyzmEvent"
+	TypeUnStructuredEventInformation = "UnStructuredEventInformation"
+	TypeUser                         = "User"
+	TypeVenue                        = "Venue"
 )
 
 // ArtistMutation represents an operation that mutates the Artist nodes in the graph.
@@ -771,31 +777,39 @@ func (m *ArtistMutation) ResetEdge(name string) error {
 // EventMutation represents an operation that mutates the Event nodes in the graph.
 type EventMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	event_id       *string
-	name           *string
-	date           *time.Time
-	open_time      *time.Time
-	start_time     *time.Time
-	end_time       *time.Time
-	description    *string
-	url            *string
-	ticket_url     *string
-	created_at     *time.Time
-	updated_at     *time.Time
-	deleted_at     *time.Time
-	clearedFields  map[string]struct{}
-	users          map[int]struct{}
-	removedusers   map[int]struct{}
-	clearedusers   bool
-	artists        map[int]struct{}
-	removedartists map[int]struct{}
-	clearedartists bool
-	done           bool
-	oldValue       func(context.Context) (*Event, error)
-	predicates     []predicate.Event
+	op                                      Op
+	typ                                     string
+	id                                      *int
+	event_id                                *string
+	name                                    *string
+	date                                    *time.Time
+	open_time                               *time.Time
+	start_time                              *time.Time
+	end_time                                *time.Time
+	description                             *string
+	url                                     *string
+	ticket_url                              *string
+	created_at                              *time.Time
+	updated_at                              *time.Time
+	deleted_at                              *time.Time
+	clearedFields                           map[string]struct{}
+	users                                   map[int]struct{}
+	removedusers                            map[int]struct{}
+	clearedusers                            bool
+	artists                                 map[int]struct{}
+	removedartists                          map[int]struct{}
+	clearedartists                          bool
+	related_ryzm_events                     map[int]struct{}
+	removedrelated_ryzm_events              map[int]struct{}
+	clearedrelated_ryzm_events              bool
+	un_structured_event_informations        map[int]struct{}
+	removedun_structured_event_informations map[int]struct{}
+	clearedun_structured_event_informations bool
+	venue                                   *int
+	clearedvenue                            bool
+	done                                    bool
+	oldValue                                func(context.Context) (*Event, error)
+	predicates                              []predicate.Event
 }
 
 var _ ent.Mutation = (*EventMutation)(nil)
@@ -1540,6 +1554,153 @@ func (m *EventMutation) ResetArtists() {
 	m.removedartists = nil
 }
 
+// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by ids.
+func (m *EventMutation) AddRelatedRyzmEventIDs(ids ...int) {
+	if m.related_ryzm_events == nil {
+		m.related_ryzm_events = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.related_ryzm_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRelatedRyzmEvents clears the "related_ryzm_events" edge to the RyzmEvent entity.
+func (m *EventMutation) ClearRelatedRyzmEvents() {
+	m.clearedrelated_ryzm_events = true
+}
+
+// RelatedRyzmEventsCleared reports if the "related_ryzm_events" edge to the RyzmEvent entity was cleared.
+func (m *EventMutation) RelatedRyzmEventsCleared() bool {
+	return m.clearedrelated_ryzm_events
+}
+
+// RemoveRelatedRyzmEventIDs removes the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
+func (m *EventMutation) RemoveRelatedRyzmEventIDs(ids ...int) {
+	if m.removedrelated_ryzm_events == nil {
+		m.removedrelated_ryzm_events = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.related_ryzm_events, ids[i])
+		m.removedrelated_ryzm_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRelatedRyzmEvents returns the removed IDs of the "related_ryzm_events" edge to the RyzmEvent entity.
+func (m *EventMutation) RemovedRelatedRyzmEventsIDs() (ids []int) {
+	for id := range m.removedrelated_ryzm_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RelatedRyzmEventsIDs returns the "related_ryzm_events" edge IDs in the mutation.
+func (m *EventMutation) RelatedRyzmEventsIDs() (ids []int) {
+	for id := range m.related_ryzm_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRelatedRyzmEvents resets all changes to the "related_ryzm_events" edge.
+func (m *EventMutation) ResetRelatedRyzmEvents() {
+	m.related_ryzm_events = nil
+	m.clearedrelated_ryzm_events = false
+	m.removedrelated_ryzm_events = nil
+}
+
+// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by ids.
+func (m *EventMutation) AddUnStructuredEventInformationIDs(ids ...int) {
+	if m.un_structured_event_informations == nil {
+		m.un_structured_event_informations = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.un_structured_event_informations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUnStructuredEventInformations clears the "un_structured_event_informations" edge to the UnStructuredEventInformation entity.
+func (m *EventMutation) ClearUnStructuredEventInformations() {
+	m.clearedun_structured_event_informations = true
+}
+
+// UnStructuredEventInformationsCleared reports if the "un_structured_event_informations" edge to the UnStructuredEventInformation entity was cleared.
+func (m *EventMutation) UnStructuredEventInformationsCleared() bool {
+	return m.clearedun_structured_event_informations
+}
+
+// RemoveUnStructuredEventInformationIDs removes the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
+func (m *EventMutation) RemoveUnStructuredEventInformationIDs(ids ...int) {
+	if m.removedun_structured_event_informations == nil {
+		m.removedun_structured_event_informations = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.un_structured_event_informations, ids[i])
+		m.removedun_structured_event_informations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUnStructuredEventInformations returns the removed IDs of the "un_structured_event_informations" edge to the UnStructuredEventInformation entity.
+func (m *EventMutation) RemovedUnStructuredEventInformationsIDs() (ids []int) {
+	for id := range m.removedun_structured_event_informations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UnStructuredEventInformationsIDs returns the "un_structured_event_informations" edge IDs in the mutation.
+func (m *EventMutation) UnStructuredEventInformationsIDs() (ids []int) {
+	for id := range m.un_structured_event_informations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUnStructuredEventInformations resets all changes to the "un_structured_event_informations" edge.
+func (m *EventMutation) ResetUnStructuredEventInformations() {
+	m.un_structured_event_informations = nil
+	m.clearedun_structured_event_informations = false
+	m.removedun_structured_event_informations = nil
+}
+
+// SetVenueID sets the "venue" edge to the Venue entity by id.
+func (m *EventMutation) SetVenueID(id int) {
+	m.venue = &id
+}
+
+// ClearVenue clears the "venue" edge to the Venue entity.
+func (m *EventMutation) ClearVenue() {
+	m.clearedvenue = true
+}
+
+// VenueCleared reports if the "venue" edge to the Venue entity was cleared.
+func (m *EventMutation) VenueCleared() bool {
+	return m.clearedvenue
+}
+
+// VenueID returns the "venue" edge ID in the mutation.
+func (m *EventMutation) VenueID() (id int, exists bool) {
+	if m.venue != nil {
+		return *m.venue, true
+	}
+	return
+}
+
+// VenueIDs returns the "venue" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VenueID instead. It exists only for internal usage by the builders.
+func (m *EventMutation) VenueIDs() (ids []int) {
+	if id := m.venue; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVenue resets all changes to the "venue" edge.
+func (m *EventMutation) ResetVenue() {
+	m.venue = nil
+	m.clearedvenue = false
+}
+
 // Where appends a list predicates to the EventMutation builder.
 func (m *EventMutation) Where(ps ...predicate.Event) {
 	m.predicates = append(m.predicates, ps...)
@@ -1911,12 +2072,21 @@ func (m *EventMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EventMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.users != nil {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.artists != nil {
 		edges = append(edges, event.EdgeArtists)
+	}
+	if m.related_ryzm_events != nil {
+		edges = append(edges, event.EdgeRelatedRyzmEvents)
+	}
+	if m.un_structured_event_informations != nil {
+		edges = append(edges, event.EdgeUnStructuredEventInformations)
+	}
+	if m.venue != nil {
+		edges = append(edges, event.EdgeVenue)
 	}
 	return edges
 }
@@ -1937,18 +2107,40 @@ func (m *EventMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case event.EdgeRelatedRyzmEvents:
+		ids := make([]ent.Value, 0, len(m.related_ryzm_events))
+		for id := range m.related_ryzm_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case event.EdgeUnStructuredEventInformations:
+		ids := make([]ent.Value, 0, len(m.un_structured_event_informations))
+		for id := range m.un_structured_event_informations {
+			ids = append(ids, id)
+		}
+		return ids
+	case event.EdgeVenue:
+		if id := m.venue; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EventMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.removedusers != nil {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.removedartists != nil {
 		edges = append(edges, event.EdgeArtists)
+	}
+	if m.removedrelated_ryzm_events != nil {
+		edges = append(edges, event.EdgeRelatedRyzmEvents)
+	}
+	if m.removedun_structured_event_informations != nil {
+		edges = append(edges, event.EdgeUnStructuredEventInformations)
 	}
 	return edges
 }
@@ -1969,18 +2161,39 @@ func (m *EventMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case event.EdgeRelatedRyzmEvents:
+		ids := make([]ent.Value, 0, len(m.removedrelated_ryzm_events))
+		for id := range m.removedrelated_ryzm_events {
+			ids = append(ids, id)
+		}
+		return ids
+	case event.EdgeUnStructuredEventInformations:
+		ids := make([]ent.Value, 0, len(m.removedun_structured_event_informations))
+		for id := range m.removedun_structured_event_informations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EventMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.clearedusers {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.clearedartists {
 		edges = append(edges, event.EdgeArtists)
+	}
+	if m.clearedrelated_ryzm_events {
+		edges = append(edges, event.EdgeRelatedRyzmEvents)
+	}
+	if m.clearedun_structured_event_informations {
+		edges = append(edges, event.EdgeUnStructuredEventInformations)
+	}
+	if m.clearedvenue {
+		edges = append(edges, event.EdgeVenue)
 	}
 	return edges
 }
@@ -1993,6 +2206,12 @@ func (m *EventMutation) EdgeCleared(name string) bool {
 		return m.clearedusers
 	case event.EdgeArtists:
 		return m.clearedartists
+	case event.EdgeRelatedRyzmEvents:
+		return m.clearedrelated_ryzm_events
+	case event.EdgeUnStructuredEventInformations:
+		return m.clearedun_structured_event_informations
+	case event.EdgeVenue:
+		return m.clearedvenue
 	}
 	return false
 }
@@ -2001,6 +2220,9 @@ func (m *EventMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *EventMutation) ClearEdge(name string) error {
 	switch name {
+	case event.EdgeVenue:
+		m.ClearVenue()
+		return nil
 	}
 	return fmt.Errorf("unknown Event unique edge %s", name)
 }
@@ -2014,6 +2236,15 @@ func (m *EventMutation) ResetEdge(name string) error {
 		return nil
 	case event.EdgeArtists:
 		m.ResetArtists()
+		return nil
+	case event.EdgeRelatedRyzmEvents:
+		m.ResetRelatedRyzmEvents()
+		return nil
+	case event.EdgeUnStructuredEventInformations:
+		m.ResetUnStructuredEventInformations()
+		return nil
+	case event.EdgeVenue:
+		m.ResetVenue()
 		return nil
 	}
 	return fmt.Errorf("unknown Event edge %s", name)
@@ -3671,6 +3902,954 @@ func (m *GoogleOauthTokenMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown GoogleOauthToken edge %s", name)
 }
 
+// RyzmEventMutation represents an operation that mutates the RyzmEvent nodes in the graph.
+type RyzmEventMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	uuid          *string
+	clearedFields map[string]struct{}
+	event         *int
+	clearedevent  bool
+	done          bool
+	oldValue      func(context.Context) (*RyzmEvent, error)
+	predicates    []predicate.RyzmEvent
+}
+
+var _ ent.Mutation = (*RyzmEventMutation)(nil)
+
+// ryzmeventOption allows management of the mutation configuration using functional options.
+type ryzmeventOption func(*RyzmEventMutation)
+
+// newRyzmEventMutation creates new mutation for the RyzmEvent entity.
+func newRyzmEventMutation(c config, op Op, opts ...ryzmeventOption) *RyzmEventMutation {
+	m := &RyzmEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRyzmEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRyzmEventID sets the ID field of the mutation.
+func withRyzmEventID(id int) ryzmeventOption {
+	return func(m *RyzmEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RyzmEvent
+		)
+		m.oldValue = func(ctx context.Context) (*RyzmEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RyzmEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRyzmEvent sets the old RyzmEvent of the mutation.
+func withRyzmEvent(node *RyzmEvent) ryzmeventOption {
+	return func(m *RyzmEventMutation) {
+		m.oldValue = func(context.Context) (*RyzmEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RyzmEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RyzmEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RyzmEventMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RyzmEventMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RyzmEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUUID sets the "uuid" field.
+func (m *RyzmEventMutation) SetUUID(s string) {
+	m.uuid = &s
+}
+
+// UUID returns the value of the "uuid" field in the mutation.
+func (m *RyzmEventMutation) UUID() (r string, exists bool) {
+	v := m.uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUUID returns the old "uuid" field's value of the RyzmEvent entity.
+// If the RyzmEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RyzmEventMutation) OldUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUUID: %w", err)
+	}
+	return oldValue.UUID, nil
+}
+
+// ResetUUID resets all changes to the "uuid" field.
+func (m *RyzmEventMutation) ResetUUID() {
+	m.uuid = nil
+}
+
+// SetEventID sets the "event" edge to the Event entity by id.
+func (m *RyzmEventMutation) SetEventID(id int) {
+	m.event = &id
+}
+
+// ClearEvent clears the "event" edge to the Event entity.
+func (m *RyzmEventMutation) ClearEvent() {
+	m.clearedevent = true
+}
+
+// EventCleared reports if the "event" edge to the Event entity was cleared.
+func (m *RyzmEventMutation) EventCleared() bool {
+	return m.clearedevent
+}
+
+// EventID returns the "event" edge ID in the mutation.
+func (m *RyzmEventMutation) EventID() (id int, exists bool) {
+	if m.event != nil {
+		return *m.event, true
+	}
+	return
+}
+
+// EventIDs returns the "event" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EventID instead. It exists only for internal usage by the builders.
+func (m *RyzmEventMutation) EventIDs() (ids []int) {
+	if id := m.event; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEvent resets all changes to the "event" edge.
+func (m *RyzmEventMutation) ResetEvent() {
+	m.event = nil
+	m.clearedevent = false
+}
+
+// Where appends a list predicates to the RyzmEventMutation builder.
+func (m *RyzmEventMutation) Where(ps ...predicate.RyzmEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RyzmEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RyzmEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RyzmEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RyzmEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RyzmEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RyzmEvent).
+func (m *RyzmEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RyzmEventMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.uuid != nil {
+		fields = append(fields, ryzmevent.FieldUUID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RyzmEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case ryzmevent.FieldUUID:
+		return m.UUID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RyzmEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case ryzmevent.FieldUUID:
+		return m.OldUUID(ctx)
+	}
+	return nil, fmt.Errorf("unknown RyzmEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RyzmEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case ryzmevent.FieldUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUUID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RyzmEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RyzmEventMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RyzmEventMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RyzmEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown RyzmEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RyzmEventMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RyzmEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RyzmEventMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown RyzmEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RyzmEventMutation) ResetField(name string) error {
+	switch name {
+	case ryzmevent.FieldUUID:
+		m.ResetUUID()
+		return nil
+	}
+	return fmt.Errorf("unknown RyzmEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RyzmEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.event != nil {
+		edges = append(edges, ryzmevent.EdgeEvent)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RyzmEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case ryzmevent.EdgeEvent:
+		if id := m.event; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RyzmEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RyzmEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RyzmEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedevent {
+		edges = append(edges, ryzmevent.EdgeEvent)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RyzmEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case ryzmevent.EdgeEvent:
+		return m.clearedevent
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RyzmEventMutation) ClearEdge(name string) error {
+	switch name {
+	case ryzmevent.EdgeEvent:
+		m.ClearEvent()
+		return nil
+	}
+	return fmt.Errorf("unknown RyzmEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RyzmEventMutation) ResetEdge(name string) error {
+	switch name {
+	case ryzmevent.EdgeEvent:
+		m.ResetEvent()
+		return nil
+	}
+	return fmt.Errorf("unknown RyzmEvent edge %s", name)
+}
+
+// UnStructuredEventInformationMutation represents an operation that mutates the UnStructuredEventInformation nodes in the graph.
+type UnStructuredEventInformationMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	ryzmuuid      *string
+	venue_name    *string
+	artist_name   *string
+	price         *string
+	clearedFields map[string]struct{}
+	event         *int
+	clearedevent  bool
+	done          bool
+	oldValue      func(context.Context) (*UnStructuredEventInformation, error)
+	predicates    []predicate.UnStructuredEventInformation
+}
+
+var _ ent.Mutation = (*UnStructuredEventInformationMutation)(nil)
+
+// unstructuredeventinformationOption allows management of the mutation configuration using functional options.
+type unstructuredeventinformationOption func(*UnStructuredEventInformationMutation)
+
+// newUnStructuredEventInformationMutation creates new mutation for the UnStructuredEventInformation entity.
+func newUnStructuredEventInformationMutation(c config, op Op, opts ...unstructuredeventinformationOption) *UnStructuredEventInformationMutation {
+	m := &UnStructuredEventInformationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUnStructuredEventInformation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUnStructuredEventInformationID sets the ID field of the mutation.
+func withUnStructuredEventInformationID(id int) unstructuredeventinformationOption {
+	return func(m *UnStructuredEventInformationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UnStructuredEventInformation
+		)
+		m.oldValue = func(ctx context.Context) (*UnStructuredEventInformation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UnStructuredEventInformation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUnStructuredEventInformation sets the old UnStructuredEventInformation of the mutation.
+func withUnStructuredEventInformation(node *UnStructuredEventInformation) unstructuredeventinformationOption {
+	return func(m *UnStructuredEventInformationMutation) {
+		m.oldValue = func(context.Context) (*UnStructuredEventInformation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UnStructuredEventInformationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UnStructuredEventInformationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UnStructuredEventInformationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UnStructuredEventInformationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UnStructuredEventInformation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetRyzmuuid sets the "ryzmuuid" field.
+func (m *UnStructuredEventInformationMutation) SetRyzmuuid(s string) {
+	m.ryzmuuid = &s
+}
+
+// Ryzmuuid returns the value of the "ryzmuuid" field in the mutation.
+func (m *UnStructuredEventInformationMutation) Ryzmuuid() (r string, exists bool) {
+	v := m.ryzmuuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRyzmuuid returns the old "ryzmuuid" field's value of the UnStructuredEventInformation entity.
+// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UnStructuredEventInformationMutation) OldRyzmuuid(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRyzmuuid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRyzmuuid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRyzmuuid: %w", err)
+	}
+	return oldValue.Ryzmuuid, nil
+}
+
+// ResetRyzmuuid resets all changes to the "ryzmuuid" field.
+func (m *UnStructuredEventInformationMutation) ResetRyzmuuid() {
+	m.ryzmuuid = nil
+}
+
+// SetVenueName sets the "venue_name" field.
+func (m *UnStructuredEventInformationMutation) SetVenueName(s string) {
+	m.venue_name = &s
+}
+
+// VenueName returns the value of the "venue_name" field in the mutation.
+func (m *UnStructuredEventInformationMutation) VenueName() (r string, exists bool) {
+	v := m.venue_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVenueName returns the old "venue_name" field's value of the UnStructuredEventInformation entity.
+// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UnStructuredEventInformationMutation) OldVenueName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVenueName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVenueName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVenueName: %w", err)
+	}
+	return oldValue.VenueName, nil
+}
+
+// ResetVenueName resets all changes to the "venue_name" field.
+func (m *UnStructuredEventInformationMutation) ResetVenueName() {
+	m.venue_name = nil
+}
+
+// SetArtistName sets the "artist_name" field.
+func (m *UnStructuredEventInformationMutation) SetArtistName(s string) {
+	m.artist_name = &s
+}
+
+// ArtistName returns the value of the "artist_name" field in the mutation.
+func (m *UnStructuredEventInformationMutation) ArtistName() (r string, exists bool) {
+	v := m.artist_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArtistName returns the old "artist_name" field's value of the UnStructuredEventInformation entity.
+// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UnStructuredEventInformationMutation) OldArtistName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArtistName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArtistName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArtistName: %w", err)
+	}
+	return oldValue.ArtistName, nil
+}
+
+// ResetArtistName resets all changes to the "artist_name" field.
+func (m *UnStructuredEventInformationMutation) ResetArtistName() {
+	m.artist_name = nil
+}
+
+// SetPrice sets the "price" field.
+func (m *UnStructuredEventInformationMutation) SetPrice(s string) {
+	m.price = &s
+}
+
+// Price returns the value of the "price" field in the mutation.
+func (m *UnStructuredEventInformationMutation) Price() (r string, exists bool) {
+	v := m.price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrice returns the old "price" field's value of the UnStructuredEventInformation entity.
+// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UnStructuredEventInformationMutation) OldPrice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrice: %w", err)
+	}
+	return oldValue.Price, nil
+}
+
+// ResetPrice resets all changes to the "price" field.
+func (m *UnStructuredEventInformationMutation) ResetPrice() {
+	m.price = nil
+}
+
+// SetEventID sets the "event" edge to the Event entity by id.
+func (m *UnStructuredEventInformationMutation) SetEventID(id int) {
+	m.event = &id
+}
+
+// ClearEvent clears the "event" edge to the Event entity.
+func (m *UnStructuredEventInformationMutation) ClearEvent() {
+	m.clearedevent = true
+}
+
+// EventCleared reports if the "event" edge to the Event entity was cleared.
+func (m *UnStructuredEventInformationMutation) EventCleared() bool {
+	return m.clearedevent
+}
+
+// EventID returns the "event" edge ID in the mutation.
+func (m *UnStructuredEventInformationMutation) EventID() (id int, exists bool) {
+	if m.event != nil {
+		return *m.event, true
+	}
+	return
+}
+
+// EventIDs returns the "event" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EventID instead. It exists only for internal usage by the builders.
+func (m *UnStructuredEventInformationMutation) EventIDs() (ids []int) {
+	if id := m.event; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEvent resets all changes to the "event" edge.
+func (m *UnStructuredEventInformationMutation) ResetEvent() {
+	m.event = nil
+	m.clearedevent = false
+}
+
+// Where appends a list predicates to the UnStructuredEventInformationMutation builder.
+func (m *UnStructuredEventInformationMutation) Where(ps ...predicate.UnStructuredEventInformation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UnStructuredEventInformationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UnStructuredEventInformationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UnStructuredEventInformation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UnStructuredEventInformationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UnStructuredEventInformationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UnStructuredEventInformation).
+func (m *UnStructuredEventInformationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UnStructuredEventInformationMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.ryzmuuid != nil {
+		fields = append(fields, unstructuredeventinformation.FieldRyzmuuid)
+	}
+	if m.venue_name != nil {
+		fields = append(fields, unstructuredeventinformation.FieldVenueName)
+	}
+	if m.artist_name != nil {
+		fields = append(fields, unstructuredeventinformation.FieldArtistName)
+	}
+	if m.price != nil {
+		fields = append(fields, unstructuredeventinformation.FieldPrice)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UnStructuredEventInformationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case unstructuredeventinformation.FieldRyzmuuid:
+		return m.Ryzmuuid()
+	case unstructuredeventinformation.FieldVenueName:
+		return m.VenueName()
+	case unstructuredeventinformation.FieldArtistName:
+		return m.ArtistName()
+	case unstructuredeventinformation.FieldPrice:
+		return m.Price()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UnStructuredEventInformationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case unstructuredeventinformation.FieldRyzmuuid:
+		return m.OldRyzmuuid(ctx)
+	case unstructuredeventinformation.FieldVenueName:
+		return m.OldVenueName(ctx)
+	case unstructuredeventinformation.FieldArtistName:
+		return m.OldArtistName(ctx)
+	case unstructuredeventinformation.FieldPrice:
+		return m.OldPrice(ctx)
+	}
+	return nil, fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UnStructuredEventInformationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case unstructuredeventinformation.FieldRyzmuuid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRyzmuuid(v)
+		return nil
+	case unstructuredeventinformation.FieldVenueName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVenueName(v)
+		return nil
+	case unstructuredeventinformation.FieldArtistName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArtistName(v)
+		return nil
+	case unstructuredeventinformation.FieldPrice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrice(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UnStructuredEventInformationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UnStructuredEventInformationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UnStructuredEventInformationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UnStructuredEventInformation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UnStructuredEventInformationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UnStructuredEventInformationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UnStructuredEventInformationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UnStructuredEventInformation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UnStructuredEventInformationMutation) ResetField(name string) error {
+	switch name {
+	case unstructuredeventinformation.FieldRyzmuuid:
+		m.ResetRyzmuuid()
+		return nil
+	case unstructuredeventinformation.FieldVenueName:
+		m.ResetVenueName()
+		return nil
+	case unstructuredeventinformation.FieldArtistName:
+		m.ResetArtistName()
+		return nil
+	case unstructuredeventinformation.FieldPrice:
+		m.ResetPrice()
+		return nil
+	}
+	return fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UnStructuredEventInformationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.event != nil {
+		edges = append(edges, unstructuredeventinformation.EdgeEvent)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UnStructuredEventInformationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case unstructuredeventinformation.EdgeEvent:
+		if id := m.event; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UnStructuredEventInformationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UnStructuredEventInformationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UnStructuredEventInformationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedevent {
+		edges = append(edges, unstructuredeventinformation.EdgeEvent)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UnStructuredEventInformationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case unstructuredeventinformation.EdgeEvent:
+		return m.clearedevent
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UnStructuredEventInformationMutation) ClearEdge(name string) error {
+	switch name {
+	case unstructuredeventinformation.EdgeEvent:
+		m.ClearEvent()
+		return nil
+	}
+	return fmt.Errorf("unknown UnStructuredEventInformation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UnStructuredEventInformationMutation) ResetEdge(name string) error {
+	switch name {
+	case unstructuredeventinformation.EdgeEvent:
+		m.ResetEvent()
+		return nil
+	}
+	return fmt.Errorf("unknown UnStructuredEventInformation edge %s", name)
+}
+
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
@@ -4938,4 +6117,1153 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// VenueMutation represents an operation that mutates the Venue nodes in the graph.
+type VenueMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	venue_id      *string
+	name          *string
+	description   *string
+	web_site      *[]byte
+	postcode      *string
+	prefecture    *string
+	city          *string
+	street        *string
+	is_open       *bool
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	clearedFields map[string]struct{}
+	events        map[int]struct{}
+	removedevents map[int]struct{}
+	clearedevents bool
+	done          bool
+	oldValue      func(context.Context) (*Venue, error)
+	predicates    []predicate.Venue
+}
+
+var _ ent.Mutation = (*VenueMutation)(nil)
+
+// venueOption allows management of the mutation configuration using functional options.
+type venueOption func(*VenueMutation)
+
+// newVenueMutation creates new mutation for the Venue entity.
+func newVenueMutation(c config, op Op, opts ...venueOption) *VenueMutation {
+	m := &VenueMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeVenue,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withVenueID sets the ID field of the mutation.
+func withVenueID(id int) venueOption {
+	return func(m *VenueMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Venue
+		)
+		m.oldValue = func(ctx context.Context) (*Venue, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Venue.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withVenue sets the old Venue of the mutation.
+func withVenue(node *Venue) venueOption {
+	return func(m *VenueMutation) {
+		m.oldValue = func(context.Context) (*Venue, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m VenueMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m VenueMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *VenueMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *VenueMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Venue.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetVenueID sets the "venue_id" field.
+func (m *VenueMutation) SetVenueID(s string) {
+	m.venue_id = &s
+}
+
+// VenueID returns the value of the "venue_id" field in the mutation.
+func (m *VenueMutation) VenueID() (r string, exists bool) {
+	v := m.venue_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVenueID returns the old "venue_id" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldVenueID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVenueID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVenueID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVenueID: %w", err)
+	}
+	return oldValue.VenueID, nil
+}
+
+// ResetVenueID resets all changes to the "venue_id" field.
+func (m *VenueMutation) ResetVenueID() {
+	m.venue_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *VenueMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *VenueMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *VenueMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *VenueMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *VenueMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *VenueMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[venue.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *VenueMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[venue.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *VenueMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, venue.FieldDescription)
+}
+
+// SetWebSite sets the "web_site" field.
+func (m *VenueMutation) SetWebSite(b []byte) {
+	m.web_site = &b
+}
+
+// WebSite returns the value of the "web_site" field in the mutation.
+func (m *VenueMutation) WebSite() (r []byte, exists bool) {
+	v := m.web_site
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebSite returns the old "web_site" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldWebSite(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebSite is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebSite requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebSite: %w", err)
+	}
+	return oldValue.WebSite, nil
+}
+
+// ClearWebSite clears the value of the "web_site" field.
+func (m *VenueMutation) ClearWebSite() {
+	m.web_site = nil
+	m.clearedFields[venue.FieldWebSite] = struct{}{}
+}
+
+// WebSiteCleared returns if the "web_site" field was cleared in this mutation.
+func (m *VenueMutation) WebSiteCleared() bool {
+	_, ok := m.clearedFields[venue.FieldWebSite]
+	return ok
+}
+
+// ResetWebSite resets all changes to the "web_site" field.
+func (m *VenueMutation) ResetWebSite() {
+	m.web_site = nil
+	delete(m.clearedFields, venue.FieldWebSite)
+}
+
+// SetPostcode sets the "postcode" field.
+func (m *VenueMutation) SetPostcode(s string) {
+	m.postcode = &s
+}
+
+// Postcode returns the value of the "postcode" field in the mutation.
+func (m *VenueMutation) Postcode() (r string, exists bool) {
+	v := m.postcode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostcode returns the old "postcode" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldPostcode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostcode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostcode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostcode: %w", err)
+	}
+	return oldValue.Postcode, nil
+}
+
+// ClearPostcode clears the value of the "postcode" field.
+func (m *VenueMutation) ClearPostcode() {
+	m.postcode = nil
+	m.clearedFields[venue.FieldPostcode] = struct{}{}
+}
+
+// PostcodeCleared returns if the "postcode" field was cleared in this mutation.
+func (m *VenueMutation) PostcodeCleared() bool {
+	_, ok := m.clearedFields[venue.FieldPostcode]
+	return ok
+}
+
+// ResetPostcode resets all changes to the "postcode" field.
+func (m *VenueMutation) ResetPostcode() {
+	m.postcode = nil
+	delete(m.clearedFields, venue.FieldPostcode)
+}
+
+// SetPrefecture sets the "prefecture" field.
+func (m *VenueMutation) SetPrefecture(s string) {
+	m.prefecture = &s
+}
+
+// Prefecture returns the value of the "prefecture" field in the mutation.
+func (m *VenueMutation) Prefecture() (r string, exists bool) {
+	v := m.prefecture
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrefecture returns the old "prefecture" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldPrefecture(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrefecture is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrefecture requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrefecture: %w", err)
+	}
+	return oldValue.Prefecture, nil
+}
+
+// ClearPrefecture clears the value of the "prefecture" field.
+func (m *VenueMutation) ClearPrefecture() {
+	m.prefecture = nil
+	m.clearedFields[venue.FieldPrefecture] = struct{}{}
+}
+
+// PrefectureCleared returns if the "prefecture" field was cleared in this mutation.
+func (m *VenueMutation) PrefectureCleared() bool {
+	_, ok := m.clearedFields[venue.FieldPrefecture]
+	return ok
+}
+
+// ResetPrefecture resets all changes to the "prefecture" field.
+func (m *VenueMutation) ResetPrefecture() {
+	m.prefecture = nil
+	delete(m.clearedFields, venue.FieldPrefecture)
+}
+
+// SetCity sets the "city" field.
+func (m *VenueMutation) SetCity(s string) {
+	m.city = &s
+}
+
+// City returns the value of the "city" field in the mutation.
+func (m *VenueMutation) City() (r string, exists bool) {
+	v := m.city
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCity returns the old "city" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldCity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCity: %w", err)
+	}
+	return oldValue.City, nil
+}
+
+// ClearCity clears the value of the "city" field.
+func (m *VenueMutation) ClearCity() {
+	m.city = nil
+	m.clearedFields[venue.FieldCity] = struct{}{}
+}
+
+// CityCleared returns if the "city" field was cleared in this mutation.
+func (m *VenueMutation) CityCleared() bool {
+	_, ok := m.clearedFields[venue.FieldCity]
+	return ok
+}
+
+// ResetCity resets all changes to the "city" field.
+func (m *VenueMutation) ResetCity() {
+	m.city = nil
+	delete(m.clearedFields, venue.FieldCity)
+}
+
+// SetStreet sets the "street" field.
+func (m *VenueMutation) SetStreet(s string) {
+	m.street = &s
+}
+
+// Street returns the value of the "street" field in the mutation.
+func (m *VenueMutation) Street() (r string, exists bool) {
+	v := m.street
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStreet returns the old "street" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldStreet(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStreet is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStreet requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStreet: %w", err)
+	}
+	return oldValue.Street, nil
+}
+
+// ClearStreet clears the value of the "street" field.
+func (m *VenueMutation) ClearStreet() {
+	m.street = nil
+	m.clearedFields[venue.FieldStreet] = struct{}{}
+}
+
+// StreetCleared returns if the "street" field was cleared in this mutation.
+func (m *VenueMutation) StreetCleared() bool {
+	_, ok := m.clearedFields[venue.FieldStreet]
+	return ok
+}
+
+// ResetStreet resets all changes to the "street" field.
+func (m *VenueMutation) ResetStreet() {
+	m.street = nil
+	delete(m.clearedFields, venue.FieldStreet)
+}
+
+// SetIsOpen sets the "is_open" field.
+func (m *VenueMutation) SetIsOpen(b bool) {
+	m.is_open = &b
+}
+
+// IsOpen returns the value of the "is_open" field in the mutation.
+func (m *VenueMutation) IsOpen() (r bool, exists bool) {
+	v := m.is_open
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsOpen returns the old "is_open" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldIsOpen(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsOpen is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsOpen requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsOpen: %w", err)
+	}
+	return oldValue.IsOpen, nil
+}
+
+// ResetIsOpen resets all changes to the "is_open" field.
+func (m *VenueMutation) ResetIsOpen() {
+	m.is_open = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *VenueMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *VenueMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *VenueMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *VenueMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *VenueMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *VenueMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *VenueMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *VenueMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Venue entity.
+// If the Venue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VenueMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *VenueMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[venue.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *VenueMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[venue.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *VenueMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, venue.FieldDeletedAt)
+}
+
+// AddEventIDs adds the "events" edge to the Event entity by ids.
+func (m *VenueMutation) AddEventIDs(ids ...int) {
+	if m.events == nil {
+		m.events = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEvents clears the "events" edge to the Event entity.
+func (m *VenueMutation) ClearEvents() {
+	m.clearedevents = true
+}
+
+// EventsCleared reports if the "events" edge to the Event entity was cleared.
+func (m *VenueMutation) EventsCleared() bool {
+	return m.clearedevents
+}
+
+// RemoveEventIDs removes the "events" edge to the Event entity by IDs.
+func (m *VenueMutation) RemoveEventIDs(ids ...int) {
+	if m.removedevents == nil {
+		m.removedevents = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.events, ids[i])
+		m.removedevents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEvents returns the removed IDs of the "events" edge to the Event entity.
+func (m *VenueMutation) RemovedEventsIDs() (ids []int) {
+	for id := range m.removedevents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EventsIDs returns the "events" edge IDs in the mutation.
+func (m *VenueMutation) EventsIDs() (ids []int) {
+	for id := range m.events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEvents resets all changes to the "events" edge.
+func (m *VenueMutation) ResetEvents() {
+	m.events = nil
+	m.clearedevents = false
+	m.removedevents = nil
+}
+
+// Where appends a list predicates to the VenueMutation builder.
+func (m *VenueMutation) Where(ps ...predicate.Venue) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the VenueMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VenueMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Venue, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *VenueMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VenueMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Venue).
+func (m *VenueMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *VenueMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.venue_id != nil {
+		fields = append(fields, venue.FieldVenueID)
+	}
+	if m.name != nil {
+		fields = append(fields, venue.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, venue.FieldDescription)
+	}
+	if m.web_site != nil {
+		fields = append(fields, venue.FieldWebSite)
+	}
+	if m.postcode != nil {
+		fields = append(fields, venue.FieldPostcode)
+	}
+	if m.prefecture != nil {
+		fields = append(fields, venue.FieldPrefecture)
+	}
+	if m.city != nil {
+		fields = append(fields, venue.FieldCity)
+	}
+	if m.street != nil {
+		fields = append(fields, venue.FieldStreet)
+	}
+	if m.is_open != nil {
+		fields = append(fields, venue.FieldIsOpen)
+	}
+	if m.created_at != nil {
+		fields = append(fields, venue.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, venue.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, venue.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *VenueMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case venue.FieldVenueID:
+		return m.VenueID()
+	case venue.FieldName:
+		return m.Name()
+	case venue.FieldDescription:
+		return m.Description()
+	case venue.FieldWebSite:
+		return m.WebSite()
+	case venue.FieldPostcode:
+		return m.Postcode()
+	case venue.FieldPrefecture:
+		return m.Prefecture()
+	case venue.FieldCity:
+		return m.City()
+	case venue.FieldStreet:
+		return m.Street()
+	case venue.FieldIsOpen:
+		return m.IsOpen()
+	case venue.FieldCreatedAt:
+		return m.CreatedAt()
+	case venue.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case venue.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *VenueMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case venue.FieldVenueID:
+		return m.OldVenueID(ctx)
+	case venue.FieldName:
+		return m.OldName(ctx)
+	case venue.FieldDescription:
+		return m.OldDescription(ctx)
+	case venue.FieldWebSite:
+		return m.OldWebSite(ctx)
+	case venue.FieldPostcode:
+		return m.OldPostcode(ctx)
+	case venue.FieldPrefecture:
+		return m.OldPrefecture(ctx)
+	case venue.FieldCity:
+		return m.OldCity(ctx)
+	case venue.FieldStreet:
+		return m.OldStreet(ctx)
+	case venue.FieldIsOpen:
+		return m.OldIsOpen(ctx)
+	case venue.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case venue.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case venue.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Venue field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VenueMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case venue.FieldVenueID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVenueID(v)
+		return nil
+	case venue.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case venue.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case venue.FieldWebSite:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebSite(v)
+		return nil
+	case venue.FieldPostcode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostcode(v)
+		return nil
+	case venue.FieldPrefecture:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrefecture(v)
+		return nil
+	case venue.FieldCity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCity(v)
+		return nil
+	case venue.FieldStreet:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStreet(v)
+		return nil
+	case venue.FieldIsOpen:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsOpen(v)
+		return nil
+	case venue.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case venue.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case venue.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Venue field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *VenueMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *VenueMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *VenueMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Venue numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *VenueMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(venue.FieldDescription) {
+		fields = append(fields, venue.FieldDescription)
+	}
+	if m.FieldCleared(venue.FieldWebSite) {
+		fields = append(fields, venue.FieldWebSite)
+	}
+	if m.FieldCleared(venue.FieldPostcode) {
+		fields = append(fields, venue.FieldPostcode)
+	}
+	if m.FieldCleared(venue.FieldPrefecture) {
+		fields = append(fields, venue.FieldPrefecture)
+	}
+	if m.FieldCleared(venue.FieldCity) {
+		fields = append(fields, venue.FieldCity)
+	}
+	if m.FieldCleared(venue.FieldStreet) {
+		fields = append(fields, venue.FieldStreet)
+	}
+	if m.FieldCleared(venue.FieldDeletedAt) {
+		fields = append(fields, venue.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *VenueMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *VenueMutation) ClearField(name string) error {
+	switch name {
+	case venue.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case venue.FieldWebSite:
+		m.ClearWebSite()
+		return nil
+	case venue.FieldPostcode:
+		m.ClearPostcode()
+		return nil
+	case venue.FieldPrefecture:
+		m.ClearPrefecture()
+		return nil
+	case venue.FieldCity:
+		m.ClearCity()
+		return nil
+	case venue.FieldStreet:
+		m.ClearStreet()
+		return nil
+	case venue.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Venue nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *VenueMutation) ResetField(name string) error {
+	switch name {
+	case venue.FieldVenueID:
+		m.ResetVenueID()
+		return nil
+	case venue.FieldName:
+		m.ResetName()
+		return nil
+	case venue.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case venue.FieldWebSite:
+		m.ResetWebSite()
+		return nil
+	case venue.FieldPostcode:
+		m.ResetPostcode()
+		return nil
+	case venue.FieldPrefecture:
+		m.ResetPrefecture()
+		return nil
+	case venue.FieldCity:
+		m.ResetCity()
+		return nil
+	case venue.FieldStreet:
+		m.ResetStreet()
+		return nil
+	case venue.FieldIsOpen:
+		m.ResetIsOpen()
+		return nil
+	case venue.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case venue.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case venue.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Venue field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *VenueMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.events != nil {
+		edges = append(edges, venue.EdgeEvents)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *VenueMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case venue.EdgeEvents:
+		ids := make([]ent.Value, 0, len(m.events))
+		for id := range m.events {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *VenueMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedevents != nil {
+		edges = append(edges, venue.EdgeEvents)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *VenueMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case venue.EdgeEvents:
+		ids := make([]ent.Value, 0, len(m.removedevents))
+		for id := range m.removedevents {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *VenueMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedevents {
+		edges = append(edges, venue.EdgeEvents)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *VenueMutation) EdgeCleared(name string) bool {
+	switch name {
+	case venue.EdgeEvents:
+		return m.clearedevents
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *VenueMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Venue unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *VenueMutation) ResetEdge(name string) error {
+	switch name {
+	case venue.EdgeEvents:
+		m.ResetEvents()
+		return nil
+	}
+	return fmt.Errorf("unknown Venue edge %s", name)
 }

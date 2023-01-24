@@ -11,6 +11,7 @@ import (
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/schema"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -123,4 +124,28 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	venueFields := schema.Venue{}.Fields()
+	_ = venueFields
+	// venueDescVenueID is the schema descriptor for venue_id field.
+	venueDescVenueID := venueFields[0].Descriptor()
+	// venue.VenueIDValidator is a validator for the "venue_id" field. It is called by the builders before save.
+	venue.VenueIDValidator = venueDescVenueID.Validators[0].(func(string) error)
+	// venueDescName is the schema descriptor for name field.
+	venueDescName := venueFields[1].Descriptor()
+	// venue.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	venue.NameValidator = venueDescName.Validators[0].(func(string) error)
+	// venueDescIsOpen is the schema descriptor for is_open field.
+	venueDescIsOpen := venueFields[8].Descriptor()
+	// venue.DefaultIsOpen holds the default value on creation for the is_open field.
+	venue.DefaultIsOpen = venueDescIsOpen.Default.(bool)
+	// venueDescCreatedAt is the schema descriptor for created_at field.
+	venueDescCreatedAt := venueFields[9].Descriptor()
+	// venue.DefaultCreatedAt holds the default value on creation for the created_at field.
+	venue.DefaultCreatedAt = venueDescCreatedAt.Default.(func() time.Time)
+	// venueDescUpdatedAt is the schema descriptor for updated_at field.
+	venueDescUpdatedAt := venueFields[10].Descriptor()
+	// venue.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	venue.DefaultUpdatedAt = venueDescUpdatedAt.Default.(func() time.Time)
+	// venue.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	venue.UpdateDefaultUpdatedAt = venueDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

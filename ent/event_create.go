@@ -13,7 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/ryzmevent"
+	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // EventCreate is the builder for creating a Event entity.
@@ -206,6 +209,55 @@ func (ec *EventCreate) AddArtists(a ...*Artist) *EventCreate {
 	return ec.AddArtistIDs(ids...)
 }
 
+// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
+func (ec *EventCreate) AddRelatedRyzmEventIDs(ids ...int) *EventCreate {
+	ec.mutation.AddRelatedRyzmEventIDs(ids...)
+	return ec
+}
+
+// AddRelatedRyzmEvents adds the "related_ryzm_events" edges to the RyzmEvent entity.
+func (ec *EventCreate) AddRelatedRyzmEvents(r ...*RyzmEvent) *EventCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ec.AddRelatedRyzmEventIDs(ids...)
+}
+
+// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
+func (ec *EventCreate) AddUnStructuredEventInformationIDs(ids ...int) *EventCreate {
+	ec.mutation.AddUnStructuredEventInformationIDs(ids...)
+	return ec
+}
+
+// AddUnStructuredEventInformations adds the "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
+func (ec *EventCreate) AddUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ec.AddUnStructuredEventInformationIDs(ids...)
+}
+
+// SetVenueID sets the "venue" edge to the Venue entity by ID.
+func (ec *EventCreate) SetVenueID(id int) *EventCreate {
+	ec.mutation.SetVenueID(id)
+	return ec
+}
+
+// SetNillableVenueID sets the "venue" edge to the Venue entity by ID if the given value is not nil.
+func (ec *EventCreate) SetNillableVenueID(id *int) *EventCreate {
+	if id != nil {
+		ec = ec.SetVenueID(*id)
+	}
+	return ec
+}
+
+// SetVenue sets the "venue" edge to the Venue entity.
+func (ec *EventCreate) SetVenue(v *Venue) *EventCreate {
+	return ec.SetVenueID(v.ID)
+}
+
 // Mutation returns the EventMutation object of the builder.
 func (ec *EventCreate) Mutation() *EventMutation {
 	return ec.mutation
@@ -392,6 +444,64 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.RelatedRyzmEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.RelatedRyzmEventsTable,
+			Columns: []string{event.RelatedRyzmEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ryzmevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.UnStructuredEventInformationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.UnStructuredEventInformationsTable,
+			Columns: []string{event.UnStructuredEventInformationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: unstructuredeventinformation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.VenueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   event.VenueTable,
+			Columns: []string{event.VenueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: venue.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.event_venue = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
