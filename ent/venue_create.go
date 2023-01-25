@@ -50,8 +50,16 @@ func (vc *VenueCreate) SetNillableDescription(s *string) *VenueCreate {
 }
 
 // SetWebSite sets the "web_site" field.
-func (vc *VenueCreate) SetWebSite(b []byte) *VenueCreate {
-	vc.mutation.SetWebSite(b)
+func (vc *VenueCreate) SetWebSite(s string) *VenueCreate {
+	vc.mutation.SetWebSite(s)
+	return vc
+}
+
+// SetNillableWebSite sets the "web_site" field if the given value is not nil.
+func (vc *VenueCreate) SetNillableWebSite(s *string) *VenueCreate {
+	if s != nil {
+		vc.SetWebSite(*s)
+	}
 	return vc
 }
 
@@ -304,7 +312,7 @@ func (vc *VenueCreate) createSpec() (*Venue, *sqlgraph.CreateSpec) {
 		_node.Description = value
 	}
 	if value, ok := vc.mutation.WebSite(); ok {
-		_spec.SetField(venue.FieldWebSite, field.TypeBytes, value)
+		_spec.SetField(venue.FieldWebSite, field.TypeString, value)
 		_node.WebSite = value
 	}
 	if value, ok := vc.mutation.Postcode(); ok {
@@ -453,7 +461,7 @@ func (u *VenueUpsert) ClearDescription() *VenueUpsert {
 }
 
 // SetWebSite sets the "web_site" field.
-func (u *VenueUpsert) SetWebSite(v []byte) *VenueUpsert {
+func (u *VenueUpsert) SetWebSite(v string) *VenueUpsert {
 	u.Set(venue.FieldWebSite, v)
 	return u
 }
@@ -679,7 +687,7 @@ func (u *VenueUpsertOne) ClearDescription() *VenueUpsertOne {
 }
 
 // SetWebSite sets the "web_site" field.
-func (u *VenueUpsertOne) SetWebSite(v []byte) *VenueUpsertOne {
+func (u *VenueUpsertOne) SetWebSite(v string) *VenueUpsertOne {
 	return u.Update(func(s *VenueUpsert) {
 		s.SetWebSite(v)
 	})
@@ -1089,7 +1097,7 @@ func (u *VenueUpsertBulk) ClearDescription() *VenueUpsertBulk {
 }
 
 // SetWebSite sets the "web_site" field.
-func (u *VenueUpsertBulk) SetWebSite(v []byte) *VenueUpsertBulk {
+func (u *VenueUpsertBulk) SetWebSite(v string) *VenueUpsertBulk {
 	return u.Update(func(s *VenueUpsert) {
 		s.SetWebSite(v)
 	})

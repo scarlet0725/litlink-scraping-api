@@ -23,7 +23,7 @@ type Venue struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// WebSite holds the value of the "web_site" field.
-	WebSite []byte `json:"web_site,omitempty"`
+	WebSite string `json:"web_site,omitempty"`
 	// Postcode holds the value of the "postcode" field.
 	Postcode string `json:"postcode,omitempty"`
 	// Prefecture holds the value of the "prefecture" field.
@@ -68,13 +68,11 @@ func (*Venue) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case venue.FieldWebSite:
-			values[i] = new([]byte)
 		case venue.FieldIsOpen:
 			values[i] = new(sql.NullBool)
 		case venue.FieldID:
 			values[i] = new(sql.NullInt64)
-		case venue.FieldVenueID, venue.FieldName, venue.FieldDescription, venue.FieldPostcode, venue.FieldPrefecture, venue.FieldCity, venue.FieldStreet:
+		case venue.FieldVenueID, venue.FieldName, venue.FieldDescription, venue.FieldWebSite, venue.FieldPostcode, venue.FieldPrefecture, venue.FieldCity, venue.FieldStreet:
 			values[i] = new(sql.NullString)
 		case venue.FieldCreatedAt, venue.FieldUpdatedAt, venue.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -118,10 +116,10 @@ func (v *Venue) assignValues(columns []string, values []any) error {
 				v.Description = value.String
 			}
 		case venue.FieldWebSite:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field web_site", values[i])
-			} else if value != nil {
-				v.WebSite = *value
+			} else if value.Valid {
+				v.WebSite = value.String
 			}
 		case venue.FieldPostcode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -215,7 +213,7 @@ func (v *Venue) String() string {
 	builder.WriteString(v.Description)
 	builder.WriteString(", ")
 	builder.WriteString("web_site=")
-	builder.WriteString(fmt.Sprintf("%v", v.WebSite))
+	builder.WriteString(v.WebSite)
 	builder.WriteString(", ")
 	builder.WriteString("postcode=")
 	builder.WriteString(v.Postcode)

@@ -63,8 +63,16 @@ func (vu *VenueUpdate) ClearDescription() *VenueUpdate {
 }
 
 // SetWebSite sets the "web_site" field.
-func (vu *VenueUpdate) SetWebSite(b []byte) *VenueUpdate {
-	vu.mutation.SetWebSite(b)
+func (vu *VenueUpdate) SetWebSite(s string) *VenueUpdate {
+	vu.mutation.SetWebSite(s)
+	return vu
+}
+
+// SetNillableWebSite sets the "web_site" field if the given value is not nil.
+func (vu *VenueUpdate) SetNillableWebSite(s *string) *VenueUpdate {
+	if s != nil {
+		vu.SetWebSite(*s)
+	}
 	return vu
 }
 
@@ -326,10 +334,10 @@ func (vu *VenueUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.ClearField(venue.FieldDescription, field.TypeString)
 	}
 	if value, ok := vu.mutation.WebSite(); ok {
-		_spec.SetField(venue.FieldWebSite, field.TypeBytes, value)
+		_spec.SetField(venue.FieldWebSite, field.TypeString, value)
 	}
 	if vu.mutation.WebSiteCleared() {
-		_spec.ClearField(venue.FieldWebSite, field.TypeBytes)
+		_spec.ClearField(venue.FieldWebSite, field.TypeString)
 	}
 	if value, ok := vu.mutation.Postcode(); ok {
 		_spec.SetField(venue.FieldPostcode, field.TypeString, value)
@@ -476,8 +484,16 @@ func (vuo *VenueUpdateOne) ClearDescription() *VenueUpdateOne {
 }
 
 // SetWebSite sets the "web_site" field.
-func (vuo *VenueUpdateOne) SetWebSite(b []byte) *VenueUpdateOne {
-	vuo.mutation.SetWebSite(b)
+func (vuo *VenueUpdateOne) SetWebSite(s string) *VenueUpdateOne {
+	vuo.mutation.SetWebSite(s)
+	return vuo
+}
+
+// SetNillableWebSite sets the "web_site" field if the given value is not nil.
+func (vuo *VenueUpdateOne) SetNillableWebSite(s *string) *VenueUpdateOne {
+	if s != nil {
+		vuo.SetWebSite(*s)
+	}
 	return vuo
 }
 
@@ -763,10 +779,10 @@ func (vuo *VenueUpdateOne) sqlSave(ctx context.Context) (_node *Venue, err error
 		_spec.ClearField(venue.FieldDescription, field.TypeString)
 	}
 	if value, ok := vuo.mutation.WebSite(); ok {
-		_spec.SetField(venue.FieldWebSite, field.TypeBytes, value)
+		_spec.SetField(venue.FieldWebSite, field.TypeString, value)
 	}
 	if vuo.mutation.WebSiteCleared() {
-		_spec.ClearField(venue.FieldWebSite, field.TypeBytes)
+		_spec.ClearField(venue.FieldWebSite, field.TypeString)
 	}
 	if value, ok := vuo.mutation.Postcode(); ok {
 		_spec.SetField(venue.FieldPostcode, field.TypeString, value)

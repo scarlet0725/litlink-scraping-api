@@ -6128,7 +6128,7 @@ type VenueMutation struct {
 	venue_id      *string
 	name          *string
 	description   *string
-	web_site      *[]byte
+	web_site      *string
 	postcode      *string
 	prefecture    *string
 	city          *string
@@ -6366,12 +6366,12 @@ func (m *VenueMutation) ResetDescription() {
 }
 
 // SetWebSite sets the "web_site" field.
-func (m *VenueMutation) SetWebSite(b []byte) {
-	m.web_site = &b
+func (m *VenueMutation) SetWebSite(s string) {
+	m.web_site = &s
 }
 
 // WebSite returns the value of the "web_site" field in the mutation.
-func (m *VenueMutation) WebSite() (r []byte, exists bool) {
+func (m *VenueMutation) WebSite() (r string, exists bool) {
 	v := m.web_site
 	if v == nil {
 		return
@@ -6382,7 +6382,7 @@ func (m *VenueMutation) WebSite() (r []byte, exists bool) {
 // OldWebSite returns the old "web_site" field's value of the Venue entity.
 // If the Venue object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VenueMutation) OldWebSite(ctx context.Context) (v []byte, err error) {
+func (m *VenueMutation) OldWebSite(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWebSite is only allowed on UpdateOne operations")
 	}
@@ -6988,7 +6988,7 @@ func (m *VenueMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case venue.FieldWebSite:
-		v, ok := value.([]byte)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

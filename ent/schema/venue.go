@@ -58,7 +58,7 @@ func (Venue) Fields() []ent.Field {
 					dialect.MySQL: "longtext",
 				},
 			),
-		field.Bytes("web_site").
+		field.String("web_site").
 			Optional().
 			SchemaType(
 				map[string]string{

@@ -71,7 +71,7 @@ func Description(v string) predicate.Venue {
 }
 
 // WebSite applies equality check predicate on the "web_site" field. It's identical to WebSiteEQ.
-func WebSite(v []byte) predicate.Venue {
+func WebSite(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldEQ(FieldWebSite, v))
 }
 
@@ -321,43 +321,58 @@ func DescriptionContainsFold(v string) predicate.Venue {
 }
 
 // WebSiteEQ applies the EQ predicate on the "web_site" field.
-func WebSiteEQ(v []byte) predicate.Venue {
+func WebSiteEQ(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldEQ(FieldWebSite, v))
 }
 
 // WebSiteNEQ applies the NEQ predicate on the "web_site" field.
-func WebSiteNEQ(v []byte) predicate.Venue {
+func WebSiteNEQ(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldNEQ(FieldWebSite, v))
 }
 
 // WebSiteIn applies the In predicate on the "web_site" field.
-func WebSiteIn(vs ...[]byte) predicate.Venue {
+func WebSiteIn(vs ...string) predicate.Venue {
 	return predicate.Venue(sql.FieldIn(FieldWebSite, vs...))
 }
 
 // WebSiteNotIn applies the NotIn predicate on the "web_site" field.
-func WebSiteNotIn(vs ...[]byte) predicate.Venue {
+func WebSiteNotIn(vs ...string) predicate.Venue {
 	return predicate.Venue(sql.FieldNotIn(FieldWebSite, vs...))
 }
 
 // WebSiteGT applies the GT predicate on the "web_site" field.
-func WebSiteGT(v []byte) predicate.Venue {
+func WebSiteGT(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldGT(FieldWebSite, v))
 }
 
 // WebSiteGTE applies the GTE predicate on the "web_site" field.
-func WebSiteGTE(v []byte) predicate.Venue {
+func WebSiteGTE(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldGTE(FieldWebSite, v))
 }
 
 // WebSiteLT applies the LT predicate on the "web_site" field.
-func WebSiteLT(v []byte) predicate.Venue {
+func WebSiteLT(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldLT(FieldWebSite, v))
 }
 
 // WebSiteLTE applies the LTE predicate on the "web_site" field.
-func WebSiteLTE(v []byte) predicate.Venue {
+func WebSiteLTE(v string) predicate.Venue {
 	return predicate.Venue(sql.FieldLTE(FieldWebSite, v))
+}
+
+// WebSiteContains applies the Contains predicate on the "web_site" field.
+func WebSiteContains(v string) predicate.Venue {
+	return predicate.Venue(sql.FieldContains(FieldWebSite, v))
+}
+
+// WebSiteHasPrefix applies the HasPrefix predicate on the "web_site" field.
+func WebSiteHasPrefix(v string) predicate.Venue {
+	return predicate.Venue(sql.FieldHasPrefix(FieldWebSite, v))
+}
+
+// WebSiteHasSuffix applies the HasSuffix predicate on the "web_site" field.
+func WebSiteHasSuffix(v string) predicate.Venue {
+	return predicate.Venue(sql.FieldHasSuffix(FieldWebSite, v))
 }
 
 // WebSiteIsNil applies the IsNil predicate on the "web_site" field.
@@ -368,6 +383,16 @@ func WebSiteIsNil() predicate.Venue {
 // WebSiteNotNil applies the NotNil predicate on the "web_site" field.
 func WebSiteNotNil() predicate.Venue {
 	return predicate.Venue(sql.FieldNotNull(FieldWebSite))
+}
+
+// WebSiteEqualFold applies the EqualFold predicate on the "web_site" field.
+func WebSiteEqualFold(v string) predicate.Venue {
+	return predicate.Venue(sql.FieldEqualFold(FieldWebSite, v))
+}
+
+// WebSiteContainsFold applies the ContainsFold predicate on the "web_site" field.
+func WebSiteContainsFold(v string) predicate.Venue {
+	return predicate.Venue(sql.FieldContainsFold(FieldWebSite, v))
 }
 
 // PostcodeEQ applies the EQ predicate on the "postcode" field.

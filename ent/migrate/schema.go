@@ -238,7 +238,7 @@ var (
 		{Name: "venue_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(32)"}},
 		{Name: "name", Type: field.TypeString, Collation: "utf8mb4_ja_0900_as_cs_ks"},
 		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_bin", SchemaType: map[string]string{"mysql": "longtext"}},
-		{Name: "web_site", Type: field.TypeBytes, Nullable: true, SchemaType: map[string]string{"mysql": "longtext"}},
+		{Name: "web_site", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "postcode", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "varchar(8)"}},
 		{Name: "prefecture", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
 		{Name: "city", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_ja_0900_as_cs_ks", SchemaType: map[string]string{"mysql": "longtext"}},
