@@ -146,7 +146,10 @@ func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
 	if err != nil {
 		var appErr *model.AppError
 		if ok := errors.As(err, &appErr); ok {
-			ctx.AbortWithStatusJSON(appErr.Code, appErr.Msg)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"ok":    false,
+				"error": appErr.Msg,
+			})
 			return
 		}
 
