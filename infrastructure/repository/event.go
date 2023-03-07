@@ -7,8 +7,8 @@ import (
 )
 
 type Event interface {
-	//CreateEvents([]*model.Event) ([]*model.Event, error)
 	CreateEvent(context.Context, *model.Event) (*model.Event, error)
+	CreateEvents(context.Context, []*model.Event) ([]*model.Event, error)
 	UpdateEvent(context.Context, *model.Event) (*model.Event, error)
 	DeleteEvent(context.Context, *model.Event) error
 	GetEventsByArtistID(context.Context, string) ([]*model.Event, error)

@@ -49,7 +49,7 @@ func (a *eventAdapter) CreateEvent(ctx *gin.Context) {
 		return
 	}
 
-	result, err := a.event.CreateEvent(&req)
+	result, err := a.event.CreateEvent(ctx, &req)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": "internal server error"})
@@ -71,7 +71,7 @@ func (a *eventAdapter) UpdateEvent(ctx *gin.Context) {
 	eventID := ctx.Param("event_id")
 	req.EventID = eventID
 
-	_, err := a.event.UpdateEvent(&req)
+	_, err := a.event.UpdateEvent(ctx, &req)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -94,7 +94,7 @@ func (a *eventAdapter) UpdateEvent(ctx *gin.Context) {
 func (a *eventAdapter) DeleteEvent(ctx *gin.Context) {
 	id := ctx.Param("event_id")
 
-	event, err := a.event.GetEventByID(id)
+	event, err := a.event.GetEventByID(ctx, id)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
@@ -104,7 +104,7 @@ func (a *eventAdapter) DeleteEvent(ctx *gin.Context) {
 		return
 	}
 
-	if err := a.event.DeleteEvent(event); err != nil {
+	if err := a.event.DeleteEvent(ctx, event); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"ok":    false,
 			"error": "Internal server error",
@@ -119,7 +119,7 @@ func (a *eventAdapter) DeleteEvent(ctx *gin.Context) {
 func (a *eventAdapter) GetEventByID(ctx *gin.Context) {
 	params := ctx.Param("event_id")
 
-	event, err := a.event.GetEventByID(params)
+	event, err := a.event.GetEventByID(ctx, params)
 	if err != nil {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"ok":    false,
@@ -141,7 +141,7 @@ func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Invalid request"})
 	}
 
-	result, err := a.event.CreateArtistEventsFromCrawlData(req.ArtistID)
+	result, err := a.event.CreateArtistEventsFromCrawlData(ctx, req.ArtistID)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -173,7 +173,7 @@ func (a *eventAdapter) MergeEvents(ctx *gin.Context) {
 		return
 	}
 
-	merged, err := a.event.MergeEvents(&req)
+	merged, err := a.event.MergeEvents(ctx, &req)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
@@ -194,7 +194,7 @@ func (a *eventAdapter) SearchEvents(ctx *gin.Context) {
 		return
 	}
 
-	events, err := a.event.SearchEvents(&req)
+	events, err := a.event.SearchEvents(ctx, &req)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{

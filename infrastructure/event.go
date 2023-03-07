@@ -207,3 +207,32 @@ func (e *Event) SearchEvents(ctx context.Context, query *model.EventSearchQuery)
 	//TODO: あとで実装
 	return nil, nil
 }
+
+func (e *Event) CreateEvents(ctx context.Context, input []*model.Event) ([]*model.Event, error) {
+	events := make([]*ent.EventCreate, len(input))
+	for _, event := range input {
+		eventCreate := e.db.Event.Create().
+			SetEventID(event.EventID).
+			SetName(event.Name).
+			SetDescription(event.Description).
+			SetNillableDate(event.Date).
+			SetNillableStartTime(event.StartTime).
+			SetNillableEndTime(event.EndTime).
+			SetURL(event.Url).
+			SetTicketURL(event.TicketURL)
+		events = append(events, eventCreate)
+	}
+
+	resut, err := e.db.Event.CreateBulk(events...).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	createdEvents := make([]*model.Event, len(resut))
+
+	for _, event := range resut {
+		createdEvents = append(createdEvents, translator.EventFromEnt(event))
+	}
+
+	return createdEvents, nil
+}

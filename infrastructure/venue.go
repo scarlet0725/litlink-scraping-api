@@ -53,3 +53,19 @@ func (v *venueRepository) GetVenueByID(ctx context.Context, id string) (*model.V
 
 	return venue, nil
 }
+
+func (v *venueRepository) GetVenuesByNames(ctx context.Context, names []string) ([]*model.Venue, error) {
+	result, err := v.db.Venue.Query().Where(venue.NameIn(names...)).All(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	venues := make([]*model.Venue, len(result))
+
+	for i, venue := range result {
+		venues[i] = translator.VenueFromEnt(venue)
+	}
+
+	return venues, nil
+}

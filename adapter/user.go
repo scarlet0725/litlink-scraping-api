@@ -276,7 +276,7 @@ func (c *userAdapter) RegistrationEvent(ctx *gin.Context) {
 		return
 	}
 
-	event, err := c.event.GetEventByID(req.EventID)
+	event, err := c.event.GetEventByID(ctx, req.EventID)
 
 	if err != nil {
 		switch errors.Is(err, repository.ErrNotFound) {

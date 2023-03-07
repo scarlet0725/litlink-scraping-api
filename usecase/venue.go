@@ -11,7 +11,6 @@ import (
 type Venue interface {
 	CreateVenue(context.Context, *model.Venue) (*model.Venue, error)
 	//UpdateVenue(*model.Venue) (*model.Venue, error)
-	//GetVenueByName(string) (*model.Venue, error)
 	GetVenueByID(context.Context, string) (*model.Venue, error)
 }
 
