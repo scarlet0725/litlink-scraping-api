@@ -8,17 +8,17 @@ import (
 
 type Venue interface {
 	CreateVenue(*model.Venue) (*model.Venue, error)
-	UpdateVenue(*model.Venue) (*model.Venue, error)
+	//UpdateVenue(*model.Venue) (*model.Venue, error)
 	//GetVenueByName(string) (*model.Venue, error)
 	GetVenueByID(string) (*model.Venue, error)
 }
 
 type venueUsecase struct {
-	db     repository.DB
+	db     repository.Venue
 	ramdom framework.RandomID
 }
 
-func NewVenueUsecase(db repository.DB, r framework.RandomID) Venue {
+func NewVenueUsecase(db repository.Venue, r framework.RandomID) Venue {
 	return &venueUsecase{
 		db:     db,
 		ramdom: r,
@@ -33,16 +33,6 @@ func (a *venueUsecase) CreateVenue(venue *model.Venue) (*model.Venue, error) {
 	venue.IsOpen = true
 
 	venue, err := a.db.CreateVenue(venue)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return venue, nil
-}
-
-func (a *venueUsecase) UpdateVenue(venue *model.Venue) (*model.Venue, error) {
-	venue, err := a.db.UpdateVenue(venue)
 
 	if err != nil {
 		return nil, err

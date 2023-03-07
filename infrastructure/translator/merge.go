@@ -24,3 +24,14 @@ func MergeUser(base, patch *model.User) (*model.User, error) {
 
 	return &patchData, nil
 }
+
+func MergeEvent(base, patch *model.Event) (*model.Event, error) {
+	baseEvent := *base
+	patchData := *patch
+	err := mergo.Merge(&patchData, baseEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	return &patchData, nil
+}

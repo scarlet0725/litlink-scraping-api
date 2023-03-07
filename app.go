@@ -35,9 +35,27 @@ func main() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
+	dbConf := cmd.DBConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		User:     dbUser,
+		Password: dbPassword,
+		Database: dbName,
+	}
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	db, err := cmd.ConnectDB(dsn)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ent, err := cmd.InitDB(dbConf)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if *environment == "development" {
 		db = db.Debug()
@@ -65,7 +83,7 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	gin, err := infrastructure.NewGinRouter(logger, db, redisClient)
+	gin, err := infrastructure.NewGinRouter(logger, db, redisClient, ent)
 
 	if err != nil {
 		log.Fatal(err)

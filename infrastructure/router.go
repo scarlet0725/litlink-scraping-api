@@ -10,6 +10,7 @@ import (
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
@@ -26,10 +27,11 @@ type ginRouter struct {
 	router       *gin.Engine
 	db           *gorm.DB
 	redis        *redis.Client
+	ent          *ent.Client
 	prismAPIHost string
 }
 
-func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
+func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client, ent *ent.Client) (GinRouter, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
@@ -81,8 +83,8 @@ func (r *ginRouter) SetRoute() error {
 	docParser := parser.NewParser()
 	serializer := selializer.NewResponseSerializer()
 
-	userRepository := NewUserRepository(r.db)
-	artistRepository := NewArtistRepository(r.db)
+	userRepository := NewUserRepository(r.ent)
+	artistRepository := NewArtistRepository(r.ent)
 
 	db := NewGORMClient(r.db)
 	googleOAuth := framework.NewGoogleOAuth(oauthConfig)
