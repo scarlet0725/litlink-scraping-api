@@ -23,8 +23,7 @@ func NewEventRepository(db *ent.Client) repository.Event {
 	}
 }
 
-func (e *Event) CreateEvent(event *model.Event) (*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) CreateEvent(ctx context.Context, event *model.Event) (*model.Event, error) {
 	result, err := e.db.Event.Create().
 		SetEventID(event.EventID).
 		SetName(event.Name).
@@ -45,8 +44,7 @@ func (e *Event) CreateEvent(event *model.Event) (*model.Event, error) {
 	return createdEvent, nil
 }
 
-func (e *Event) UpdateEvent(event *model.Event) (*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) UpdateEvent(ctx context.Context, event *model.Event) (*model.Event, error) {
 	result, err := e.db.Event.UpdateOneID(int(event.ID)).
 		SetEventID(event.EventID).
 		SetName(event.Name).
@@ -67,15 +65,13 @@ func (e *Event) UpdateEvent(event *model.Event) (*model.Event, error) {
 	return updatedEvent, nil
 }
 
-func (e *Event) DeleteEvent(event *model.Event) error {
-	ctx := context.Background()
+func (e *Event) DeleteEvent(ctx context.Context, event *model.Event) error {
 	err := e.db.Event.DeleteOneID(int(event.ID)).Exec(ctx)
 
 	return err
 }
 
-func (e *Event) GetEventsByArtistID(artistID string) ([]*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) GetEventsByArtistID(ctx context.Context, artistID string) ([]*model.Event, error) {
 	result, err := e.db.Event.Query().
 		Where(
 			event.HasArtistsWith(artist.ArtistID(artistID)),
@@ -95,8 +91,7 @@ func (e *Event) GetEventsByArtistID(artistID string) ([]*model.Event, error) {
 	return events, nil
 }
 
-func (e *Event) GetEventByID(eventID string) (*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) GetEventByID(ctx context.Context, eventID string) (*model.Event, error) {
 	result, err := e.db.Event.Query().
 		Where(
 			event.And(
@@ -115,8 +110,7 @@ func (e *Event) GetEventByID(eventID string) (*model.Event, error) {
 	return event, nil
 }
 
-func (e *Event) GetEvents() ([]*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) GetEvents(ctx context.Context) ([]*model.Event, error) {
 	result, err := e.db.Event.Query().
 		Where(
 			event.DeletedAtNotNil(),
@@ -136,8 +130,7 @@ func (e *Event) GetEvents() ([]*model.Event, error) {
 	return events, nil
 }
 
-func (e *Event) MergeEvents(base *model.Event, target *model.Event) (*model.Event, error) {
-	ctx := context.Background()
+func (e *Event) MergeEvents(ctx context.Context, base *model.Event, target *model.Event) (*model.Event, error) {
 
 	ids := make([]int, 0, (len(target.Artists) + len(base.Artists)))
 
@@ -192,9 +185,7 @@ func (e *Event) MergeEvents(base *model.Event, target *model.Event) (*model.Even
 	return event, nil
 }
 
-func (e *Event) GetRyzmEventsByUUDIDs(IDs []string) ([]*model.RyzmEvent, error) {
-	ctx := context.Background()
-
+func (e *Event) GetRyzmEventsByUUDIDs(ctx context.Context, IDs []string) ([]*model.RyzmEvent, error) {
 	result, err := e.db.RyzmEvent.Query().Where(
 		ryzmevent.UUIDIn(IDs...),
 	).All(ctx)
@@ -212,7 +203,7 @@ func (e *Event) GetRyzmEventsByUUDIDs(IDs []string) ([]*model.RyzmEvent, error) 
 	return events, nil
 }
 
-func (e *Event) SearchEvents(query *model.EventSearchQuery) ([]*model.EventSearchResult, error) {
+func (e *Event) SearchEvents(ctx context.Context, query *model.EventSearchQuery) ([]*model.EventSearchResult, error) {
 	//TODO: あとで実装
 	return nil, nil
 }

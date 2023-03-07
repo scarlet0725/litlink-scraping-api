@@ -26,13 +26,13 @@ func NewUserRepository(db *ent.Client) repository.User {
 	}
 }
 
-func (u *userRepository) GetUser(id string) (*model.User, error) {
+func (u *userRepository) GetUser(ctx context.Context, id string) (*model.User, error) {
 	result, err := u.db.User.Query().Where(
 		user.And(
 			user.UserID(id),
 			user.DeletedAtIsNil(),
 		),
-	).First(context.Background())
+	).First(ctx)
 
 	if ent.IsNotFound(err) {
 		return nil, errors.New("user not found")
@@ -48,7 +48,7 @@ func (u *userRepository) GetUser(id string) (*model.User, error) {
 
 }
 
-func (u *userRepository) CreateUser(user *model.User) (*model.User, error) {
+func (u *userRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	result, err := u.db.User.Create().
 		SetUserID(user.UserID).
 		SetUsername(user.Username).
@@ -59,7 +59,7 @@ func (u *userRepository) CreateUser(user *model.User) (*model.User, error) {
 		SetAPIKey(user.APIKey).
 		SetIsAdminVerified(user.IsAdminVerified).
 		SetDeleteProtected(user.DeleteProtected).
-		Save(context.Background())
+		Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (u *userRepository) CreateUser(user *model.User) (*model.User, error) {
 
 }
 
-func (u *userRepository) UpdateUser(user *model.User) (*model.User, error) {
+func (u *userRepository) UpdateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	result, err := u.db.User.UpdateOneID(int(user.ID)).
 		SetUsername(user.Username).
 		SetFirstName(user.FamilyName).
@@ -80,7 +80,7 @@ func (u *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 		SetIsAdminVerified(user.IsAdminVerified).
 		SetDeleteProtected(user.DeleteProtected).
 		SetAPIKey(user.APIKey).
-		Save(context.Background())
+		Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -92,12 +92,11 @@ func (u *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 
 }
 
-func (u *userRepository) DeleteUser(deleteUser *model.User) error {
+func (u *userRepository) DeleteUser(ctx context.Context, deleteUser *model.User) error {
 	if deleteUser.DeleteProtected {
 		return errors.New("user is protected")
 	}
 
-	ctx := context.Background()
 	tx, err := u.db.Tx(ctx)
 
 	if err != nil {
@@ -147,8 +146,8 @@ func (u *userRepository) DeleteUser(deleteUser *model.User) error {
 	return nil
 }
 
-func (u *userRepository) GetUserByAPIKey(apiKey string) (*model.User, error) {
-	result, err := u.db.User.Query().Where(user.APIKey(apiKey)).First(context.Background())
+func (u *userRepository) GetUserByAPIKey(ctx context.Context, apiKey string) (*model.User, error) {
+	result, err := u.db.User.Query().Where(user.APIKey(apiKey)).First(ctx)
 
 	if err != nil {
 		return nil, err
@@ -159,8 +158,8 @@ func (u *userRepository) GetUserByAPIKey(apiKey string) (*model.User, error) {
 	return user, nil
 }
 
-func (u *userRepository) GetUserCalendarByUserID(id int) (*model.ExternalCalendar, error) {
-	result, err := u.db.ExternalCalendar.Query().Where(externalcalendar.HasUserWith(user.ID(id))).First(context.Background())
+func (u *userRepository) GetUserCalendarByUserID(ctx context.Context, id int) (*model.ExternalCalendar, error) {
+	result, err := u.db.ExternalCalendar.Query().Where(externalcalendar.HasUserWith(user.ID(id))).First(ctx)
 
 	if err != nil {
 		return nil, err
@@ -172,7 +171,7 @@ func (u *userRepository) GetUserCalendarByUserID(id int) (*model.ExternalCalenda
 
 }
 
-func (u *userRepository) GetGoogleCalendarConfig(id int) (*model.GoogleCalenderConfig, error) {
+func (u *userRepository) GetGoogleCalendarConfig(ctx context.Context, id int) (*model.GoogleCalenderConfig, error) {
 	var config *model.GoogleCalenderConfig
 
 	err := u.db.GoogleOauthToken.Query().Modify(
@@ -190,7 +189,7 @@ func (u *userRepository) GetGoogleCalendarConfig(id int) (*model.GoogleCalenderC
 				)
 		},
 	).
-		Scan(context.Background(), &config)
+		Scan(ctx, &config)
 
 	if err != nil {
 		return nil, err
@@ -200,8 +199,8 @@ func (u *userRepository) GetGoogleCalendarConfig(id int) (*model.GoogleCalenderC
 
 }
 
-func (u *userRepository) GetGoogleOAuthToken(id int) (*model.GoogleOAuthToken, error) {
-	result, err := u.db.GoogleOauthToken.Query().Where(googleoauthtoken.HasUserWith(user.ID(id))).First(context.Background())
+func (u *userRepository) GetGoogleOAuthToken(ctx context.Context, id int) (*model.GoogleOAuthToken, error) {
+	result, err := u.db.GoogleOauthToken.Query().Where(googleoauthtoken.HasUserWith(user.ID(id))).First(ctx)
 
 	if err != nil {
 		return nil, err
@@ -213,14 +212,14 @@ func (u *userRepository) GetGoogleOAuthToken(id int) (*model.GoogleOAuthToken, e
 
 }
 
-func (u *userRepository) SaveExternalCalendar(cal *model.ExternalCalendar) (*model.ExternalCalendar, error) {
+func (u *userRepository) SaveExternalCalendar(ctx context.Context, cal *model.ExternalCalendar) (*model.ExternalCalendar, error) {
 	result, err := u.db.ExternalCalendar.Create().
 		SetName(cal.Name).
 		SetCalendarID(cal.CalendarID).
 		SetSourceType(cal.Type).
 		SetDescription(cal.Description).
 		SetUserID(cal.UserID).
-		Save(context.Background())
+		Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -231,20 +230,20 @@ func (u *userRepository) SaveExternalCalendar(cal *model.ExternalCalendar) (*mod
 	return createdCal, nil
 }
 
-func (u *userRepository) AddRegistrationEvent(user *model.User, event *model.Event) error {
-	_, err := u.db.User.UpdateOneID(int(user.ID)).AddEvents(translator.EventFromModel(event)).Save(context.Background())
+func (u *userRepository) AddRegistrationEvent(ctx context.Context, user *model.User, event *model.Event) error {
+	_, err := u.db.User.UpdateOneID(int(user.ID)).AddEvents(translator.EventFromModel(event)).Save(ctx)
 
 	return err
 }
 
-func (u *userRepository) RemoveRegistrationEvent(user *model.User, event *model.Event) error {
+func (u *userRepository) RemoveRegistrationEvent(ctx context.Context, user *model.User, event *model.Event) error {
 	e := translator.EventFromModel(event)
-	_, err := u.db.User.UpdateOneID(int(user.ID)).RemoveEvents(e).Save(context.Background())
+	_, err := u.db.User.UpdateOneID(int(user.ID)).RemoveEvents(e).Save(ctx)
 	return err
 }
 
-func (u *userRepository) GetUserByUsername(username string) (*model.User, error) {
-	result, err := u.db.User.Query().Where(user.Username(username)).First(context.Background())
+func (u *userRepository) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+	result, err := u.db.User.Query().Where(user.Username(username)).First(ctx)
 
 	if err != nil {
 		return nil, err
@@ -255,8 +254,8 @@ func (u *userRepository) GetUserByUsername(username string) (*model.User, error)
 	return user, nil
 }
 
-func (u *userRepository) VerifyUser(ID int) error {
-	err := u.db.User.UpdateOneID(ID).SetIsAdminVerified(true).Exec(context.Background())
+func (u *userRepository) VerifyUser(ctx context.Context, ID int) error {
+	err := u.db.User.UpdateOneID(ID).SetIsAdminVerified(true).Exec(ctx)
 
 	return err
 }

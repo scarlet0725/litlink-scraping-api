@@ -20,7 +20,7 @@ func NewVenueRepository(db *ent.Client) repository.Venue {
 	}
 }
 
-func (v *venueRepository) CreateVenue(venue *model.Venue) (*model.Venue, error) {
+func (v *venueRepository) CreateVenue(ctx context.Context, venue *model.Venue) (*model.Venue, error) {
 	result, err := v.db.Venue.Create().
 		SetVenueID(venue.VenueID).
 		SetName(venue.Name).
@@ -31,7 +31,7 @@ func (v *venueRepository) CreateVenue(venue *model.Venue) (*model.Venue, error) 
 		SetPrefecture(venue.Prefecture).
 		SetCity(venue.City).
 		SetStreet(venue.Street).
-		Save(context.Background())
+		Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -42,8 +42,8 @@ func (v *venueRepository) CreateVenue(venue *model.Venue) (*model.Venue, error) 
 	return venue, nil
 }
 
-func (v *venueRepository) GetVenueByID(id string) (*model.Venue, error) {
-	result, err := v.db.Venue.Query().Where(venue.VenueID(id)).Only(context.Background())
+func (v *venueRepository) GetVenueByID(ctx context.Context, id string) (*model.Venue, error) {
+	result, err := v.db.Venue.Query().Where(venue.VenueID(id)).Only(ctx)
 
 	if err != nil {
 		return nil, err

@@ -22,8 +22,8 @@ func NewArtistRepository(ent *ent.Client) repository.Artist {
 	}
 }
 
-func (a *artistRepository) CreateArtist(artist *model.Artist) (*model.Artist, error) {
-	result, err := a.db.Artist.Create().SetArtistID(artist.ArtistID).SetName(artist.Name).SetURL(artist.URL).Save(context.Background())
+func (a *artistRepository) CreateArtist(ctx context.Context, artist *model.Artist) (*model.Artist, error) {
+	result, err := a.db.Artist.Create().SetArtistID(artist.ArtistID).SetName(artist.Name).SetURL(artist.URL).Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +34,8 @@ func (a *artistRepository) CreateArtist(artist *model.Artist) (*model.Artist, er
 
 }
 
-func (a *artistRepository) GetArtistByName(name string) (*model.Artist, error) {
-	result, err := a.db.Artist.Query().Where(artist.Name(name)).First(context.Background())
+func (a *artistRepository) GetArtistByName(ctx context.Context, name string) (*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.Name(name)).First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,8 @@ func (a *artistRepository) GetArtistByName(name string) (*model.Artist, error) {
 	return translator.ArtistFromEnt(result), nil
 }
 
-func (a *artistRepository) GetArtistByID(id string) (*model.Artist, error) {
-	result, err := a.db.Artist.Query().Where(artist.ArtistID(id)).First(context.Background())
+func (a *artistRepository) GetArtistByID(ctx context.Context, id string) (*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.ArtistID(id)).First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +52,8 @@ func (a *artistRepository) GetArtistByID(id string) (*model.Artist, error) {
 	return translator.ArtistFromEnt(result), nil
 }
 
-func (a *artistRepository) GetArtistsByIDs(ids []string) ([]*model.Artist, error) {
-	result, err := a.db.Artist.Query().Where(artist.ArtistIDIn(ids...)).All(context.Background())
+func (a *artistRepository) GetArtistsByIDs(ctx context.Context, ids []string) ([]*model.Artist, error) {
+	result, err := a.db.Artist.Query().Where(artist.ArtistIDIn(ids...)).All(ctx)
 
 	if err != nil {
 		return nil, err

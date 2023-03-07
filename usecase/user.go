@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
@@ -13,14 +14,14 @@ import (
 )
 
 type User interface {
-	GetUserByUserID(id string) (*model.User, error)
-	CreateUser(user *model.User) (*model.User, error)
-	DeleteUser(*model.User) error
-	GetUserByAPIKey(apiKey string) (*model.User, error)
-	VerifyAccount(userID string) (*model.User, error)
-	CreateCalendar(*model.ExternalCalendar) (*model.ExternalCalendar, error)
-	RegistrationEvent(*model.User, *model.Event) (*model.RegistrationEventResponse, error)
-	CreateAPIKey(*model.LoginRequest) (*model.CreateAPIKeyResponse, error)
+	GetUserByUserID(ctx context.Context, id string) (*model.User, error)
+	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	DeleteUser(context.Context, *model.User) error
+	GetUserByAPIKey(ctx context.Context, apiKey string) (*model.User, error)
+	VerifyAccount(ctx context.Context, userID string) (*model.User, error)
+	CreateCalendar(context.Context, *model.ExternalCalendar) (*model.ExternalCalendar, error)
+	RegistrationEvent(context.Context, *model.User, *model.Event) (*model.RegistrationEventResponse, error)
+	CreateAPIKey(context.Context, *model.LoginRequest) (*model.CreateAPIKeyResponse, error)
 }
 
 type userUsecase struct {
@@ -39,8 +40,8 @@ func NewUserUsecase(u repository.User, r framework.RandomID, g framework.GoogleO
 	}
 }
 
-func (a *userUsecase) GetUser(id string) (*model.User, *model.AppError) {
-	user, err := a.user.GetUser(id)
+func (a *userUsecase) GetUser(ctx context.Context, id string) (*model.User, *model.AppError) {
+	user, err := a.user.GetUser(ctx, id)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -52,12 +53,12 @@ func (a *userUsecase) GetUser(id string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (a *userUsecase) CreateUser(user *model.User) (*model.User, error) {
+func (a *userUsecase) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	id := a.random.Generate(userIDLength)
 
 	user.UserID = id
 
-	user, err := a.user.CreateUser(user)
+	user, err := a.user.CreateUser(ctx, user)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -70,21 +71,21 @@ func (a *userUsecase) CreateUser(user *model.User) (*model.User, error) {
 
 }
 
-func (a *userUsecase) DeleteUser(user *model.User) error {
+func (a *userUsecase) DeleteUser(ctx context.Context, user *model.User) error {
 	if user.ID == 0 {
 		return &model.AppError{
 			Code: 404,
 			Msg:  "User not found",
 		}
 	}
-	err := a.user.DeleteUser(user)
+	err := a.user.DeleteUser(ctx, user)
 	return err
 }
 
-func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
+func (a *userUsecase) GetUserByAPIKey(ctx context.Context, key string) (*model.User, error) {
 	sha512 := sha512.Sum512([]byte(key))
 	k := hex.EncodeToString(sha512[:])
-	user, err := a.user.GetUserByAPIKey(string(k))
+	user, err := a.user.GetUserByAPIKey(ctx, string(k))
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -97,8 +98,8 @@ func (a *userUsecase) GetUserByAPIKey(key string) (*model.User, error) {
 
 }
 
-func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
-	user, err := a.user.GetUser(userID)
+func (a *userUsecase) VerifyAccount(ctx context.Context, userID string) (*model.User, error) {
+	user, err := a.user.GetUser(ctx, userID)
 	if err != nil {
 		return nil, &model.AppError{
 			Code: 404,
@@ -107,7 +108,7 @@ func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
 	}
 
 	user.IsAdminVerified = true
-	user, err = a.user.UpdateUser(user)
+	user, err = a.user.UpdateUser(ctx, user)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -118,8 +119,8 @@ func (a *userUsecase) VerifyAccount(userID string) (*model.User, error) {
 	return user, nil
 }
 
-func (a *userUsecase) GetUserByUserID(userID string) (*model.User, error) {
-	user, err := a.user.GetUser(userID)
+func (a *userUsecase) GetUserByUserID(ctx context.Context, userID string) (*model.User, error) {
+	user, err := a.user.GetUser(ctx, userID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -131,9 +132,9 @@ func (a *userUsecase) GetUserByUserID(userID string) (*model.User, error) {
 	return user, nil
 }
 
-func (a *userUsecase) CreateCalendar(req *model.ExternalCalendar) (*model.ExternalCalendar, error) {
+func (a *userUsecase) CreateCalendar(ctx context.Context, req *model.ExternalCalendar) (*model.ExternalCalendar, error) {
 
-	_, err := a.user.GetUserCalendarByUserID(req.UserID)
+	_, err := a.user.GetUserCalendarByUserID(ctx, req.UserID)
 
 	//エラーがNilの場合はユーザーのカレンダーが存在するのでエラーを返す
 	if err == nil {
@@ -151,7 +152,7 @@ func (a *userUsecase) CreateCalendar(req *model.ExternalCalendar) (*model.Extern
 	}
 
 	//レコードがないエラーが発生した場合は、ユーザーのカレンダーが存在しないので、カレンダーを作成する
-	token, err := a.user.GetGoogleOAuthToken(req.UserID)
+	token, err := a.user.GetGoogleOAuthToken(ctx, req.UserID)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -179,15 +180,15 @@ func (a *userUsecase) CreateCalendar(req *model.ExternalCalendar) (*model.Extern
 		}
 	}
 
-	a.user.SaveExternalCalendar(result)
+	a.user.SaveExternalCalendar(ctx, result)
 
 	return result, err
 }
 
-func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*model.RegistrationEventResponse, error) {
+func (a *userUsecase) RegistrationEvent(ctx context.Context, user *model.User, event *model.Event) (*model.RegistrationEventResponse, error) {
 
 	userID := int(user.ID)
-	err := a.user.AddRegistrationEvent(user, event)
+	err := a.user.AddRegistrationEvent(ctx, user, event)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -202,7 +203,7 @@ func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*
 		EventID:         event.EventID,
 	}
 
-	config, err := a.user.GetGoogleCalendarConfig(userID)
+	config, err := a.user.GetGoogleCalendarConfig(ctx, userID)
 
 	if err != nil {
 		return result, &model.AppError{
@@ -234,9 +235,9 @@ func (a *userUsecase) RegistrationEvent(user *model.User, event *model.Event) (*
 
 }
 
-func (u *userUsecase) CreateAPIKey(req *model.LoginRequest) (*model.CreateAPIKeyResponse, error) {
+func (u *userUsecase) CreateAPIKey(ctx context.Context, req *model.LoginRequest) (*model.CreateAPIKeyResponse, error) {
 
-	user, err := u.user.GetUserByUsername(req.Username)
+	user, err := u.user.GetUserByUsername(ctx, req.Username)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -265,7 +266,7 @@ func (u *userUsecase) CreateAPIKey(req *model.LoginRequest) (*model.CreateAPIKey
 
 	hash := sha512.Sum512([]byte(key))
 	user.APIKey = hex.EncodeToString(hash[:])
-	user, err = u.user.UpdateUser(user)
+	user, err = u.user.UpdateUser(ctx, user)
 
 	result := &model.CreateAPIKeyResponse{
 		APIKey: key,

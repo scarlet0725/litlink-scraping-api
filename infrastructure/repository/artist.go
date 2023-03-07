@@ -1,10 +1,14 @@
 package repository
 
-import "github.com/scarlet0725/prism-api/model"
+import (
+	"context"
+
+	"github.com/scarlet0725/prism-api/model"
+)
 
 type Artist interface {
-	CreateArtist(*model.Artist) (*model.Artist, error)
-	GetArtistByName(name string) (*model.Artist, error)
-	GetArtistByID(id string) (*model.Artist, error)
-	GetArtistsByIDs(ids []string) ([]*model.Artist, error)
+	CreateArtist(context.Context, *model.Artist) (*model.Artist, error)
+	GetArtistByName(context.Context, string) (*model.Artist, error)
+	GetArtistByID(context.Context, string) (*model.Artist, error)
+	GetArtistsByIDs(context.Context, []string) ([]*model.Artist, error)
 }
