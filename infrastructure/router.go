@@ -31,7 +31,7 @@ type ginRouter struct {
 	prismAPIHost string
 }
 
-func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client, ent *ent.Client) (GinRouter, error) {
+func NewGinRouter(logger framework.Logger, ent *ent.Client, redis *redis.Client) (GinRouter, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
@@ -39,7 +39,7 @@ func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client, ent
 
 	router := &ginRouter{
 		router:       r,
-		db:           db,
+		ent:          ent,
 		redis:        redis,
 		prismAPIHost: "",
 	}
@@ -87,15 +87,15 @@ func (r *ginRouter) SetRoute() error {
 	artistRepository := NewArtistRepository(r.ent)
 	eventRepository := NewEventRepository(r.ent)
 	venueRepository := NewVenueRepository(r.ent)
+	oAuthRepository := NewOAuthRepository(r.ent)
 
-	db := NewGORMClient(r.db)
 	googleOAuth := framework.NewGoogleOAuth(oauthConfig)
 
 	eventUsecase := usecase.NewEventUsecase(eventRepository, artistRepository, venueRepository, fetchController, docParser, serializer, parser.NewJsonParser(), random)
 	userUsecase := usecase.NewUserUsecase(userRepository, random, googleOAuth, NewGoogleCalenderClient)
 	artistUsecase := usecase.NewArtistUsecase(artistRepository, random)
 	venueUsecase := usecase.NewVenueUsecase(venueRepository, random)
-	oauthUsecase := usecase.NewOAuthUsecase(db, random, googleOAuth)
+	oauthUsecase := usecase.NewOAuthUsecase(oAuthRepository, random, googleOAuth)
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase, eventUsecase)
@@ -105,7 +105,7 @@ func (r *ginRouter) SetRoute() error {
 
 	v1 := r.router.Group("/v1")
 
-	auth := middleware.NewAuthMiddleware(db)
+	auth := middleware.NewAuthMiddleware(userRepository)
 
 	userEndpoint := v1.Group("/user")
 	eventEndpoint := v1.Group("/event")

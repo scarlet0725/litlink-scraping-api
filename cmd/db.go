@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/go-sql-driver/mysql"
 	"github.com/scarlet0725/prism-api/ent"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 type DBConfig struct {
@@ -21,28 +21,25 @@ type DBConfig struct {
 	Database string
 }
 
-func ConnectDB(dsn string) (*gorm.DB, error) {
-	for i := 0; ; i++ {
-		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-		if err == nil {
-			return db, nil
-		}
-		if i > 10 {
-			return nil, errors.New("failed to connect database")
-		}
-		time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
-	}
-}
-
 func InitDB(conf DBConfig) (*ent.Client, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
+	c := mysql.Config{
+		DBName:    conf.Database,
+		User:      conf.User,
+		Passwd:    conf.Password,
+		Net:       "tcp",
+		Addr:      fmt.Sprintf("%s:%s", conf.Host, conf.Port),
+		ParseTime: true,
+		Loc:       jst,
+	}
 
 	for i := 0; ; i++ {
 		if i > 10 {
 			return nil, errors.New("failed to connect database")
 		}
 
-		db, err := sql.Open("mysql", dsn)
+		db, err := sql.Open("mysql", c.FormatDSN())
 
 		if err != nil {
 			wait(i)
@@ -51,7 +48,7 @@ func InitDB(conf DBConfig) (*ent.Client, error) {
 
 		db.SetMaxOpenConns(10)
 
-		db.Ping()
+		err = db.Ping()
 
 		if err != nil {
 			wait(i)
@@ -66,4 +63,22 @@ func InitDB(conf DBConfig) (*ent.Client, error) {
 
 func wait(i int) {
 	time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+}
+
+func getDBConfig() DBConfig {
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbUser := os.Getenv("DB_USER")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	dbConf := DBConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		User:     dbUser,
+		Password: dbPassword,
+		Database: dbName,
+	}
+
+	return dbConf
 }

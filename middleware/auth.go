@@ -14,12 +14,12 @@ type Auth interface {
 }
 
 type auth struct {
-	db repository.DB
+	user repository.User
 }
 
-func NewAuthMiddleware(db repository.DB) Auth {
+func NewAuthMiddleware(user repository.User) Auth {
 	return &auth{
-		db: db,
+		user: user,
 	}
 }
 
@@ -37,7 +37,7 @@ func (a *auth) Middleware() gin.HandlerFunc {
 		sha512 := sha512.Sum512([]byte(key))
 		k := hex.EncodeToString(sha512[:])
 
-		user, err := a.db.GetUserByAPIKey(string(k))
+		user, err := a.user.GetUserByAPIKey(ctx, string(k))
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"ok":      false,
