@@ -9,6 +9,7 @@ import (
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
+	"github.com/scarlet0725/prism-api/ent/role"
 	"github.com/scarlet0725/prism-api/ent/schema"
 	"github.com/scarlet0725/prism-api/ent/user"
 	"github.com/scarlet0725/prism-api/ent/venue"
@@ -88,6 +89,26 @@ func init() {
 	googleoauthstateDescState := googleoauthstateFields[0].Descriptor()
 	// googleoauthstate.StateValidator is a validator for the "state" field. It is called by the builders before save.
 	googleoauthstate.StateValidator = googleoauthstateDescState.Validators[0].(func(string) error)
+	roleFields := schema.Role{}.Fields()
+	_ = roleFields
+	// roleDescName is the schema descriptor for name field.
+	roleDescName := roleFields[0].Descriptor()
+	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	role.NameValidator = roleDescName.Validators[0].(func(string) error)
+	// roleDescRoleID is the schema descriptor for role_id field.
+	roleDescRoleID := roleFields[1].Descriptor()
+	// role.RoleIDValidator is a validator for the "role_id" field. It is called by the builders before save.
+	role.RoleIDValidator = roleDescRoleID.Validators[0].(func(string) error)
+	// roleDescCreatedAt is the schema descriptor for created_at field.
+	roleDescCreatedAt := roleFields[3].Descriptor()
+	// role.DefaultCreatedAt holds the default value on creation for the created_at field.
+	role.DefaultCreatedAt = roleDescCreatedAt.Default.(func() time.Time)
+	// roleDescUpdatedAt is the schema descriptor for updated_at field.
+	roleDescUpdatedAt := roleFields[4].Descriptor()
+	// role.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	role.DefaultUpdatedAt = roleDescUpdatedAt.Default.(func() time.Time)
+	// role.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	role.UpdateDefaultUpdatedAt = roleDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUserID is the schema descriptor for user_id field.

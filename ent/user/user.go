@@ -43,6 +43,8 @@ const (
 	EdgeEvents = "events"
 	// EdgeExternalCalendars holds the string denoting the external_calendars edge name in mutations.
 	EdgeExternalCalendars = "external_calendars"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GoogleOauthTokensTable is the table that holds the google_oauth_tokens relation/edge.
@@ -71,6 +73,11 @@ const (
 	ExternalCalendarsInverseTable = "external_calendars"
 	// ExternalCalendarsColumn is the table column denoting the external_calendars relation/edge.
 	ExternalCalendarsColumn = "user_id"
+	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
+	RolesTable = "user_roles"
+	// RolesInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RolesInverseTable = "roles"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -94,6 +101,9 @@ var (
 	// EventsPrimaryKey and EventsColumn2 are the table columns denoting the
 	// primary key for the events relation (M2M).
 	EventsPrimaryKey = []string{"user_id", "event_id"}
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"user_id", "role_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

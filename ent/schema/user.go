@@ -164,5 +164,83 @@ func (User) Edges() []ent.Edge {
 			StorageKey(
 				edge.Column("user_id"),
 			),
+		edge.To("roles", Role.Type),
+	}
+}
+
+type Role struct {
+	ent.Schema
+}
+
+func (Role) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Annotation{
+			Table:   "roles",
+			Charset: "utf8mb4",
+		},
+	}
+}
+
+func (Role) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name").
+			Unique().
+			NotEmpty().
+			Annotations(
+				entsql.Annotation{
+					Collation: "utf8mb4_0900_ai_ci",
+				},
+			),
+		field.String("role_id").
+			Unique().
+			NotEmpty().
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "varchar(32)",
+				},
+			).
+			Annotations(
+				entsql.Annotation{
+					Collation: "utf8mb4_0900_ai_ci",
+				},
+			),
+		field.String("description").
+			Optional().
+			Annotations(
+				entsql.Annotation{
+					Collation: "utf8mb4_0900_ai_ci",
+				},
+			),
+		field.Time("created_at").
+			Immutable().
+			Default(time.Now).
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			),
+		field.Time("deleted_at").
+			SchemaType(
+				map[string]string{
+					dialect.MySQL: "datetime(3)",
+				},
+			).
+			Nillable().
+			Optional(),
+	}
+}
+
+func (Role) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("users", User.Type).
+			Ref("roles"),
 	}
 }

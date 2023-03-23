@@ -155,6 +155,22 @@ var (
 			},
 		},
 	}
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci"},
+		{Name: "role_id", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(32)"}},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "utf8mb4_0900_ai_ci"},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"mysql": "datetime(3)"}},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
+	}
 	// RyzmEventsColumns holds the columns for the "ryzm_events" table.
 	RyzmEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -304,6 +320,31 @@ var (
 			},
 		},
 	}
+	// UserRolesColumns holds the columns for the "user_roles" table.
+	UserRolesColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "role_id", Type: field.TypeInt},
+	}
+	// UserRolesTable holds the schema information for the "user_roles" table.
+	UserRolesTable = &schema.Table{
+		Name:       "user_roles",
+		Columns:    UserRolesColumns,
+		PrimaryKey: []*schema.Column{UserRolesColumns[0], UserRolesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_roles_user_id",
+				Columns:    []*schema.Column{UserRolesColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_roles_role_id",
+				Columns:    []*schema.Column{UserRolesColumns[1]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ArtistsTable,
@@ -311,12 +352,14 @@ var (
 		ExternalCalendarsTable,
 		GoogleOauthStatesTable,
 		GoogleOauthTokensTable,
+		RolesTable,
 		RyzmEventsTable,
 		UnStructuredEventInformationsTable,
 		UsersTable,
 		VenuesTable,
 		EventArtistsTable,
 		UserEventsTable,
+		UserRolesTable,
 	}
 )
 
@@ -345,6 +388,10 @@ func init() {
 		Table:   "google_oauth_tokens",
 		Charset: "utf8mb4",
 	}
+	RolesTable.Annotation = &entsql.Annotation{
+		Table:   "roles",
+		Charset: "utf8mb4",
+	}
 	RyzmEventsTable.ForeignKeys[0].RefTable = EventsTable
 	RyzmEventsTable.Annotation = &entsql.Annotation{
 		Table:   "ryzm_events",
@@ -367,4 +414,6 @@ func init() {
 	EventArtistsTable.ForeignKeys[1].RefTable = ArtistsTable
 	UserEventsTable.ForeignKeys[0].RefTable = UsersTable
 	UserEventsTable.ForeignKeys[1].RefTable = EventsTable
+	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

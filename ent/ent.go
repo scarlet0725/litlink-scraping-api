@@ -16,6 +16,7 @@ import (
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
 	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
+	"github.com/scarlet0725/prism-api/ent/role"
 	"github.com/scarlet0725/prism-api/ent/ryzmevent"
 	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -51,6 +52,7 @@ func columnChecker(table string) func(string) error {
 		externalcalendar.Table:             externalcalendar.ValidColumn,
 		googleoauthstate.Table:             googleoauthstate.ValidColumn,
 		googleoauthtoken.Table:             googleoauthtoken.ValidColumn,
+		role.Table:                         role.ValidColumn,
 		ryzmevent.Table:                    ryzmevent.ValidColumn,
 		unstructuredeventinformation.Table: unstructuredeventinformation.ValidColumn,
 		user.Table:                         user.ValidColumn,

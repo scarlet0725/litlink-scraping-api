@@ -21,6 +21,9 @@ type GoogleOauthState func(*sql.Selector)
 // GoogleOauthToken is the predicate function for googleoauthtoken builders.
 type GoogleOauthToken func(*sql.Selector)
 
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
+
 // RyzmEvent is the predicate function for ryzmevent builders.
 type RyzmEvent func(*sql.Selector)
 

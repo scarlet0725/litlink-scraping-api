@@ -58,9 +58,11 @@ type UserEdges struct {
 	Events []*Event `json:"events,omitempty"`
 	// ExternalCalendars holds the value of the external_calendars edge.
 	ExternalCalendars *ExternalCalendar `json:"external_calendars,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // GoogleOauthTokensOrErr returns the GoogleOauthTokens value or an error if the edge
@@ -109,6 +111,15 @@ func (e UserEdges) ExternalCalendarsOrErr() (*ExternalCalendar, error) {
 		return e.ExternalCalendars, nil
 	}
 	return nil, &NotLoadedError{edge: "external_calendars"}
+}
+
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RolesOrErr() ([]*Role, error) {
+	if e.loadedTypes[4] {
+		return e.Roles, nil
+	}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -243,6 +254,11 @@ func (u *User) QueryEvents() *EventQuery {
 // QueryExternalCalendars queries the "external_calendars" edge of the User entity.
 func (u *User) QueryExternalCalendars() *ExternalCalendarQuery {
 	return (&UserClient{config: u.config}).QueryExternalCalendars(u)
+}
+
+// QueryRoles queries the "roles" edge of the User entity.
+func (u *User) QueryRoles() *RoleQuery {
+	return (&UserClient{config: u.config}).QueryRoles(u)
 }
 
 // Update returns a builder for updating this User.

@@ -32,6 +32,7 @@ type (
 		ExternalCalendar             []ent.Hook
 		GoogleOauthState             []ent.Hook
 		GoogleOauthToken             []ent.Hook
+		Role                         []ent.Hook
 		RyzmEvent                    []ent.Hook
 		UnStructuredEventInformation []ent.Hook
 		User                         []ent.Hook
@@ -43,6 +44,7 @@ type (
 		ExternalCalendar             []ent.Interceptor
 		GoogleOauthState             []ent.Interceptor
 		GoogleOauthToken             []ent.Interceptor
+		Role                         []ent.Interceptor
 		RyzmEvent                    []ent.Interceptor
 		UnStructuredEventInformation []ent.Interceptor
 		User                         []ent.Interceptor

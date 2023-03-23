@@ -69,6 +69,18 @@ func (f GoogleOauthTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GoogleOauthTokenMutation", m)
 }
 
+// The RoleFunc type is an adapter to allow the use of ordinary
+// function as Role mutator.
+type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
+}
+
 // The RyzmEventFunc type is an adapter to allow the use of ordinary
 // function as RyzmEvent mutator.
 type RyzmEventFunc func(context.Context, *ent.RyzmEventMutation) (ent.Value, error)
