@@ -1,19 +1,19 @@
 package model
 
 type Artist struct {
-	ID              uint             `json:"-" gorm:"primary_key;unique;not null;auto_increment"`
-	ArtistID        string           `json:"artist_id" gorm:"unique;not null"`
-	Name            string           `json:"name" gorm:"not null"`
+	ID              uint             `json:"-"`
+	ArtistID        string           `json:"artist_id"`
+	Name            string           `json:"name"`
 	URL             string           `json:"url"`
-	Events          []Event          `json:"events,omitempty" gorm:"many2many:events_artists"`
-	RyzmCrawlConfig *RyzmCrawlConfig `json:"-" gorm:"foreignkey:ArtistID"`
+	Events          []Event          `json:"events,omitempty"`
+	RyzmCrawlConfig *RyzmCrawlConfig `json:"-"`
 }
 
 type RyzmCrawlConfig struct {
-	ID             uint `gorm:"primary_key;unique;not null;auto_increment"`
+	ID             uint
 	ArtistID       *uint
-	RyzmHost       string `json:"-"`
-	CrawlTargetURL string `json:"-"`
-	CrawlSiteType  string `json:"-"`
+	RyzmHost       string
+	CrawlTargetURL string
+	CrawlSiteType  string
 	Artist         *Artist
 }

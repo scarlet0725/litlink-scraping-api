@@ -33,7 +33,7 @@ func (a *oAuthAdapter) GoogleOAuthCallback(ctx *gin.Context) {
 		return
 	}
 
-	err := a.oauth.GoogleOAuthCallback(&req)
+	err := a.oauth.GoogleOAuthCallback(ctx, &req)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "error": err.Error()})
@@ -58,7 +58,7 @@ func (a *oAuthAdapter) GoogleLinkage(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := a.oauth.GoogleLinkage(user)
+	resp, err := a.oauth.GoogleLinkage(ctx, user)
 
 	if err != nil {
 		if ok := errors.As(err, &appErr); ok {

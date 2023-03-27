@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 
 	"github.com/scarlet0725/prism-api/framework"
@@ -9,25 +10,25 @@ import (
 )
 
 type OAuth interface {
-	GoogleLinkage(*model.User) (*model.OAuthURLResponse, error)
-	GoogleOAuthCallback(*model.GoogleOauthCallback) error
+	GoogleLinkage(context.Context, *model.User) (*model.OAuthURLResponse, error)
+	GoogleOAuthCallback(context.Context, *model.GoogleOauthCallback) error
 }
 
 type oauthUsecase struct {
-	db     repository.DB
 	ramdom framework.RandomID
 	google framework.GoogleOAuth
+	oauth  repository.OAuth
 }
 
-func NewOAuthUsecase(db repository.DB, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
+func NewOAuthUsecase(oauth repository.OAuth, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
 	return &oauthUsecase{
+		oauth:  oauth,
 		ramdom: ramdom,
-		db:     db,
 		google: google,
 	}
 }
 
-func (a *oauthUsecase) GoogleLinkage(user *model.User) (*model.OAuthURLResponse, error) {
+func (a *oauthUsecase) GoogleLinkage(ctx context.Context, user *model.User) (*model.OAuthURLResponse, error) {
 	state, err := a.ramdom.GenerateUUID4()
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (a *oauthUsecase) GoogleLinkage(user *model.User) (*model.OAuthURLResponse,
 		State:  state,
 	}
 
-	_, err = a.db.SaveGoogleOAuthState(s)
+	_, err = a.oauth.SaveGoogleOAuthState(ctx, s)
 
 	if err != nil {
 		return nil, err
@@ -53,8 +54,8 @@ func (a *oauthUsecase) GoogleLinkage(user *model.User) (*model.OAuthURLResponse,
 	return o, nil
 }
 
-func (a *oauthUsecase) GoogleOAuthCallback(callback *model.GoogleOauthCallback) error {
-	s, err := a.db.GetGoogleOAuthStateByState(callback.State)
+func (a *oauthUsecase) GoogleOAuthCallback(ctx context.Context, callback *model.GoogleOauthCallback) error {
+	s, err := a.oauth.GetGoogleOAuthState(ctx, callback.State)
 	if err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (a *oauthUsecase) GoogleOAuthCallback(callback *model.GoogleOauthCallback) 
 		return err
 	}
 
-	_, err = a.db.SaveGoogleOAuthToken(t)
+	_, err = a.oauth.SaveGoogleOAuthToken(ctx, t)
 
 	if err != nil {
 		return err

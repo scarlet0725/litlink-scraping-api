@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-redis/redis"
 	"github.com/scarlet0725/prism-api/cmd"
@@ -15,8 +17,7 @@ import (
 
 func main() {
 	var (
-		mg          = flag.Bool("migration", false, "migration")
-		environment = flag.String("environment", "production", "environment")
+		mg = flag.Bool("migration", false, "migration")
 	)
 
 	flag.Parse()
@@ -35,21 +36,18 @@ func main() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Asia%%2FTokyo", dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	db, err := cmd.ConnectDB(dsn)
-
-	if *environment == "development" {
-		db = db.Debug()
+	dbConf := cmd.DBConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		User:     dbUser,
+		Password: dbPassword,
+		Database: dbName,
 	}
+
+	ent, err := cmd.InitDB(dbConf)
 
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if *mg {
-		cmd.MigrationDB(db)
-		return
 	}
 
 	serverAddr := cmd.ConfigureHTTPServer()
@@ -65,10 +63,23 @@ func main() {
 
 	redisClient := redis.NewClient(reidsConfig)
 
-	gin, err := infrastructure.NewGinRouter(logger, db, redisClient)
+	gin, err := infrastructure.NewGinRouter(logger, ent, redisClient)
 
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if *mg {
+		err := cmd.Migrate(ctx, ent)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return
 	}
 
 	err = gin.Serve(serverAddr)

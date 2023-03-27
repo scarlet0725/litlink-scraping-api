@@ -1,16 +1,18 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
 )
 
 type Artist interface {
-	CreateArtist(artist *model.Artist) (*model.Artist, error)
+	CreateArtist(ctx context.Context, artist *model.Artist) (*model.Artist, error)
 	//UpdateArtist(artist *model.Artist) (*model.Artist, error)
 	//GetArtistByName(name string) ([]*model.Artist, error)
-	GetArtistByID(id string) (*model.Artist, error)
+	GetArtistByID(ctx context.Context, id string) (*model.Artist, error)
 }
 
 type artistUsecase struct {
@@ -25,12 +27,12 @@ func NewArtistUsecase(db repository.Artist, r framework.RandomID) Artist {
 	}
 }
 
-func (a *artistUsecase) CreateArtist(artist *model.Artist) (*model.Artist, error) {
+func (a *artistUsecase) CreateArtist(ctx context.Context, artist *model.Artist) (*model.Artist, error) {
 	id := a.random.Generate(artistIDLength)
 
 	artist.ArtistID = id
 
-	result, err := a.db.CreateArtist(artist)
+	result, err := a.db.CreateArtist(ctx, artist)
 	if err != nil {
 		return nil, &model.AppError{
 			Msg:  "Failed to create artist",
@@ -40,8 +42,8 @@ func (a *artistUsecase) CreateArtist(artist *model.Artist) (*model.Artist, error
 	return result, nil
 }
 
-func (a *artistUsecase) GetArtistByID(id string) (*model.Artist, error) {
-	result, err := a.db.GetArtistByID(id)
+func (a *artistUsecase) GetArtistByID(ctx context.Context, id string) (*model.Artist, error) {
+	result, err := a.db.GetArtistByID(ctx, id)
 	if err != nil {
 		return nil, &model.AppError{
 			Msg:  "Failed to get artist",

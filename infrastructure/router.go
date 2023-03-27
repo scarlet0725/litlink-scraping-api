@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	"gorm.io/gorm"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
 	"github.com/scarlet0725/prism-api/controller"
+	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/middleware"
 	"github.com/scarlet0725/prism-api/parser"
@@ -24,12 +24,12 @@ type GinRouter interface {
 
 type ginRouter struct {
 	router       *gin.Engine
-	db           *gorm.DB
 	redis        *redis.Client
+	ent          *ent.Client
 	prismAPIHost string
 }
 
-func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client) (GinRouter, error) {
+func NewGinRouter(logger framework.Logger, ent *ent.Client, redis *redis.Client) (GinRouter, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
@@ -37,7 +37,7 @@ func NewGinRouter(logger framework.Logger, db *gorm.DB, redis *redis.Client) (Gi
 
 	router := &ginRouter{
 		router:       r,
-		db:           db,
+		ent:          ent,
 		redis:        redis,
 		prismAPIHost: "",
 	}
@@ -81,17 +81,19 @@ func (r *ginRouter) SetRoute() error {
 	docParser := parser.NewParser()
 	serializer := selializer.NewResponseSerializer()
 
-	userRepository := NewUserRepository(r.db)
-	artistRepository := NewArtistRepository(r.db)
+	userRepository := NewUserRepository(r.ent)
+	artistRepository := NewArtistRepository(r.ent)
+	eventRepository := NewEventRepository(r.ent)
+	venueRepository := NewVenueRepository(r.ent)
+	oAuthRepository := NewOAuthRepository(r.ent)
 
-	db := NewGORMClient(r.db)
 	googleOAuth := framework.NewGoogleOAuth(oauthConfig)
 
-	eventUsecase := usecase.NewEventUsecase(db, fetchController, docParser, serializer, parser.NewJsonParser(), random)
+	eventUsecase := usecase.NewEventUsecase(eventRepository, artistRepository, venueRepository, fetchController, docParser, serializer, parser.NewJsonParser(), random)
 	userUsecase := usecase.NewUserUsecase(userRepository, random, googleOAuth, NewGoogleCalenderClient)
 	artistUsecase := usecase.NewArtistUsecase(artistRepository, random)
-	venueUsecase := usecase.NewVenueUsecase(db, random)
-	oauthUsecase := usecase.NewOAuthUsecase(db, random, googleOAuth)
+	venueUsecase := usecase.NewVenueUsecase(venueRepository, random)
+	oauthUsecase := usecase.NewOAuthUsecase(oAuthRepository, random, googleOAuth)
 
 	event := adapter.NewEventAdapter(eventUsecase)
 	user := adapter.NewUserAdapter(userUsecase, eventUsecase)
@@ -101,7 +103,7 @@ func (r *ginRouter) SetRoute() error {
 
 	v1 := r.router.Group("/v1")
 
-	auth := middleware.NewAuthMiddleware(db)
+	auth := middleware.NewAuthMiddleware(userRepository)
 
 	userEndpoint := v1.Group("/user")
 	eventEndpoint := v1.Group("/event")

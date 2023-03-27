@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"time"
 
 	"github.com/scarlet0725/prism-api/controller"
@@ -12,28 +13,40 @@ import (
 )
 
 type Event interface {
-	CreateEvent(*model.CreateEvent) (*model.Event, error)
-	DeleteEvent(*model.Event) error
-	UpdateEvent(*model.UpdateEvent) (*model.Event, error)
+	CreateEvent(context.Context, *model.CreateEvent) (*model.Event, error)
+	DeleteEvent(context.Context, *model.Event) error
+	UpdateEvent(context.Context, *model.UpdateEvent) (*model.Event, error)
 	//GetEvent(string) (*model.Event, error)
-	CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error)
-	GetEventByID(string) (*model.Event, error)
-	MergeEvents(*model.MergeEvent) (*model.Event, error)
-	SearchEvents(*model.EventSearchQuery) ([]*model.Event, error)
+	CreateArtistEventsFromCrawlData(ctx context.Context, id string) ([]*model.Event, error)
+	GetEventByID(context.Context, string) (*model.Event, error)
+	MergeEvents(context.Context, *model.MergeEvent) (*model.Event, error)
+	SearchEvents(context.Context, *model.EventSearchQuery) ([]*model.Event, error)
 }
 
 type eventUsecase struct {
-	db         repository.DB
 	fetch      controller.FetchController
 	parser     parser.DocParser
 	selializer selializer.ResponseSerializer
 	json       parser.JsonParser
 	random     framework.RandomID
+	event      repository.Event
+	artist     repository.Artist
+	venue      repository.Venue
 }
 
-func NewEventUsecase(db repository.DB, fetch controller.FetchController, parser parser.DocParser, selializer selializer.ResponseSerializer, json parser.JsonParser, r framework.RandomID) Event {
+func NewEventUsecase(
+	event repository.Event,
+	artist repository.Artist,
+	venue repository.Venue,
+	fetch controller.FetchController,
+	parser parser.DocParser,
+	selializer selializer.ResponseSerializer,
+	json parser.JsonParser,
+	r framework.RandomID,
+) Event {
 	return &eventUsecase{
-		db:         db,
+		event:      event,
+		artist:     artist,
 		fetch:      fetch,
 		parser:     parser,
 		selializer: selializer,
@@ -42,11 +55,11 @@ func NewEventUsecase(db repository.DB, fetch controller.FetchController, parser 
 	}
 }
 
-func (e *eventUsecase) CreateEvent(event *model.CreateEvent) (*model.Event, error) {
+func (e *eventUsecase) CreateEvent(ctx context.Context, event *model.CreateEvent) (*model.Event, error) {
 	id := e.random.Generate(eventIDLength)
 
-	artists, _ := e.db.GetArtistsByIDs(event.ArtistIDs)
-	venue, _ := e.db.GetVenueByID(event.VenueID)
+	artists, _ := e.artist.GetArtistsByIDs(ctx, event.ArtistIDs)
+	venue, _ := e.venue.GetVenueByID(ctx, event.VenueID)
 	jst, _ := time.LoadLocation(Locale)
 
 	date, err := time.ParseInLocation("2006-01-02", event.Date, jst)
@@ -69,15 +82,15 @@ func (e *eventUsecase) CreateEvent(event *model.CreateEvent) (*model.Event, erro
 		Venue:       venue,
 	}
 
-	return e.db.CreateEvent(newEvent)
+	return e.event.CreateEvent(ctx, newEvent)
 }
 
 func (e *eventUsecase) GetEventsByName(name string) ([]model.Event, error) {
 	return nil, nil
 }
 
-func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Event, error) {
-	artist, err := e.db.GetArtistByID(id)
+func (e *eventUsecase) CreateArtistEventsFromCrawlData(ctx context.Context, id string) ([]*model.Event, error) {
+	artist, err := e.artist.GetArtistByID(ctx, id)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -150,7 +163,7 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			}
 		}
 
-		registeredEvents, err := e.db.GetRyzmEventsByUUDIDs(fetchedRyzmEventUUIDs)
+		registeredEvents, err := e.event.GetRyzmEventsByUUDIDs(ctx, fetchedRyzmEventUUIDs)
 
 		if err != nil {
 			return nil, &model.AppError{
@@ -199,7 +212,7 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 		}
 
 		//会場の名前から会場を取得
-		venues, err := e.db.GetVenuesByNames(venueNames)
+		venues, err := e.venue.GetVenuesByNames(ctx, venueNames)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 500,
@@ -222,7 +235,7 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 			event.Venue = venue
 		}
 
-		return e.db.CreateEvents(registrationExpectedEvents)
+		return e.event.CreateEvents(ctx, registrationExpectedEvents)
 
 	default:
 		return nil, &model.AppError{
@@ -234,15 +247,15 @@ func (e *eventUsecase) CreateArtistEventsFromCrawlData(id string) ([]*model.Even
 
 }
 
-func (e *eventUsecase) GetEventByID(ID string) (*model.Event, error) {
-	return e.db.GetEventByID(ID)
+func (e *eventUsecase) GetEventByID(ctx context.Context, ID string) (*model.Event, error) {
+	return e.event.GetEventByID(ctx, ID)
 }
 
-func (e *eventUsecase) DeleteEvent(event *model.Event) error {
-	return e.db.DeleteEvent(event)
+func (e *eventUsecase) DeleteEvent(ctx context.Context, event *model.Event) error {
+	return e.event.DeleteEvent(ctx, event)
 }
 
-func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, error) {
+func (e *eventUsecase) UpdateEvent(ctx context.Context, event *model.UpdateEvent) (*model.Event, error) {
 
 	if event.EventID == "" {
 		return nil, &model.AppError{
@@ -251,7 +264,7 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 		}
 	}
 
-	req, err := e.db.GetEventByID(event.EventID)
+	req, err := e.event.GetEventByID(ctx, event.EventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -263,7 +276,7 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	var venue *model.Venue
 
 	if event.VenueID != "" {
-		venue, err = e.db.GetVenueByID(event.VenueID)
+		venue, err = e.venue.GetVenueByID(ctx, event.VenueID)
 		if err != nil {
 			return nil, &model.AppError{
 				Code: 404,
@@ -272,7 +285,7 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 		}
 	}
 
-	artists, err := e.db.GetArtistsByIDs(event.ArtistIDs)
+	artists, err := e.artist.GetArtistsByIDs(ctx, event.ArtistIDs)
 	if err != nil {
 		return nil, &model.AppError{
 			Code: 404,
@@ -293,11 +306,11 @@ func (e *eventUsecase) UpdateEvent(event *model.UpdateEvent) (*model.Event, erro
 	req.UnStructuredInformation = nil
 	req.Artists = append(artists, req.Artists...)
 
-	return e.db.UpdateEvent(req)
+	return e.event.UpdateEvent(ctx, req)
 }
 
-func (e *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) {
-	base, err := e.db.GetEventByID(req.EventID)
+func (e *eventUsecase) MergeEvents(ctx context.Context, req *model.MergeEvent) (*model.Event, error) {
+	base, err := e.event.GetEventByID(ctx, req.EventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -306,7 +319,7 @@ func (e *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 		}
 	}
 
-	merge, err := e.db.GetEventByID(req.MergeTargetEventID)
+	merge, err := e.event.GetEventByID(ctx, req.MergeTargetEventID)
 
 	if err != nil {
 		return nil, &model.AppError{
@@ -318,12 +331,12 @@ func (e *eventUsecase) MergeEvents(req *model.MergeEvent) (*model.Event, error) 
 	base.Artists = append(base.Artists, merge.Artists...)
 	base.RelatedRyzmEvents = append(base.RelatedRyzmEvents, merge.RelatedRyzmEvents...)
 
-	return e.db.MergeEvents(base, merge)
+	return e.event.MergeEvents(ctx, base, merge)
 
 }
 
-func (e *eventUsecase) SearchEvents(q *model.EventSearchQuery) ([]*model.Event, error) {
-	result, err := e.db.SearchEvents(q)
+func (e *eventUsecase) SearchEvents(ctx context.Context, q *model.EventSearchQuery) ([]*model.Event, error) {
+	result, err := e.event.SearchEvents(ctx, q)
 
 	if err != nil {
 		return nil, &model.AppError{

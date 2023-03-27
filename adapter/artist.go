@@ -37,7 +37,7 @@ func (a *artistAdapter) CreateArtist(ctx *gin.Context) {
 		URL:  req.URL,
 	}
 
-	result, err := a.artist.CreateArtist(artist)
+	result, err := a.artist.CreateArtist(ctx, artist)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"ok": false, "msg": "Failed to create artist"})
 		return

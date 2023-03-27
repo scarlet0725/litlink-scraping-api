@@ -41,7 +41,7 @@ func (a *VenueAdapter) CreateVenue(ctx *gin.Context) {
 		Street:      req.Street,
 	}
 
-	result, err := a.venueUsecase.CreateVenue(venue)
+	result, err := a.venueUsecase.CreateVenue(ctx, venue)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{

@@ -33,7 +33,7 @@ type ExternalCalendar struct {
 	UserID      int        `json:"-"`
 	CreatedAt   time.Time  `json:"-"`
 	UpdatedAt   time.Time  `json:"-"`
-	DeletedAt   *time.Time `gorm:"index" json:"-"`
+	DeletedAt   *time.Time `json:"-"`
 }
 
 type GoogleCalenderConfig struct {

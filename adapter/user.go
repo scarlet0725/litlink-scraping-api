@@ -92,7 +92,7 @@ func (a *userAdapter) Register(ctx *gin.Context) {
 		IsAdminVerified: false,
 	}
 
-	result, err := a.user.CreateUser(user)
+	result, err := a.user.CreateUser(ctx, user)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -130,7 +130,7 @@ func (c *userAdapter) GetMe(ctx *gin.Context) {
 
 func (c *userAdapter) Delete(ctx *gin.Context) {
 	k := ctx.GetHeader("X-Api-Key")
-	user, err := c.user.GetUserByAPIKey(k)
+	user, err := c.user.GetUserByAPIKey(ctx, k)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -147,7 +147,7 @@ func (c *userAdapter) Delete(ctx *gin.Context) {
 		return
 	}
 
-	err = c.user.DeleteUser(user)
+	err = c.user.DeleteUser(ctx, user)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -201,7 +201,7 @@ func (c *userAdapter) Verify(ctx *gin.Context) {
 		return
 	}
 
-	_, err = c.user.VerifyAccount(req.UserID)
+	_, err = c.user.VerifyAccount(ctx, req.UserID)
 
 	if err != nil {
 		if ok := errors.As(err, &appErr); ok {
@@ -241,7 +241,7 @@ func (c *userAdapter) CreateExternalCalendar(ctx *gin.Context) {
 		Name:   req.Name,
 	}
 
-	result, err := c.user.CreateCalendar(cal)
+	result, err := c.user.CreateCalendar(ctx, cal)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -276,7 +276,7 @@ func (c *userAdapter) RegistrationEvent(ctx *gin.Context) {
 		return
 	}
 
-	event, err := c.event.GetEventByID(req.EventID)
+	event, err := c.event.GetEventByID(ctx, req.EventID)
 
 	if err != nil {
 		switch errors.Is(err, repository.ErrNotFound) {
@@ -288,7 +288,7 @@ func (c *userAdapter) RegistrationEvent(ctx *gin.Context) {
 		return
 	}
 
-	result, err := c.user.RegistrationEvent(user, event)
+	result, err := c.user.RegistrationEvent(ctx, user, event)
 
 	if err != nil {
 		var appErr *model.AppError
@@ -312,7 +312,7 @@ func (u *userAdapter) CreateAPIKey(ctx *gin.Context) {
 		return
 	}
 
-	result, err := u.user.CreateAPIKey(&req)
+	result, err := u.user.CreateAPIKey(ctx, &req)
 
 	if err != nil {
 		var appErr *model.AppError
