@@ -1,46 +1,19 @@
 package translator
 
 import (
-	"time"
-
 	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/model"
 )
 
 func ArtistFromEnt(source *ent.Artist) *model.Artist {
 	artist := &model.Artist{
-		ID:       uint(source.ID),
+		ID:       source.ID,
 		ArtistID: source.ArtistID,
 		Name:     source.Name,
 		URL:      source.URL,
 	}
 
 	return artist
-}
-
-func UserFromEnt(source *ent.User) *model.User {
-	user := &model.User{
-		ID:               uint(source.ID),
-		UserID:           source.UserID,
-		Username:         source.Username,
-		FamilyName:       source.FirstName,
-		GivenName:        source.LastName,
-		Email:            source.Email,
-		Password:         source.Password,
-		APIKey:           source.APIKey,
-		IsAdminVerified:  source.IsAdminVerified,
-		DeleteProtected:  source.DeleteProtected,
-		CreatedAt:        time.Time{},
-		UpdatedAt:        time.Time{},
-		DeletedAt:        &time.Time{},
-		Events:           []*model.Event{},
-		Roles:            []*model.Role{},
-		GoogleToken:      &model.GoogleOAuthToken{},
-		GoogleOAuthState: &model.GoogleOAuthState{},
-		ExternalCalendar: &model.ExternalCalendar{},
-	}
-
-	return user
 }
 
 func ExternalCalendarFromEnt(source *ent.ExternalCalendar) *model.ExternalCalendar {
@@ -81,7 +54,7 @@ func EventFromModel(source *model.Event) *ent.Event {
 
 func EventFromEnt(source *ent.Event) *model.Event {
 	event := &model.Event{
-		ID:          uint(source.ID),
+		ID:          source.ID,
 		EventID:     source.EventID,
 		Name:        source.Name,
 		Date:        source.Date,
@@ -109,7 +82,7 @@ func ExternalCalendarFromModel(source *model.ExternalCalendar) *ent.ExternalCale
 
 func GoogleOAuthTokenFromEnt(source *ent.GoogleOauthToken) *model.GoogleOAuthToken {
 	googleOAuthToken := &model.GoogleOAuthToken{
-		ID:           uint(source.ID),
+		ID:           source.ID,
 		RefreshToken: source.RefreshToken,
 		AccessToken:  source.AccessToken,
 		Expiry:       source.Expiry,
@@ -121,7 +94,7 @@ func GoogleOAuthTokenFromEnt(source *ent.GoogleOauthToken) *model.GoogleOAuthTok
 func EventFromEnts(source *ent.Event) *model.Event {
 	events := model.Event{}
 
-	events.ID = uint(source.ID)
+	events.ID = source.ID
 	events.EventID = source.EventID
 	events.Name = source.Name
 	events.Date = source.Date
@@ -138,7 +111,7 @@ func EventFromEnts(source *ent.Event) *model.Event {
 func RyzmEventFromEnt(source *ent.RyzmEvent) *model.RyzmEvent {
 
 	ryzmEvent := &model.RyzmEvent{
-		ID:   uint(source.ID),
+		ID:   source.ID,
 		UUID: source.UUID,
 	}
 

@@ -1,7 +1,7 @@
 package model
 
 type Artist struct {
-	ID              uint             `json:"-"`
+	ID              int              `json:"-"`
 	ArtistID        string           `json:"artist_id"`
 	Name            string           `json:"name"`
 	URL             string           `json:"url"`
@@ -10,8 +10,8 @@ type Artist struct {
 }
 
 type RyzmCrawlConfig struct {
-	ID             uint
-	ArtistID       *uint
+	ID             int
+	ArtistID       int
 	RyzmHost       string
 	CrawlTargetURL string
 	CrawlSiteType  string

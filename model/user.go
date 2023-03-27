@@ -3,7 +3,7 @@ package model
 import "time"
 
 type User struct {
-	ID               uint              `json:"-"`
+	ID               int               `json:"-"`
 	UserID           string            `json:"user_id"`
 	Username         string            `json:"username"`
 	FamilyName       string            `json:"family_name"`
@@ -23,9 +23,25 @@ type User struct {
 	ExternalCalendar *ExternalCalendar `json:"-"`
 }
 
+func (u *User) Verify() {
+	u.IsAdminVerified = true
+}
+
+func (u *User) IsVerified() bool {
+	return u.IsAdminVerified
+}
+
+func (u *User) Protect() {
+	u.DeleteProtected = true
+}
+
+func (u *User) IsProtected() bool {
+	return u.DeleteProtected
+}
+
 type GoogleOAuthToken struct {
-	ID           uint   `json:"-"`
-	UserID       uint   `json:"user_id"`
+	ID           int    `json:"-"`
+	UserID       int    `json:"user_id"`
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 	Expiry       time.Time
@@ -37,7 +53,7 @@ type OAuthURLResponse struct {
 }
 
 type GoogleOAuthState struct {
-	ID     uint
-	UserID uint
+	ID     int
+	UserID int
 	State  string
 }

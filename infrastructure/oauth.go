@@ -26,8 +26,8 @@ func (o *oauth) SaveGoogleOAuthState(ctx context.Context, state *model.GoogleOAu
 	}
 
 	s := model.GoogleOAuthState{
-		ID:     uint(result.ID),
-		UserID: uint(result.Edges.User.ID),
+		ID:     result.ID,
+		UserID: result.Edges.User.ID,
 		State:  result.State,
 	}
 
@@ -42,8 +42,8 @@ func (o *oauth) GetGoogleOAuthState(ctx context.Context, state string) (*model.G
 	}
 
 	s := model.GoogleOAuthState{
-		ID:     uint(result.ID),
-		UserID: uint(result.Edges.User.ID),
+		ID:     result.ID,
+		UserID: result.Edges.User.ID,
 		State:  result.State,
 	}
 
@@ -63,8 +63,8 @@ func (o *oauth) SaveGoogleOAuthToken(ctx context.Context, token *model.GoogleOAu
 	}
 
 	t := model.GoogleOAuthToken{
-		ID:           uint(result.ID),
-		UserID:       uint(result.Edges.User.ID),
+		ID:           result.ID,
+		UserID:       result.Edges.User.ID,
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 		Expiry:       result.Expiry,

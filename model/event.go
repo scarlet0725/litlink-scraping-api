@@ -5,9 +5,9 @@ import (
 )
 
 type Event struct {
-	ID                      uint                          `json:"-" gorm:"primary_key;unique;not null;auto_increment"`
-	EventID                 string                        `json:"event_id" gorm:"unique;not null"`
-	Name                    string                        `json:"name" gorm:"not null"`
+	ID                      int                           `json:"-"`
+	EventID                 string                        `json:"event_id"`
+	Name                    string                        `json:"name"`
 	Date                    *time.Time                    `json:"date"`
 	OpenTime                *time.Time                    `json:"open_time"`
 	StartTime               *time.Time                    `json:"start_time"`
@@ -15,26 +15,26 @@ type Event struct {
 	Description             string                        `json:"description"`
 	Url                     string                        `json:"url"`
 	TicketURL               string                        `json:"ticket_url"`
-	Artists                 []*Artist                     `json:"artists" gorm:"many2many:events_artists"`
+	Artists                 []*Artist                     `json:"artists"`
 	Venue                   *Venue                        `json:"venue"`
-	VenueID                 *uint                         `json:"-"`
-	RelatedRyzmEvents       []*RyzmEvent                  `json:"-" gorm:"foreignkey:EventID"`
-	Users                   []*User                       `json:"-" gorm:"many2many:user_events"`
-	UserCreated             *User                         `json:"-" gorm:"foreignkey:UserCreatedID"`
-	UserCreatedID           *uint                         `json:"-"`
-	UnStructuredInformation *UnStructuredEventInformation `json:"-" gorm:"foreignkey:EventID"`
+	VenueID                 int                           `json:"-"`
+	RelatedRyzmEvents       []*RyzmEvent                  `json:"-"`
+	Users                   []*User                       `json:"-"`
+	UserCreated             *User                         `json:"-"`
+	UserCreatedID           int                           `json:"-"`
+	UnStructuredInformation *UnStructuredEventInformation `json:"-"`
 }
 
 type RyzmEvent struct {
-	ID      uint `gorm:"primary_key;unique;not null;auto_increment"`
-	EventID uint
+	ID      int
+	EventID int
 	Event   *Event
 	UUID    string
 }
 
 type UnStructuredEventInformation struct {
-	ID         uint `gorm:"primary_key;unique;not null;auto_increment"`
-	EventID    uint
+	ID         int
+	EventID    int
 	RyzmUUID   string
 	VenueName  string
 	ArtistName string

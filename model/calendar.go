@@ -4,7 +4,7 @@ import "time"
 
 type UserCalendar struct {
 	ID                 int    `json:"-"`
-	UserID             uint   `json:"-"`
+	UserID             int    `json:"-"`
 	CalendarID         string `json:"calendar_id"`
 	ExternalCalendarID string `json:"external_id"`
 }

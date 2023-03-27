@@ -28,7 +28,7 @@ func (a *artistRepository) CreateArtist(ctx context.Context, artist *model.Artis
 		return nil, err
 	}
 
-	artist.ID = uint(result.ID)
+	artist.ID = result.ID
 
 	return artist, nil
 
