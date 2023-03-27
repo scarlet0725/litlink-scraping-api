@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	"gorm.io/gorm"
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
@@ -25,7 +24,6 @@ type GinRouter interface {
 
 type ginRouter struct {
 	router       *gin.Engine
-	db           *gorm.DB
 	redis        *redis.Client
 	ent          *ent.Client
 	prismAPIHost string
