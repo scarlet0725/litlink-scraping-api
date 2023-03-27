@@ -3,36 +3,32 @@ package model
 import "time"
 
 type User struct {
-	ID               uint              `json:"-" gorm:"primary_key;unique;not null;auto_increment"`
-	UserID           string            `json:"user_id" gorm:"unique;not null"`
-	Username         string            `json:"username" gorm:"unique;not null"`
+	ID               uint              `json:"-"`
+	UserID           string            `json:"user_id"`
+	Username         string            `json:"username"`
 	FamilyName       string            `json:"family_name"`
 	GivenName        string            `json:"given_name"`
-	Email            string            `json:"email" gorm:"unique;not null"`
-	Password         []byte            `json:"-" gorm:"not null"`
+	Email            string            `json:"email"`
+	Password         []byte            `json:"-"`
 	APIKey           string            `json:"-"`
-	IsAdminVerified  bool              `json:"-" gorm:"not null"`
-	DeleteProtected  bool              `json:"-" gorm:"not null"`
+	IsAdminVerified  bool              `json:"-"`
+	DeleteProtected  bool              `json:"-"`
 	CreatedAt        time.Time         `json:"-"`
 	UpdatedAt        time.Time         `json:"-"`
-	DeletedAt        *time.Time        `gorm:"index" json:"-"`
-	Events           []*Event          `json:"-" gorm:"many2many:user_events"`
-	Roles            []*Role           `json:"-" gorm:"many2many:user_roles"`
+	DeletedAt        *time.Time        `json:"-"`
+	Events           []*Event          `json:"-"`
+	Roles            []*Role           `json:"-"`
 	GoogleToken      *GoogleOAuthToken `json:"-"`
 	GoogleOAuthState *GoogleOAuthState `json:"-"`
 	ExternalCalendar *ExternalCalendar `json:"-"`
 }
 
 type GoogleOAuthToken struct {
-	ID           uint   `json:"-" gorm:"primary_key;unique;not null;auto_increment"`
-	UserID       uint   `json:"user_id" gorm:"unique;not null"`
+	ID           uint   `json:"-"`
+	UserID       uint   `json:"user_id"`
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 	Expiry       time.Time
-}
-
-func (g GoogleOAuthToken) TableName() string {
-	return "google_oauth_tokens"
 }
 
 type OAuthURLResponse struct {
@@ -41,11 +37,7 @@ type OAuthURLResponse struct {
 }
 
 type GoogleOAuthState struct {
-	ID     uint   `gorm:"primary_key;unique;not null;auto_increment"`
-	UserID uint   `gorm:"unique;not null"`
-	State  string `gorm:"unique;not null"`
-}
-
-func (g GoogleOAuthState) TableName() string {
-	return "google_oauth_states"
+	ID     uint
+	UserID uint
+	State  string
 }
