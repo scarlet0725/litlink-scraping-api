@@ -199,13 +199,7 @@ func (ac *ArtistCreate) sqlSave(ctx context.Context) (*Artist, error) {
 func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Artist{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: artist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: artist.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(artist.Table, sqlgraph.NewFieldSpec(artist.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = ac.conflict
 	if value, ok := ac.mutation.ArtistID(); ok {
@@ -240,10 +234,7 @@ func (ac *ArtistCreate) createSpec() (*Artist, *sqlgraph.CreateSpec) {
 			Columns: artist.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

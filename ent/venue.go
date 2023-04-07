@@ -177,14 +177,14 @@ func (v *Venue) assignValues(columns []string, values []any) error {
 
 // QueryEvents queries the "events" edge of the Venue entity.
 func (v *Venue) QueryEvents() *EventQuery {
-	return (&VenueClient{config: v.config}).QueryEvents(v)
+	return NewVenueClient(v.config).QueryEvents(v)
 }
 
 // Update returns a builder for updating this Venue.
 // Note that you need to call Venue.Unwrap() before calling this method if this Venue
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (v *Venue) Update() *VenueUpdateOne {
-	return (&VenueClient{config: v.config}).UpdateOne(v)
+	return NewVenueClient(v.config).UpdateOne(v)
 }
 
 // Unwrap unwraps the Venue entity that was returned from a transaction after it was closed,
@@ -246,9 +246,3 @@ func (v *Venue) String() string {
 
 // Venues is a parsable slice of Venue.
 type Venues []*Venue
-
-func (v Venues) config(cfg config) {
-	for _i := range v {
-		v[_i].config = cfg
-	}
-}

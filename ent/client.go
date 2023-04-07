@@ -10,20 +10,17 @@ import (
 
 	"github.com/scarlet0725/prism-api/ent/migrate"
 
-	"github.com/scarlet0725/prism-api/ent/artist"
-	"github.com/scarlet0725/prism-api/ent/event"
-	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
-	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
-	"github.com/scarlet0725/prism-api/ent/role"
-	"github.com/scarlet0725/prism-api/ent/ryzmevent"
-	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
-	"github.com/scarlet0725/prism-api/ent/user"
-	"github.com/scarlet0725/prism-api/ent/venue"
-
+	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/scarlet0725/prism-api/ent/artist"
+	"github.com/scarlet0725/prism-api/ent/event"
+	"github.com/scarlet0725/prism-api/ent/externalcalendar"
+	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
+	"github.com/scarlet0725/prism-api/ent/role"
+	"github.com/scarlet0725/prism-api/ent/user"
+	"github.com/scarlet0725/prism-api/ent/venue"
 )
 
 // Client is the client that holds all ent builders.
@@ -37,16 +34,10 @@ type Client struct {
 	Event *EventClient
 	// ExternalCalendar is the client for interacting with the ExternalCalendar builders.
 	ExternalCalendar *ExternalCalendarClient
-	// GoogleOauthState is the client for interacting with the GoogleOauthState builders.
-	GoogleOauthState *GoogleOauthStateClient
 	// GoogleOauthToken is the client for interacting with the GoogleOauthToken builders.
 	GoogleOauthToken *GoogleOauthTokenClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// RyzmEvent is the client for interacting with the RyzmEvent builders.
-	RyzmEvent *RyzmEventClient
-	// UnStructuredEventInformation is the client for interacting with the UnStructuredEventInformation builders.
-	UnStructuredEventInformation *UnStructuredEventInformationClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Venue is the client for interacting with the Venue builders.
@@ -67,13 +58,59 @@ func (c *Client) init() {
 	c.Artist = NewArtistClient(c.config)
 	c.Event = NewEventClient(c.config)
 	c.ExternalCalendar = NewExternalCalendarClient(c.config)
-	c.GoogleOauthState = NewGoogleOauthStateClient(c.config)
 	c.GoogleOauthToken = NewGoogleOauthTokenClient(c.config)
 	c.Role = NewRoleClient(c.config)
-	c.RyzmEvent = NewRyzmEventClient(c.config)
-	c.UnStructuredEventInformation = NewUnStructuredEventInformationClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Venue = NewVenueClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -105,18 +142,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                          ctx,
-		config:                       cfg,
-		Artist:                       NewArtistClient(cfg),
-		Event:                        NewEventClient(cfg),
-		ExternalCalendar:             NewExternalCalendarClient(cfg),
-		GoogleOauthState:             NewGoogleOauthStateClient(cfg),
-		GoogleOauthToken:             NewGoogleOauthTokenClient(cfg),
-		Role:                         NewRoleClient(cfg),
-		RyzmEvent:                    NewRyzmEventClient(cfg),
-		UnStructuredEventInformation: NewUnStructuredEventInformationClient(cfg),
-		User:                         NewUserClient(cfg),
-		Venue:                        NewVenueClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Artist:           NewArtistClient(cfg),
+		Event:            NewEventClient(cfg),
+		ExternalCalendar: NewExternalCalendarClient(cfg),
+		GoogleOauthToken: NewGoogleOauthTokenClient(cfg),
+		Role:             NewRoleClient(cfg),
+		User:             NewUserClient(cfg),
+		Venue:            NewVenueClient(cfg),
 	}, nil
 }
 
@@ -134,18 +168,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                          ctx,
-		config:                       cfg,
-		Artist:                       NewArtistClient(cfg),
-		Event:                        NewEventClient(cfg),
-		ExternalCalendar:             NewExternalCalendarClient(cfg),
-		GoogleOauthState:             NewGoogleOauthStateClient(cfg),
-		GoogleOauthToken:             NewGoogleOauthTokenClient(cfg),
-		Role:                         NewRoleClient(cfg),
-		RyzmEvent:                    NewRyzmEventClient(cfg),
-		UnStructuredEventInformation: NewUnStructuredEventInformationClient(cfg),
-		User:                         NewUserClient(cfg),
-		Venue:                        NewVenueClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Artist:           NewArtistClient(cfg),
+		Event:            NewEventClient(cfg),
+		ExternalCalendar: NewExternalCalendarClient(cfg),
+		GoogleOauthToken: NewGoogleOauthTokenClient(cfg),
+		Role:             NewRoleClient(cfg),
+		User:             NewUserClient(cfg),
+		Venue:            NewVenueClient(cfg),
 	}, nil
 }
 
@@ -174,31 +205,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Artist.Use(hooks...)
-	c.Event.Use(hooks...)
-	c.ExternalCalendar.Use(hooks...)
-	c.GoogleOauthState.Use(hooks...)
-	c.GoogleOauthToken.Use(hooks...)
-	c.Role.Use(hooks...)
-	c.RyzmEvent.Use(hooks...)
-	c.UnStructuredEventInformation.Use(hooks...)
-	c.User.Use(hooks...)
-	c.Venue.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Artist, c.Event, c.ExternalCalendar, c.GoogleOauthToken, c.Role, c.User,
+		c.Venue,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Artist.Intercept(interceptors...)
-	c.Event.Intercept(interceptors...)
-	c.ExternalCalendar.Intercept(interceptors...)
-	c.GoogleOauthState.Intercept(interceptors...)
-	c.GoogleOauthToken.Intercept(interceptors...)
-	c.Role.Intercept(interceptors...)
-	c.RyzmEvent.Intercept(interceptors...)
-	c.UnStructuredEventInformation.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.Venue.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Artist, c.Event, c.ExternalCalendar, c.GoogleOauthToken, c.Role, c.User,
+		c.Venue,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -210,16 +233,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Event.mutate(ctx, m)
 	case *ExternalCalendarMutation:
 		return c.ExternalCalendar.mutate(ctx, m)
-	case *GoogleOauthStateMutation:
-		return c.GoogleOauthState.mutate(ctx, m)
 	case *GoogleOauthTokenMutation:
 		return c.GoogleOauthToken.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
-	case *RyzmEventMutation:
-		return c.RyzmEvent.mutate(ctx, m)
-	case *UnStructuredEventInformationMutation:
-		return c.UnStructuredEventInformation.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *VenueMutation:
@@ -245,7 +262,7 @@ func (c *ArtistClient) Use(hooks ...Hook) {
 	c.hooks.Artist = append(c.hooks.Artist, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `artist.Intercept(f(g(h())))`.
 func (c *ArtistClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Artist = append(c.inters.Artist, interceptors...)
@@ -303,6 +320,7 @@ func (c *ArtistClient) DeleteOneID(id int) *ArtistDeleteOne {
 func (c *ArtistClient) Query() *ArtistQuery {
 	return &ArtistQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeArtist},
 		inters: c.Interceptors(),
 	}
 }
@@ -378,7 +396,7 @@ func (c *EventClient) Use(hooks ...Hook) {
 	c.hooks.Event = append(c.hooks.Event, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `event.Intercept(f(g(h())))`.
 func (c *EventClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Event = append(c.inters.Event, interceptors...)
@@ -436,6 +454,7 @@ func (c *EventClient) DeleteOneID(id int) *EventDeleteOne {
 func (c *EventClient) Query() *EventQuery {
 	return &EventQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeEvent},
 		inters: c.Interceptors(),
 	}
 }
@@ -479,38 +498,6 @@ func (c *EventClient) QueryArtists(e *Event) *ArtistQuery {
 			sqlgraph.From(event.Table, event.FieldID, id),
 			sqlgraph.To(artist.Table, artist.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, event.ArtistsTable, event.ArtistsPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRelatedRyzmEvents queries the related_ryzm_events edge of a Event.
-func (c *EventClient) QueryRelatedRyzmEvents(e *Event) *RyzmEventQuery {
-	query := (&RyzmEventClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := e.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(event.Table, event.FieldID, id),
-			sqlgraph.To(ryzmevent.Table, ryzmevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, event.RelatedRyzmEventsTable, event.RelatedRyzmEventsColumn),
-		)
-		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryUnStructuredEventInformations queries the un_structured_event_informations edge of a Event.
-func (c *EventClient) QueryUnStructuredEventInformations(e *Event) *UnStructuredEventInformationQuery {
-	query := (&UnStructuredEventInformationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := e.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(event.Table, event.FieldID, id),
-			sqlgraph.To(unstructuredeventinformation.Table, unstructuredeventinformation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, event.UnStructuredEventInformationsTable, event.UnStructuredEventInformationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
@@ -575,7 +562,7 @@ func (c *ExternalCalendarClient) Use(hooks ...Hook) {
 	c.hooks.ExternalCalendar = append(c.hooks.ExternalCalendar, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `externalcalendar.Intercept(f(g(h())))`.
 func (c *ExternalCalendarClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ExternalCalendar = append(c.inters.ExternalCalendar, interceptors...)
@@ -633,6 +620,7 @@ func (c *ExternalCalendarClient) DeleteOneID(id int) *ExternalCalendarDeleteOne 
 func (c *ExternalCalendarClient) Query() *ExternalCalendarQuery {
 	return &ExternalCalendarQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeExternalCalendar},
 		inters: c.Interceptors(),
 	}
 }
@@ -692,139 +680,6 @@ func (c *ExternalCalendarClient) mutate(ctx context.Context, m *ExternalCalendar
 	}
 }
 
-// GoogleOauthStateClient is a client for the GoogleOauthState schema.
-type GoogleOauthStateClient struct {
-	config
-}
-
-// NewGoogleOauthStateClient returns a client for the GoogleOauthState from the given config.
-func NewGoogleOauthStateClient(c config) *GoogleOauthStateClient {
-	return &GoogleOauthStateClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `googleoauthstate.Hooks(f(g(h())))`.
-func (c *GoogleOauthStateClient) Use(hooks ...Hook) {
-	c.hooks.GoogleOauthState = append(c.hooks.GoogleOauthState, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `googleoauthstate.Intercept(f(g(h())))`.
-func (c *GoogleOauthStateClient) Intercept(interceptors ...Interceptor) {
-	c.inters.GoogleOauthState = append(c.inters.GoogleOauthState, interceptors...)
-}
-
-// Create returns a builder for creating a GoogleOauthState entity.
-func (c *GoogleOauthStateClient) Create() *GoogleOauthStateCreate {
-	mutation := newGoogleOauthStateMutation(c.config, OpCreate)
-	return &GoogleOauthStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of GoogleOauthState entities.
-func (c *GoogleOauthStateClient) CreateBulk(builders ...*GoogleOauthStateCreate) *GoogleOauthStateCreateBulk {
-	return &GoogleOauthStateCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for GoogleOauthState.
-func (c *GoogleOauthStateClient) Update() *GoogleOauthStateUpdate {
-	mutation := newGoogleOauthStateMutation(c.config, OpUpdate)
-	return &GoogleOauthStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *GoogleOauthStateClient) UpdateOne(gos *GoogleOauthState) *GoogleOauthStateUpdateOne {
-	mutation := newGoogleOauthStateMutation(c.config, OpUpdateOne, withGoogleOauthState(gos))
-	return &GoogleOauthStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *GoogleOauthStateClient) UpdateOneID(id int) *GoogleOauthStateUpdateOne {
-	mutation := newGoogleOauthStateMutation(c.config, OpUpdateOne, withGoogleOauthStateID(id))
-	return &GoogleOauthStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for GoogleOauthState.
-func (c *GoogleOauthStateClient) Delete() *GoogleOauthStateDelete {
-	mutation := newGoogleOauthStateMutation(c.config, OpDelete)
-	return &GoogleOauthStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *GoogleOauthStateClient) DeleteOne(gos *GoogleOauthState) *GoogleOauthStateDeleteOne {
-	return c.DeleteOneID(gos.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GoogleOauthStateClient) DeleteOneID(id int) *GoogleOauthStateDeleteOne {
-	builder := c.Delete().Where(googleoauthstate.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &GoogleOauthStateDeleteOne{builder}
-}
-
-// Query returns a query builder for GoogleOauthState.
-func (c *GoogleOauthStateClient) Query() *GoogleOauthStateQuery {
-	return &GoogleOauthStateQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a GoogleOauthState entity by its id.
-func (c *GoogleOauthStateClient) Get(ctx context.Context, id int) (*GoogleOauthState, error) {
-	return c.Query().Where(googleoauthstate.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *GoogleOauthStateClient) GetX(ctx context.Context, id int) *GoogleOauthState {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryUser queries the user edge of a GoogleOauthState.
-func (c *GoogleOauthStateClient) QueryUser(gos *GoogleOauthState) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := gos.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(googleoauthstate.Table, googleoauthstate.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, googleoauthstate.UserTable, googleoauthstate.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(gos.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *GoogleOauthStateClient) Hooks() []Hook {
-	return c.hooks.GoogleOauthState
-}
-
-// Interceptors returns the client interceptors.
-func (c *GoogleOauthStateClient) Interceptors() []Interceptor {
-	return c.inters.GoogleOauthState
-}
-
-func (c *GoogleOauthStateClient) mutate(ctx context.Context, m *GoogleOauthStateMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&GoogleOauthStateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&GoogleOauthStateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&GoogleOauthStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&GoogleOauthStateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown GoogleOauthState mutation op: %q", m.Op())
-	}
-}
-
 // GoogleOauthTokenClient is a client for the GoogleOauthToken schema.
 type GoogleOauthTokenClient struct {
 	config
@@ -841,7 +696,7 @@ func (c *GoogleOauthTokenClient) Use(hooks ...Hook) {
 	c.hooks.GoogleOauthToken = append(c.hooks.GoogleOauthToken, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `googleoauthtoken.Intercept(f(g(h())))`.
 func (c *GoogleOauthTokenClient) Intercept(interceptors ...Interceptor) {
 	c.inters.GoogleOauthToken = append(c.inters.GoogleOauthToken, interceptors...)
@@ -899,6 +754,7 @@ func (c *GoogleOauthTokenClient) DeleteOneID(id int) *GoogleOauthTokenDeleteOne 
 func (c *GoogleOauthTokenClient) Query() *GoogleOauthTokenQuery {
 	return &GoogleOauthTokenQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeGoogleOauthToken},
 		inters: c.Interceptors(),
 	}
 }
@@ -974,7 +830,7 @@ func (c *RoleClient) Use(hooks ...Hook) {
 	c.hooks.Role = append(c.hooks.Role, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `role.Intercept(f(g(h())))`.
 func (c *RoleClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Role = append(c.inters.Role, interceptors...)
@@ -1032,6 +888,7 @@ func (c *RoleClient) DeleteOneID(id int) *RoleDeleteOne {
 func (c *RoleClient) Query() *RoleQuery {
 	return &RoleQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeRole},
 		inters: c.Interceptors(),
 	}
 }
@@ -1091,272 +948,6 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 	}
 }
 
-// RyzmEventClient is a client for the RyzmEvent schema.
-type RyzmEventClient struct {
-	config
-}
-
-// NewRyzmEventClient returns a client for the RyzmEvent from the given config.
-func NewRyzmEventClient(c config) *RyzmEventClient {
-	return &RyzmEventClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `ryzmevent.Hooks(f(g(h())))`.
-func (c *RyzmEventClient) Use(hooks ...Hook) {
-	c.hooks.RyzmEvent = append(c.hooks.RyzmEvent, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `ryzmevent.Intercept(f(g(h())))`.
-func (c *RyzmEventClient) Intercept(interceptors ...Interceptor) {
-	c.inters.RyzmEvent = append(c.inters.RyzmEvent, interceptors...)
-}
-
-// Create returns a builder for creating a RyzmEvent entity.
-func (c *RyzmEventClient) Create() *RyzmEventCreate {
-	mutation := newRyzmEventMutation(c.config, OpCreate)
-	return &RyzmEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of RyzmEvent entities.
-func (c *RyzmEventClient) CreateBulk(builders ...*RyzmEventCreate) *RyzmEventCreateBulk {
-	return &RyzmEventCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for RyzmEvent.
-func (c *RyzmEventClient) Update() *RyzmEventUpdate {
-	mutation := newRyzmEventMutation(c.config, OpUpdate)
-	return &RyzmEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *RyzmEventClient) UpdateOne(re *RyzmEvent) *RyzmEventUpdateOne {
-	mutation := newRyzmEventMutation(c.config, OpUpdateOne, withRyzmEvent(re))
-	return &RyzmEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *RyzmEventClient) UpdateOneID(id int) *RyzmEventUpdateOne {
-	mutation := newRyzmEventMutation(c.config, OpUpdateOne, withRyzmEventID(id))
-	return &RyzmEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for RyzmEvent.
-func (c *RyzmEventClient) Delete() *RyzmEventDelete {
-	mutation := newRyzmEventMutation(c.config, OpDelete)
-	return &RyzmEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *RyzmEventClient) DeleteOne(re *RyzmEvent) *RyzmEventDeleteOne {
-	return c.DeleteOneID(re.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RyzmEventClient) DeleteOneID(id int) *RyzmEventDeleteOne {
-	builder := c.Delete().Where(ryzmevent.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &RyzmEventDeleteOne{builder}
-}
-
-// Query returns a query builder for RyzmEvent.
-func (c *RyzmEventClient) Query() *RyzmEventQuery {
-	return &RyzmEventQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a RyzmEvent entity by its id.
-func (c *RyzmEventClient) Get(ctx context.Context, id int) (*RyzmEvent, error) {
-	return c.Query().Where(ryzmevent.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *RyzmEventClient) GetX(ctx context.Context, id int) *RyzmEvent {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryEvent queries the event edge of a RyzmEvent.
-func (c *RyzmEventClient) QueryEvent(re *RyzmEvent) *EventQuery {
-	query := (&EventClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := re.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(ryzmevent.Table, ryzmevent.FieldID, id),
-			sqlgraph.To(event.Table, event.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ryzmevent.EventTable, ryzmevent.EventColumn),
-		)
-		fromV = sqlgraph.Neighbors(re.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *RyzmEventClient) Hooks() []Hook {
-	return c.hooks.RyzmEvent
-}
-
-// Interceptors returns the client interceptors.
-func (c *RyzmEventClient) Interceptors() []Interceptor {
-	return c.inters.RyzmEvent
-}
-
-func (c *RyzmEventClient) mutate(ctx context.Context, m *RyzmEventMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&RyzmEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&RyzmEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&RyzmEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&RyzmEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown RyzmEvent mutation op: %q", m.Op())
-	}
-}
-
-// UnStructuredEventInformationClient is a client for the UnStructuredEventInformation schema.
-type UnStructuredEventInformationClient struct {
-	config
-}
-
-// NewUnStructuredEventInformationClient returns a client for the UnStructuredEventInformation from the given config.
-func NewUnStructuredEventInformationClient(c config) *UnStructuredEventInformationClient {
-	return &UnStructuredEventInformationClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `unstructuredeventinformation.Hooks(f(g(h())))`.
-func (c *UnStructuredEventInformationClient) Use(hooks ...Hook) {
-	c.hooks.UnStructuredEventInformation = append(c.hooks.UnStructuredEventInformation, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `unstructuredeventinformation.Intercept(f(g(h())))`.
-func (c *UnStructuredEventInformationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.UnStructuredEventInformation = append(c.inters.UnStructuredEventInformation, interceptors...)
-}
-
-// Create returns a builder for creating a UnStructuredEventInformation entity.
-func (c *UnStructuredEventInformationClient) Create() *UnStructuredEventInformationCreate {
-	mutation := newUnStructuredEventInformationMutation(c.config, OpCreate)
-	return &UnStructuredEventInformationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of UnStructuredEventInformation entities.
-func (c *UnStructuredEventInformationClient) CreateBulk(builders ...*UnStructuredEventInformationCreate) *UnStructuredEventInformationCreateBulk {
-	return &UnStructuredEventInformationCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for UnStructuredEventInformation.
-func (c *UnStructuredEventInformationClient) Update() *UnStructuredEventInformationUpdate {
-	mutation := newUnStructuredEventInformationMutation(c.config, OpUpdate)
-	return &UnStructuredEventInformationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *UnStructuredEventInformationClient) UpdateOne(usei *UnStructuredEventInformation) *UnStructuredEventInformationUpdateOne {
-	mutation := newUnStructuredEventInformationMutation(c.config, OpUpdateOne, withUnStructuredEventInformation(usei))
-	return &UnStructuredEventInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *UnStructuredEventInformationClient) UpdateOneID(id int) *UnStructuredEventInformationUpdateOne {
-	mutation := newUnStructuredEventInformationMutation(c.config, OpUpdateOne, withUnStructuredEventInformationID(id))
-	return &UnStructuredEventInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for UnStructuredEventInformation.
-func (c *UnStructuredEventInformationClient) Delete() *UnStructuredEventInformationDelete {
-	mutation := newUnStructuredEventInformationMutation(c.config, OpDelete)
-	return &UnStructuredEventInformationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *UnStructuredEventInformationClient) DeleteOne(usei *UnStructuredEventInformation) *UnStructuredEventInformationDeleteOne {
-	return c.DeleteOneID(usei.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UnStructuredEventInformationClient) DeleteOneID(id int) *UnStructuredEventInformationDeleteOne {
-	builder := c.Delete().Where(unstructuredeventinformation.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &UnStructuredEventInformationDeleteOne{builder}
-}
-
-// Query returns a query builder for UnStructuredEventInformation.
-func (c *UnStructuredEventInformationClient) Query() *UnStructuredEventInformationQuery {
-	return &UnStructuredEventInformationQuery{
-		config: c.config,
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a UnStructuredEventInformation entity by its id.
-func (c *UnStructuredEventInformationClient) Get(ctx context.Context, id int) (*UnStructuredEventInformation, error) {
-	return c.Query().Where(unstructuredeventinformation.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *UnStructuredEventInformationClient) GetX(ctx context.Context, id int) *UnStructuredEventInformation {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryEvent queries the event edge of a UnStructuredEventInformation.
-func (c *UnStructuredEventInformationClient) QueryEvent(usei *UnStructuredEventInformation) *EventQuery {
-	query := (&EventClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := usei.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(unstructuredeventinformation.Table, unstructuredeventinformation.FieldID, id),
-			sqlgraph.To(event.Table, event.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, unstructuredeventinformation.EventTable, unstructuredeventinformation.EventColumn),
-		)
-		fromV = sqlgraph.Neighbors(usei.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *UnStructuredEventInformationClient) Hooks() []Hook {
-	return c.hooks.UnStructuredEventInformation
-}
-
-// Interceptors returns the client interceptors.
-func (c *UnStructuredEventInformationClient) Interceptors() []Interceptor {
-	return c.inters.UnStructuredEventInformation
-}
-
-func (c *UnStructuredEventInformationClient) mutate(ctx context.Context, m *UnStructuredEventInformationMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&UnStructuredEventInformationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&UnStructuredEventInformationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&UnStructuredEventInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&UnStructuredEventInformationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown UnStructuredEventInformation mutation op: %q", m.Op())
-	}
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1373,7 +964,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
 func (c *UserClient) Intercept(interceptors ...Interceptor) {
 	c.inters.User = append(c.inters.User, interceptors...)
@@ -1431,6 +1022,7 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
 		inters: c.Interceptors(),
 	}
 }
@@ -1458,22 +1050,6 @@ func (c *UserClient) QueryGoogleOauthTokens(u *User) *GoogleOauthTokenQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(googleoauthtoken.Table, googleoauthtoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.GoogleOauthTokensTable, user.GoogleOauthTokensColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryGoogleOauthStates queries the google_oauth_states edge of a User.
-func (c *UserClient) QueryGoogleOauthStates(u *User) *GoogleOauthStateQuery {
-	query := (&GoogleOauthStateClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(googleoauthstate.Table, googleoauthstate.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.GoogleOauthStatesTable, user.GoogleOauthStatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1570,7 +1146,7 @@ func (c *VenueClient) Use(hooks ...Hook) {
 	c.hooks.Venue = append(c.hooks.Venue, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `venue.Intercept(f(g(h())))`.
 func (c *VenueClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Venue = append(c.inters.Venue, interceptors...)
@@ -1628,6 +1204,7 @@ func (c *VenueClient) DeleteOneID(id int) *VenueDeleteOne {
 func (c *VenueClient) Query() *VenueQuery {
 	return &VenueQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeVenue},
 		inters: c.Interceptors(),
 	}
 }
@@ -1686,3 +1263,14 @@ func (c *VenueClient) mutate(ctx context.Context, m *VenueMutation) (Value, erro
 		return nil, fmt.Errorf("ent: unknown Venue mutation op: %q", m.Op())
 	}
 }
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		Artist, Event, ExternalCalendar, GoogleOauthToken, Role, User, Venue []ent.Hook
+	}
+	inters struct {
+		Artist, Event, ExternalCalendar, GoogleOauthToken, Role, User,
+		Venue []ent.Interceptor
+	}
+)

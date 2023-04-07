@@ -150,14 +150,14 @@ func (ec *ExternalCalendar) assignValues(columns []string, values []any) error {
 
 // QueryUser queries the "user" edge of the ExternalCalendar entity.
 func (ec *ExternalCalendar) QueryUser() *UserQuery {
-	return (&ExternalCalendarClient{config: ec.config}).QueryUser(ec)
+	return NewExternalCalendarClient(ec.config).QueryUser(ec)
 }
 
 // Update returns a builder for updating this ExternalCalendar.
 // Note that you need to call ExternalCalendar.Unwrap() before calling this method if this ExternalCalendar
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ec *ExternalCalendar) Update() *ExternalCalendarUpdateOne {
-	return (&ExternalCalendarClient{config: ec.config}).UpdateOne(ec)
+	return NewExternalCalendarClient(ec.config).UpdateOne(ec)
 }
 
 // Unwrap unwraps the ExternalCalendar entity that was returned from a transaction after it was closed,
@@ -204,9 +204,3 @@ func (ec *ExternalCalendar) String() string {
 
 // ExternalCalendars is a parsable slice of ExternalCalendar.
 type ExternalCalendars []*ExternalCalendar
-
-func (ec ExternalCalendars) config(cfg config) {
-	for _i := range ec {
-		ec[_i].config = cfg
-	}
-}

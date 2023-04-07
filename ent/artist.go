@@ -127,14 +127,14 @@ func (a *Artist) assignValues(columns []string, values []any) error {
 
 // QueryEvents queries the "events" edge of the Artist entity.
 func (a *Artist) QueryEvents() *EventQuery {
-	return (&ArtistClient{config: a.config}).QueryEvents(a)
+	return NewArtistClient(a.config).QueryEvents(a)
 }
 
 // Update returns a builder for updating this Artist.
 // Note that you need to call Artist.Unwrap() before calling this method if this Artist
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (a *Artist) Update() *ArtistUpdateOne {
-	return (&ArtistClient{config: a.config}).UpdateOne(a)
+	return NewArtistClient(a.config).UpdateOne(a)
 }
 
 // Unwrap unwraps the Artist entity that was returned from a transaction after it was closed,
@@ -178,9 +178,3 @@ func (a *Artist) String() string {
 
 // Artists is a parsable slice of Artist.
 type Artists []*Artist
-
-func (a Artists) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

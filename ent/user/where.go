@@ -752,33 +752,6 @@ func HasGoogleOauthTokensWith(preds ...predicate.GoogleOauthToken) predicate.Use
 	})
 }
 
-// HasGoogleOauthStates applies the HasEdge predicate on the "google_oauth_states" edge.
-func HasGoogleOauthStates() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, GoogleOauthStatesTable, GoogleOauthStatesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasGoogleOauthStatesWith applies the HasEdge predicate on the "google_oauth_states" edge with a given conditions (other predicates).
-func HasGoogleOauthStatesWith(preds ...predicate.GoogleOauthState) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GoogleOauthStatesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, GoogleOauthStatesTable, GoogleOauthStatesColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasEvents applies the HasEdge predicate on the "events" edge.
 func HasEvents() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

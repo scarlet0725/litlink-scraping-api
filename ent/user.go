@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/user"
 )
@@ -52,8 +51,6 @@ type User struct {
 type UserEdges struct {
 	// GoogleOauthTokens holds the value of the google_oauth_tokens edge.
 	GoogleOauthTokens *GoogleOauthToken `json:"google_oauth_tokens,omitempty"`
-	// GoogleOauthStates holds the value of the google_oauth_states edge.
-	GoogleOauthStates *GoogleOauthState `json:"google_oauth_states,omitempty"`
 	// Events holds the value of the events edge.
 	Events []*Event `json:"events,omitempty"`
 	// ExternalCalendars holds the value of the external_calendars edge.
@@ -62,7 +59,7 @@ type UserEdges struct {
 	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [4]bool
 }
 
 // GoogleOauthTokensOrErr returns the GoogleOauthTokens value or an error if the edge
@@ -78,23 +75,10 @@ func (e UserEdges) GoogleOauthTokensOrErr() (*GoogleOauthToken, error) {
 	return nil, &NotLoadedError{edge: "google_oauth_tokens"}
 }
 
-// GoogleOauthStatesOrErr returns the GoogleOauthStates value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) GoogleOauthStatesOrErr() (*GoogleOauthState, error) {
-	if e.loadedTypes[1] {
-		if e.GoogleOauthStates == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: googleoauthstate.Label}
-		}
-		return e.GoogleOauthStates, nil
-	}
-	return nil, &NotLoadedError{edge: "google_oauth_states"}
-}
-
 // EventsOrErr returns the Events value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) EventsOrErr() ([]*Event, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Events, nil
 	}
 	return nil, &NotLoadedError{edge: "events"}
@@ -103,7 +87,7 @@ func (e UserEdges) EventsOrErr() ([]*Event, error) {
 // ExternalCalendarsOrErr returns the ExternalCalendars value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) ExternalCalendarsOrErr() (*ExternalCalendar, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		if e.ExternalCalendars == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: externalcalendar.Label}
@@ -116,7 +100,7 @@ func (e UserEdges) ExternalCalendarsOrErr() (*ExternalCalendar, error) {
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -238,34 +222,29 @@ func (u *User) assignValues(columns []string, values []any) error {
 
 // QueryGoogleOauthTokens queries the "google_oauth_tokens" edge of the User entity.
 func (u *User) QueryGoogleOauthTokens() *GoogleOauthTokenQuery {
-	return (&UserClient{config: u.config}).QueryGoogleOauthTokens(u)
-}
-
-// QueryGoogleOauthStates queries the "google_oauth_states" edge of the User entity.
-func (u *User) QueryGoogleOauthStates() *GoogleOauthStateQuery {
-	return (&UserClient{config: u.config}).QueryGoogleOauthStates(u)
+	return NewUserClient(u.config).QueryGoogleOauthTokens(u)
 }
 
 // QueryEvents queries the "events" edge of the User entity.
 func (u *User) QueryEvents() *EventQuery {
-	return (&UserClient{config: u.config}).QueryEvents(u)
+	return NewUserClient(u.config).QueryEvents(u)
 }
 
 // QueryExternalCalendars queries the "external_calendars" edge of the User entity.
 func (u *User) QueryExternalCalendars() *ExternalCalendarQuery {
-	return (&UserClient{config: u.config}).QueryExternalCalendars(u)
+	return NewUserClient(u.config).QueryExternalCalendars(u)
 }
 
 // QueryRoles queries the "roles" edge of the User entity.
 func (u *User) QueryRoles() *RoleQuery {
-	return (&UserClient{config: u.config}).QueryRoles(u)
+	return NewUserClient(u.config).QueryRoles(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+	return NewUserClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
@@ -327,9 +306,3 @@ func (u *User) String() string {
 
 // Users is a parsable slice of User.
 type Users []*User
-
-func (u Users) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
-	}
-}

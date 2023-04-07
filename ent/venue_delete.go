@@ -40,15 +40,7 @@ func (vd *VenueDelete) ExecX(ctx context.Context) int {
 }
 
 func (vd *VenueDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: venue.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: venue.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(venue.Table, sqlgraph.NewFieldSpec(venue.FieldID, field.TypeInt))
 	if ps := vd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type VenueDeleteOne struct {
 	vd *VenueDelete
 }
 
+// Where appends a list predicates to the VenueDelete builder.
+func (vdo *VenueDeleteOne) Where(ps ...predicate.Venue) *VenueDeleteOne {
+	vdo.vd.mutation.Where(ps...)
+	return vdo
+}
+
 // Exec executes the deletion query.
 func (vdo *VenueDeleteOne) Exec(ctx context.Context) error {
 	n, err := vdo.vd.Exec(ctx)
@@ -84,5 +82,7 @@ func (vdo *VenueDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vdo *VenueDeleteOne) ExecX(ctx context.Context) {
-	vdo.vd.ExecX(ctx)
+	if err := vdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

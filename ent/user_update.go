@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/predicate"
 	"github.com/scarlet0725/prism-api/ent/role"
@@ -191,25 +190,6 @@ func (uu *UserUpdate) SetGoogleOauthTokens(g *GoogleOauthToken) *UserUpdate {
 	return uu.SetGoogleOauthTokensID(g.ID)
 }
 
-// SetGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID.
-func (uu *UserUpdate) SetGoogleOauthStatesID(id int) *UserUpdate {
-	uu.mutation.SetGoogleOauthStatesID(id)
-	return uu
-}
-
-// SetNillableGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID if the given value is not nil.
-func (uu *UserUpdate) SetNillableGoogleOauthStatesID(id *int) *UserUpdate {
-	if id != nil {
-		uu = uu.SetGoogleOauthStatesID(*id)
-	}
-	return uu
-}
-
-// SetGoogleOauthStates sets the "google_oauth_states" edge to the GoogleOauthState entity.
-func (uu *UserUpdate) SetGoogleOauthStates(g *GoogleOauthState) *UserUpdate {
-	return uu.SetGoogleOauthStatesID(g.ID)
-}
-
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
 func (uu *UserUpdate) AddEventIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddEventIDs(ids...)
@@ -267,12 +247,6 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 // ClearGoogleOauthTokens clears the "google_oauth_tokens" edge to the GoogleOauthToken entity.
 func (uu *UserUpdate) ClearGoogleOauthTokens() *UserUpdate {
 	uu.mutation.ClearGoogleOauthTokens()
-	return uu
-}
-
-// ClearGoogleOauthStates clears the "google_oauth_states" edge to the GoogleOauthState entity.
-func (uu *UserUpdate) ClearGoogleOauthStates() *UserUpdate {
-	uu.mutation.ClearGoogleOauthStates()
 	return uu
 }
 
@@ -395,16 +369,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -465,10 +430,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.GoogleOauthTokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthtoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -481,45 +443,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.GoogleOauthTokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uu.mutation.GoogleOauthStatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.GoogleOauthStatesTable,
-			Columns: []string{user.GoogleOauthStatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthstate.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.GoogleOauthStatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.GoogleOauthStatesTable,
-			Columns: []string{user.GoogleOauthStatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthstate.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -535,10 +459,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -551,10 +472,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -570,10 +488,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -589,10 +504,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.ExternalCalendarsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: externalcalendar.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -605,10 +517,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.ExternalCalendarsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: externalcalendar.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -624,10 +533,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -640,10 +546,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -659,10 +562,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -849,25 +749,6 @@ func (uuo *UserUpdateOne) SetGoogleOauthTokens(g *GoogleOauthToken) *UserUpdateO
 	return uuo.SetGoogleOauthTokensID(g.ID)
 }
 
-// SetGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID.
-func (uuo *UserUpdateOne) SetGoogleOauthStatesID(id int) *UserUpdateOne {
-	uuo.mutation.SetGoogleOauthStatesID(id)
-	return uuo
-}
-
-// SetNillableGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableGoogleOauthStatesID(id *int) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetGoogleOauthStatesID(*id)
-	}
-	return uuo
-}
-
-// SetGoogleOauthStates sets the "google_oauth_states" edge to the GoogleOauthState entity.
-func (uuo *UserUpdateOne) SetGoogleOauthStates(g *GoogleOauthState) *UserUpdateOne {
-	return uuo.SetGoogleOauthStatesID(g.ID)
-}
-
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
 func (uuo *UserUpdateOne) AddEventIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddEventIDs(ids...)
@@ -928,12 +809,6 @@ func (uuo *UserUpdateOne) ClearGoogleOauthTokens() *UserUpdateOne {
 	return uuo
 }
 
-// ClearGoogleOauthStates clears the "google_oauth_states" edge to the GoogleOauthState entity.
-func (uuo *UserUpdateOne) ClearGoogleOauthStates() *UserUpdateOne {
-	uuo.mutation.ClearGoogleOauthStates()
-	return uuo
-}
-
 // ClearEvents clears all "events" edges to the Event entity.
 func (uuo *UserUpdateOne) ClearEvents() *UserUpdateOne {
 	uuo.mutation.ClearEvents()
@@ -980,6 +855,12 @@ func (uuo *UserUpdateOne) RemoveRoles(r ...*Role) *UserUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return uuo.RemoveRoleIDs(ids...)
+}
+
+// Where appends a list predicates to the UserUpdate builder.
+func (uuo *UserUpdateOne) Where(ps ...predicate.User) *UserUpdateOne {
+	uuo.mutation.Where(ps...)
+	return uuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1060,16 +941,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -1147,10 +1019,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.GoogleOauthTokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthtoken.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1163,45 +1032,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.GoogleOauthTokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uuo.mutation.GoogleOauthStatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.GoogleOauthStatesTable,
-			Columns: []string{user.GoogleOauthStatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthstate.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.GoogleOauthStatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.GoogleOauthStatesTable,
-			Columns: []string{user.GoogleOauthStatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthstate.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1217,10 +1048,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1233,10 +1061,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1252,10 +1077,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1271,10 +1093,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.ExternalCalendarsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: externalcalendar.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1287,10 +1106,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.ExternalCalendarsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: externalcalendar.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1306,10 +1122,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1322,10 +1135,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1341,10 +1151,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -106,33 +106,6 @@ var (
 			},
 		},
 	}
-	// GoogleOauthStatesColumns holds the columns for the "google_oauth_states" table.
-	GoogleOauthStatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "state", Type: field.TypeString, Unique: true, Collation: "utf8mb4_0900_ai_ci", SchemaType: map[string]string{"mysql": "varchar(191)"}},
-		{Name: "user_id", Type: field.TypeInt, Unique: true},
-	}
-	// GoogleOauthStatesTable holds the schema information for the "google_oauth_states" table.
-	GoogleOauthStatesTable = &schema.Table{
-		Name:       "google_oauth_states",
-		Columns:    GoogleOauthStatesColumns,
-		PrimaryKey: []*schema.Column{GoogleOauthStatesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "google_oauth_states_users_google_oauth_states",
-				Columns:    []*schema.Column{GoogleOauthStatesColumns[2]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "googleoauthstate_state",
-				Unique:  true,
-				Columns: []*schema.Column{GoogleOauthStatesColumns[1]},
-			},
-		},
-	}
 	// GoogleOauthTokensColumns holds the columns for the "google_oauth_tokens" table.
 	GoogleOauthTokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -170,49 +143,6 @@ var (
 		Name:       "roles",
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
-	}
-	// RyzmEventsColumns holds the columns for the "ryzm_events" table.
-	RyzmEventsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "uuid", Type: field.TypeString, Unique: true},
-		{Name: "event_related_ryzm_events", Type: field.TypeInt},
-	}
-	// RyzmEventsTable holds the schema information for the "ryzm_events" table.
-	RyzmEventsTable = &schema.Table{
-		Name:       "ryzm_events",
-		Columns:    RyzmEventsColumns,
-		PrimaryKey: []*schema.Column{RyzmEventsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "ryzm_events_events_related_ryzm_events",
-				Columns:    []*schema.Column{RyzmEventsColumns[2]},
-				RefColumns: []*schema.Column{EventsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
-	// UnStructuredEventInformationsColumns holds the columns for the "un_structured_event_informations" table.
-	UnStructuredEventInformationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "ryzmuuid", Type: field.TypeString},
-		{Name: "venue_name", Type: field.TypeString},
-		{Name: "artist_name", Type: field.TypeString},
-		{Name: "price", Type: field.TypeString},
-		{Name: "event_un_structured_event_informations", Type: field.TypeInt},
-	}
-	// UnStructuredEventInformationsTable holds the schema information for the "un_structured_event_informations" table.
-	UnStructuredEventInformationsTable = &schema.Table{
-		Name:       "un_structured_event_informations",
-		Columns:    UnStructuredEventInformationsColumns,
-		PrimaryKey: []*schema.Column{UnStructuredEventInformationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "un_structured_event_informations_events_un_structured_event_informations",
-				Columns:    []*schema.Column{UnStructuredEventInformationsColumns[5]},
-				RefColumns: []*schema.Column{EventsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -350,11 +280,8 @@ var (
 		ArtistsTable,
 		EventsTable,
 		ExternalCalendarsTable,
-		GoogleOauthStatesTable,
 		GoogleOauthTokensTable,
 		RolesTable,
-		RyzmEventsTable,
-		UnStructuredEventInformationsTable,
 		UsersTable,
 		VenuesTable,
 		EventArtistsTable,
@@ -378,11 +305,6 @@ func init() {
 		Table:   "external_calendars",
 		Charset: "utf8mb4",
 	}
-	GoogleOauthStatesTable.ForeignKeys[0].RefTable = UsersTable
-	GoogleOauthStatesTable.Annotation = &entsql.Annotation{
-		Table:   "google_oauth_states",
-		Charset: "utf8mb4",
-	}
 	GoogleOauthTokensTable.ForeignKeys[0].RefTable = UsersTable
 	GoogleOauthTokensTable.Annotation = &entsql.Annotation{
 		Table:   "google_oauth_tokens",
@@ -390,16 +312,6 @@ func init() {
 	}
 	RolesTable.Annotation = &entsql.Annotation{
 		Table:   "roles",
-		Charset: "utf8mb4",
-	}
-	RyzmEventsTable.ForeignKeys[0].RefTable = EventsTable
-	RyzmEventsTable.Annotation = &entsql.Annotation{
-		Table:   "ryzm_events",
-		Charset: "utf8mb4",
-	}
-	UnStructuredEventInformationsTable.ForeignKeys[0].RefTable = EventsTable
-	UnStructuredEventInformationsTable.Annotation = &entsql.Annotation{
-		Table:   "un_structured_event_informations",
 		Charset: "utf8mb4",
 	}
 	UsersTable.Annotation = &entsql.Annotation{

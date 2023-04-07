@@ -8,7 +8,6 @@ import (
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/role"
 	"github.com/scarlet0725/prism-api/ent/schema"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -83,12 +82,6 @@ func init() {
 	externalcalendar.DefaultUpdatedAt = externalcalendarDescUpdatedAt.Default.(func() time.Time)
 	// externalcalendar.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	externalcalendar.UpdateDefaultUpdatedAt = externalcalendarDescUpdatedAt.UpdateDefault.(func() time.Time)
-	googleoauthstateFields := schema.GoogleOauthState{}.Fields()
-	_ = googleoauthstateFields
-	// googleoauthstateDescState is the schema descriptor for state field.
-	googleoauthstateDescState := googleoauthstateFields[0].Descriptor()
-	// googleoauthstate.StateValidator is a validator for the "state" field. It is called by the builders before save.
-	googleoauthstate.StateValidator = googleoauthstateDescState.Validators[0].(func(string) error)
 	roleFields := schema.Role{}.Fields()
 	_ = roleFields
 	// roleDescName is the schema descriptor for name field.

@@ -13,8 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
-	"github.com/scarlet0725/prism-api/ent/ryzmevent"
-	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
 	"github.com/scarlet0725/prism-api/ent/venue"
 )
@@ -209,36 +207,6 @@ func (ec *EventCreate) AddArtists(a ...*Artist) *EventCreate {
 	return ec.AddArtistIDs(ids...)
 }
 
-// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
-func (ec *EventCreate) AddRelatedRyzmEventIDs(ids ...int) *EventCreate {
-	ec.mutation.AddRelatedRyzmEventIDs(ids...)
-	return ec
-}
-
-// AddRelatedRyzmEvents adds the "related_ryzm_events" edges to the RyzmEvent entity.
-func (ec *EventCreate) AddRelatedRyzmEvents(r ...*RyzmEvent) *EventCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
-	}
-	return ec.AddRelatedRyzmEventIDs(ids...)
-}
-
-// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
-func (ec *EventCreate) AddUnStructuredEventInformationIDs(ids ...int) *EventCreate {
-	ec.mutation.AddUnStructuredEventInformationIDs(ids...)
-	return ec
-}
-
-// AddUnStructuredEventInformations adds the "un_structured_event_informations" edges to the UnStructuredEventInformation entity.
-func (ec *EventCreate) AddUnStructuredEventInformations(u ...*UnStructuredEventInformation) *EventCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return ec.AddUnStructuredEventInformationIDs(ids...)
-}
-
 // SetVenueID sets the "venue" edge to the Venue entity by ID.
 func (ec *EventCreate) SetVenueID(id int) *EventCreate {
 	ec.mutation.SetVenueID(id)
@@ -351,13 +319,7 @@ func (ec *EventCreate) sqlSave(ctx context.Context) (*Event, error) {
 func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Event{config: ec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: event.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: event.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(event.Table, sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = ec.conflict
 	if value, ok := ec.mutation.EventID(); ok {
@@ -416,10 +378,7 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Columns: event.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -435,48 +394,7 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Columns: event.ArtistsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: artist.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ec.mutation.RelatedRyzmEventsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   event.RelatedRyzmEventsTable,
-			Columns: []string{event.RelatedRyzmEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: ryzmevent.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ec.mutation.UnStructuredEventInformationsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   event.UnStructuredEventInformationsTable,
-			Columns: []string{event.UnStructuredEventInformationsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: unstructuredeventinformation.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(artist.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -492,10 +410,7 @@ func (ec *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Columns: []string{event.VenueColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: venue.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(venue.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -117,14 +117,14 @@ func (got *GoogleOauthToken) assignValues(columns []string, values []any) error 
 
 // QueryUser queries the "user" edge of the GoogleOauthToken entity.
 func (got *GoogleOauthToken) QueryUser() *UserQuery {
-	return (&GoogleOauthTokenClient{config: got.config}).QueryUser(got)
+	return NewGoogleOauthTokenClient(got.config).QueryUser(got)
 }
 
 // Update returns a builder for updating this GoogleOauthToken.
 // Note that you need to call GoogleOauthToken.Unwrap() before calling this method if this GoogleOauthToken
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (got *GoogleOauthToken) Update() *GoogleOauthTokenUpdateOne {
-	return (&GoogleOauthTokenClient{config: got.config}).UpdateOne(got)
+	return NewGoogleOauthTokenClient(got.config).UpdateOne(got)
 }
 
 // Unwrap unwraps the GoogleOauthToken entity that was returned from a transaction after it was closed,
@@ -157,9 +157,3 @@ func (got *GoogleOauthToken) String() string {
 
 // GoogleOauthTokens is a parsable slice of GoogleOauthToken.
 type GoogleOauthTokens []*GoogleOauthToken
-
-func (got GoogleOauthTokens) config(cfg config) {
-	for _i := range got {
-		got[_i].config = cfg
-	}
-}

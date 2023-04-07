@@ -40,15 +40,7 @@ func (gotd *GoogleOauthTokenDelete) ExecX(ctx context.Context) int {
 }
 
 func (gotd *GoogleOauthTokenDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: googleoauthtoken.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: googleoauthtoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(googleoauthtoken.Table, sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt))
 	if ps := gotd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type GoogleOauthTokenDeleteOne struct {
 	gotd *GoogleOauthTokenDelete
 }
 
+// Where appends a list predicates to the GoogleOauthTokenDelete builder.
+func (gotdo *GoogleOauthTokenDeleteOne) Where(ps ...predicate.GoogleOauthToken) *GoogleOauthTokenDeleteOne {
+	gotdo.gotd.mutation.Where(ps...)
+	return gotdo
+}
+
 // Exec executes the deletion query.
 func (gotdo *GoogleOauthTokenDeleteOne) Exec(ctx context.Context) error {
 	n, err := gotdo.gotd.Exec(ctx)
@@ -84,5 +82,7 @@ func (gotdo *GoogleOauthTokenDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (gotdo *GoogleOauthTokenDeleteOne) ExecX(ctx context.Context) {
-	gotdo.gotd.ExecX(ctx)
+	if err := gotdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

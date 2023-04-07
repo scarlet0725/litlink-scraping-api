@@ -160,8 +160,6 @@ func (Event) Edges() []ent.Edge {
 		edge.From("users", User.Type).
 			Ref("events"),
 		edge.To("artists", Artist.Type),
-		edge.To("related_ryzm_events", RyzmEvent.Type),
-		edge.To("un_structured_event_informations", UnStructuredEventInformation.Type),
 		edge.To("venue", Venue.Type).Unique(),
 	}
 }

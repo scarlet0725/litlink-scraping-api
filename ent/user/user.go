@@ -37,8 +37,6 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// EdgeGoogleOauthTokens holds the string denoting the google_oauth_tokens edge name in mutations.
 	EdgeGoogleOauthTokens = "google_oauth_tokens"
-	// EdgeGoogleOauthStates holds the string denoting the google_oauth_states edge name in mutations.
-	EdgeGoogleOauthStates = "google_oauth_states"
 	// EdgeEvents holds the string denoting the events edge name in mutations.
 	EdgeEvents = "events"
 	// EdgeExternalCalendars holds the string denoting the external_calendars edge name in mutations.
@@ -54,13 +52,6 @@ const (
 	GoogleOauthTokensInverseTable = "google_oauth_tokens"
 	// GoogleOauthTokensColumn is the table column denoting the google_oauth_tokens relation/edge.
 	GoogleOauthTokensColumn = "user_id"
-	// GoogleOauthStatesTable is the table that holds the google_oauth_states relation/edge.
-	GoogleOauthStatesTable = "google_oauth_states"
-	// GoogleOauthStatesInverseTable is the table name for the GoogleOauthState entity.
-	// It exists in this package in order to avoid circular dependency with the "googleoauthstate" package.
-	GoogleOauthStatesInverseTable = "google_oauth_states"
-	// GoogleOauthStatesColumn is the table column denoting the google_oauth_states relation/edge.
-	GoogleOauthStatesColumn = "user_id"
 	// EventsTable is the table that holds the events relation/edge. The primary key declared below.
 	EventsTable = "user_events"
 	// EventsInverseTable is the table name for the Event entity.

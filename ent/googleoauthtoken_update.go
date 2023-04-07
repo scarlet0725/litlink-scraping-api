@@ -115,16 +115,7 @@ func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err err
 	if err := gotu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   googleoauthtoken.Table,
-			Columns: googleoauthtoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: googleoauthtoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(googleoauthtoken.Table, googleoauthtoken.Columns, sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt))
 	if ps := gotu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -149,10 +140,7 @@ func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{googleoauthtoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -165,10 +153,7 @@ func (gotu *GoogleOauthTokenUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{googleoauthtoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -238,6 +223,12 @@ func (gotuo *GoogleOauthTokenUpdateOne) ClearUser() *GoogleOauthTokenUpdateOne {
 	return gotuo
 }
 
+// Where appends a list predicates to the GoogleOauthTokenUpdate builder.
+func (gotuo *GoogleOauthTokenUpdateOne) Where(ps ...predicate.GoogleOauthToken) *GoogleOauthTokenUpdateOne {
+	gotuo.mutation.Where(ps...)
+	return gotuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (gotuo *GoogleOauthTokenUpdateOne) Select(field string, fields ...string) *GoogleOauthTokenUpdateOne {
@@ -290,16 +281,7 @@ func (gotuo *GoogleOauthTokenUpdateOne) sqlSave(ctx context.Context) (_node *Goo
 	if err := gotuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   googleoauthtoken.Table,
-			Columns: googleoauthtoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: googleoauthtoken.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(googleoauthtoken.Table, googleoauthtoken.Columns, sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt))
 	id, ok := gotuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "GoogleOauthToken.id" for update`)}
@@ -341,10 +323,7 @@ func (gotuo *GoogleOauthTokenUpdateOne) sqlSave(ctx context.Context) (_node *Goo
 			Columns: []string{googleoauthtoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -357,10 +336,7 @@ func (gotuo *GoogleOauthTokenUpdateOne) sqlSave(ctx context.Context) (_node *Goo
 			Columns: []string{googleoauthtoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

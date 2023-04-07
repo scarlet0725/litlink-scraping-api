@@ -40,15 +40,7 @@ func (ecd *ExternalCalendarDelete) ExecX(ctx context.Context) int {
 }
 
 func (ecd *ExternalCalendarDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: externalcalendar.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: externalcalendar.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(externalcalendar.Table, sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt))
 	if ps := ecd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ExternalCalendarDeleteOne struct {
 	ecd *ExternalCalendarDelete
 }
 
+// Where appends a list predicates to the ExternalCalendarDelete builder.
+func (ecdo *ExternalCalendarDeleteOne) Where(ps ...predicate.ExternalCalendar) *ExternalCalendarDeleteOne {
+	ecdo.ecd.mutation.Where(ps...)
+	return ecdo
+}
+
 // Exec executes the deletion query.
 func (ecdo *ExternalCalendarDeleteOne) Exec(ctx context.Context) error {
 	n, err := ecdo.ecd.Exec(ctx)
@@ -84,5 +82,7 @@ func (ecdo *ExternalCalendarDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ecdo *ExternalCalendarDeleteOne) ExecX(ctx context.Context) {
-	ecdo.ecd.ExecX(ctx)
+	if err := ecdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

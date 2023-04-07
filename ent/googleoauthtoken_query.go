@@ -18,11 +18,8 @@ import (
 // GoogleOauthTokenQuery is the builder for querying GoogleOauthToken entities.
 type GoogleOauthTokenQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
 	inters     []Interceptor
 	predicates []predicate.GoogleOauthToken
 	withUser   *UserQuery
@@ -41,20 +38,20 @@ func (gotq *GoogleOauthTokenQuery) Where(ps ...predicate.GoogleOauthToken) *Goog
 
 // Limit the number of records to be returned by this query.
 func (gotq *GoogleOauthTokenQuery) Limit(limit int) *GoogleOauthTokenQuery {
-	gotq.limit = &limit
+	gotq.ctx.Limit = &limit
 	return gotq
 }
 
 // Offset to start from.
 func (gotq *GoogleOauthTokenQuery) Offset(offset int) *GoogleOauthTokenQuery {
-	gotq.offset = &offset
+	gotq.ctx.Offset = &offset
 	return gotq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (gotq *GoogleOauthTokenQuery) Unique(unique bool) *GoogleOauthTokenQuery {
-	gotq.unique = &unique
+	gotq.ctx.Unique = &unique
 	return gotq
 }
 
@@ -89,7 +86,7 @@ func (gotq *GoogleOauthTokenQuery) QueryUser() *UserQuery {
 // First returns the first GoogleOauthToken entity from the query.
 // Returns a *NotFoundError when no GoogleOauthToken was found.
 func (gotq *GoogleOauthTokenQuery) First(ctx context.Context) (*GoogleOauthToken, error) {
-	nodes, err := gotq.Limit(1).All(newQueryContext(ctx, TypeGoogleOauthToken, "First"))
+	nodes, err := gotq.Limit(1).All(setContextOp(ctx, gotq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (gotq *GoogleOauthTokenQuery) FirstX(ctx context.Context) *GoogleOauthToken
 // Returns a *NotFoundError when no GoogleOauthToken ID was found.
 func (gotq *GoogleOauthTokenQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = gotq.Limit(1).IDs(newQueryContext(ctx, TypeGoogleOauthToken, "FirstID")); err != nil {
+	if ids, err = gotq.Limit(1).IDs(setContextOp(ctx, gotq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (gotq *GoogleOauthTokenQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one GoogleOauthToken entity is found.
 // Returns a *NotFoundError when no GoogleOauthToken entities are found.
 func (gotq *GoogleOauthTokenQuery) Only(ctx context.Context) (*GoogleOauthToken, error) {
-	nodes, err := gotq.Limit(2).All(newQueryContext(ctx, TypeGoogleOauthToken, "Only"))
+	nodes, err := gotq.Limit(2).All(setContextOp(ctx, gotq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (gotq *GoogleOauthTokenQuery) OnlyX(ctx context.Context) *GoogleOauthToken 
 // Returns a *NotFoundError when no entities are found.
 func (gotq *GoogleOauthTokenQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = gotq.Limit(2).IDs(newQueryContext(ctx, TypeGoogleOauthToken, "OnlyID")); err != nil {
+	if ids, err = gotq.Limit(2).IDs(setContextOp(ctx, gotq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (gotq *GoogleOauthTokenQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of GoogleOauthTokens.
 func (gotq *GoogleOauthTokenQuery) All(ctx context.Context) ([]*GoogleOauthToken, error) {
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "All")
+	ctx = setContextOp(ctx, gotq.ctx, "All")
 	if err := gotq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,10 +203,12 @@ func (gotq *GoogleOauthTokenQuery) AllX(ctx context.Context) []*GoogleOauthToken
 }
 
 // IDs executes the query and returns a list of GoogleOauthToken IDs.
-func (gotq *GoogleOauthTokenQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "IDs")
-	if err := gotq.Select(googleoauthtoken.FieldID).Scan(ctx, &ids); err != nil {
+func (gotq *GoogleOauthTokenQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if gotq.ctx.Unique == nil && gotq.path != nil {
+		gotq.Unique(true)
+	}
+	ctx = setContextOp(ctx, gotq.ctx, "IDs")
+	if err = gotq.Select(googleoauthtoken.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -226,7 +225,7 @@ func (gotq *GoogleOauthTokenQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (gotq *GoogleOauthTokenQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "Count")
+	ctx = setContextOp(ctx, gotq.ctx, "Count")
 	if err := gotq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +243,7 @@ func (gotq *GoogleOauthTokenQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (gotq *GoogleOauthTokenQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "Exist")
+	ctx = setContextOp(ctx, gotq.ctx, "Exist")
 	switch _, err := gotq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +271,14 @@ func (gotq *GoogleOauthTokenQuery) Clone() *GoogleOauthTokenQuery {
 	}
 	return &GoogleOauthTokenQuery{
 		config:     gotq.config,
-		limit:      gotq.limit,
-		offset:     gotq.offset,
+		ctx:        gotq.ctx.Clone(),
 		order:      append([]OrderFunc{}, gotq.order...),
 		inters:     append([]Interceptor{}, gotq.inters...),
 		predicates: append([]predicate.GoogleOauthToken{}, gotq.predicates...),
 		withUser:   gotq.withUser.Clone(),
 		// clone intermediate query.
-		sql:    gotq.sql.Clone(),
-		path:   gotq.path,
-		unique: gotq.unique,
+		sql:  gotq.sql.Clone(),
+		path: gotq.path,
 	}
 }
 
@@ -311,9 +308,9 @@ func (gotq *GoogleOauthTokenQuery) WithUser(opts ...func(*UserQuery)) *GoogleOau
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (gotq *GoogleOauthTokenQuery) GroupBy(field string, fields ...string) *GoogleOauthTokenGroupBy {
-	gotq.fields = append([]string{field}, fields...)
+	gotq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &GoogleOauthTokenGroupBy{build: gotq}
-	grbuild.flds = &gotq.fields
+	grbuild.flds = &gotq.ctx.Fields
 	grbuild.label = googleoauthtoken.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +329,10 @@ func (gotq *GoogleOauthTokenQuery) GroupBy(field string, fields ...string) *Goog
 //		Select(googleoauthtoken.FieldRefreshToken).
 //		Scan(ctx, &v)
 func (gotq *GoogleOauthTokenQuery) Select(fields ...string) *GoogleOauthTokenSelect {
-	gotq.fields = append(gotq.fields, fields...)
+	gotq.ctx.Fields = append(gotq.ctx.Fields, fields...)
 	sbuild := &GoogleOauthTokenSelect{GoogleOauthTokenQuery: gotq}
 	sbuild.label = googleoauthtoken.Label
-	sbuild.flds, sbuild.scan = &gotq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &gotq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +352,7 @@ func (gotq *GoogleOauthTokenQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range gotq.fields {
+	for _, f := range gotq.ctx.Fields {
 		if !googleoauthtoken.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -428,6 +425,9 @@ func (gotq *GoogleOauthTokenQuery) loadUser(ctx context.Context, query *UserQuer
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -450,30 +450,22 @@ func (gotq *GoogleOauthTokenQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(gotq.modifiers) > 0 {
 		_spec.Modifiers = gotq.modifiers
 	}
-	_spec.Node.Columns = gotq.fields
-	if len(gotq.fields) > 0 {
-		_spec.Unique = gotq.unique != nil && *gotq.unique
+	_spec.Node.Columns = gotq.ctx.Fields
+	if len(gotq.ctx.Fields) > 0 {
+		_spec.Unique = gotq.ctx.Unique != nil && *gotq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, gotq.driver, _spec)
 }
 
 func (gotq *GoogleOauthTokenQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   googleoauthtoken.Table,
-			Columns: googleoauthtoken.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: googleoauthtoken.FieldID,
-			},
-		},
-		From:   gotq.sql,
-		Unique: true,
-	}
-	if unique := gotq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(googleoauthtoken.Table, googleoauthtoken.Columns, sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt))
+	_spec.From = gotq.sql
+	if unique := gotq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if gotq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := gotq.fields; len(fields) > 0 {
+	if fields := gotq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, googleoauthtoken.FieldID)
 		for i := range fields {
@@ -489,10 +481,10 @@ func (gotq *GoogleOauthTokenQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := gotq.limit; limit != nil {
+	if limit := gotq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := gotq.offset; offset != nil {
+	if offset := gotq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := gotq.order; len(ps) > 0 {
@@ -508,7 +500,7 @@ func (gotq *GoogleOauthTokenQuery) querySpec() *sqlgraph.QuerySpec {
 func (gotq *GoogleOauthTokenQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(gotq.driver.Dialect())
 	t1 := builder.Table(googleoauthtoken.Table)
-	columns := gotq.fields
+	columns := gotq.ctx.Fields
 	if len(columns) == 0 {
 		columns = googleoauthtoken.Columns
 	}
@@ -517,7 +509,7 @@ func (gotq *GoogleOauthTokenQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = gotq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if gotq.unique != nil && *gotq.unique {
+	if gotq.ctx.Unique != nil && *gotq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range gotq.modifiers {
@@ -529,12 +521,12 @@ func (gotq *GoogleOauthTokenQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range gotq.order {
 		p(selector)
 	}
-	if offset := gotq.offset; offset != nil {
+	if offset := gotq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := gotq.limit; limit != nil {
+	if limit := gotq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -560,7 +552,7 @@ func (gotgb *GoogleOauthTokenGroupBy) Aggregate(fns ...AggregateFunc) *GoogleOau
 
 // Scan applies the selector query and scans the result into the given value.
 func (gotgb *GoogleOauthTokenGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "GroupBy")
+	ctx = setContextOp(ctx, gotgb.build.ctx, "GroupBy")
 	if err := gotgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -608,7 +600,7 @@ func (gots *GoogleOauthTokenSelect) Aggregate(fns ...AggregateFunc) *GoogleOauth
 
 // Scan applies the selector query and scans the result into the given value.
 func (gots *GoogleOauthTokenSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeGoogleOauthToken, "Select")
+	ctx = setContextOp(ctx, gots.ctx, "Select")
 	if err := gots.prepareQuery(ctx); err != nil {
 		return err
 	}

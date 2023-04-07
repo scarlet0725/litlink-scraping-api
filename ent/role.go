@@ -127,14 +127,14 @@ func (r *Role) assignValues(columns []string, values []any) error {
 
 // QueryUsers queries the "users" edge of the Role entity.
 func (r *Role) QueryUsers() *UserQuery {
-	return (&RoleClient{config: r.config}).QueryUsers(r)
+	return NewRoleClient(r.config).QueryUsers(r)
 }
 
 // Update returns a builder for updating this Role.
 // Note that you need to call Role.Unwrap() before calling this method if this Role
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (r *Role) Update() *RoleUpdateOne {
-	return (&RoleClient{config: r.config}).UpdateOne(r)
+	return NewRoleClient(r.config).UpdateOne(r)
 }
 
 // Unwrap unwraps the Role entity that was returned from a transaction after it was closed,
@@ -178,9 +178,3 @@ func (r *Role) String() string {
 
 // Roles is a parsable slice of Role.
 type Roles []*Role
-
-func (r Roles) config(cfg config) {
-	for _i := range r {
-		r[_i].config = cfg
-	}
-}

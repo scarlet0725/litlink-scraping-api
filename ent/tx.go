@@ -18,16 +18,10 @@ type Tx struct {
 	Event *EventClient
 	// ExternalCalendar is the client for interacting with the ExternalCalendar builders.
 	ExternalCalendar *ExternalCalendarClient
-	// GoogleOauthState is the client for interacting with the GoogleOauthState builders.
-	GoogleOauthState *GoogleOauthStateClient
 	// GoogleOauthToken is the client for interacting with the GoogleOauthToken builders.
 	GoogleOauthToken *GoogleOauthTokenClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// RyzmEvent is the client for interacting with the RyzmEvent builders.
-	RyzmEvent *RyzmEventClient
-	// UnStructuredEventInformation is the client for interacting with the UnStructuredEventInformation builders.
-	UnStructuredEventInformation *UnStructuredEventInformationClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Venue is the client for interacting with the Venue builders.
@@ -166,11 +160,8 @@ func (tx *Tx) init() {
 	tx.Artist = NewArtistClient(tx.config)
 	tx.Event = NewEventClient(tx.config)
 	tx.ExternalCalendar = NewExternalCalendarClient(tx.config)
-	tx.GoogleOauthState = NewGoogleOauthStateClient(tx.config)
 	tx.GoogleOauthToken = NewGoogleOauthTokenClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
-	tx.RyzmEvent = NewRyzmEventClient(tx.config)
-	tx.UnStructuredEventInformation = NewUnStructuredEventInformationClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Venue = NewVenueClient(tx.config)
 }

@@ -40,15 +40,7 @@ func (ed *EventDelete) ExecX(ctx context.Context) int {
 }
 
 func (ed *EventDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: event.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: event.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(event.Table, sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt))
 	if ps := ed.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type EventDeleteOne struct {
 	ed *EventDelete
 }
 
+// Where appends a list predicates to the EventDelete builder.
+func (edo *EventDeleteOne) Where(ps ...predicate.Event) *EventDeleteOne {
+	edo.ed.mutation.Where(ps...)
+	return edo
+}
+
 // Exec executes the deletion query.
 func (edo *EventDeleteOne) Exec(ctx context.Context) error {
 	n, err := edo.ed.Exec(ctx)
@@ -84,5 +82,7 @@ func (edo *EventDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (edo *EventDeleteOne) ExecX(ctx context.Context) {
-	edo.ed.ExecX(ctx)
+	if err := edo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

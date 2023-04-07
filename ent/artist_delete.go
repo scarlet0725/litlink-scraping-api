@@ -40,15 +40,7 @@ func (ad *ArtistDelete) ExecX(ctx context.Context) int {
 }
 
 func (ad *ArtistDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: artist.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: artist.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(artist.Table, sqlgraph.NewFieldSpec(artist.FieldID, field.TypeInt))
 	if ps := ad.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ArtistDeleteOne struct {
 	ad *ArtistDelete
 }
 
+// Where appends a list predicates to the ArtistDelete builder.
+func (ado *ArtistDeleteOne) Where(ps ...predicate.Artist) *ArtistDeleteOne {
+	ado.ad.mutation.Where(ps...)
+	return ado
+}
+
 // Exec executes the deletion query.
 func (ado *ArtistDeleteOne) Exec(ctx context.Context) error {
 	n, err := ado.ad.Exec(ctx)
@@ -84,5 +82,7 @@ func (ado *ArtistDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ado *ArtistDeleteOne) ExecX(ctx context.Context) {
-	ado.ad.ExecX(ctx)
+	if err := ado.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

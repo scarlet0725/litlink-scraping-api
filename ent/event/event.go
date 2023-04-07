@@ -39,10 +39,6 @@ const (
 	EdgeUsers = "users"
 	// EdgeArtists holds the string denoting the artists edge name in mutations.
 	EdgeArtists = "artists"
-	// EdgeRelatedRyzmEvents holds the string denoting the related_ryzm_events edge name in mutations.
-	EdgeRelatedRyzmEvents = "related_ryzm_events"
-	// EdgeUnStructuredEventInformations holds the string denoting the un_structured_event_informations edge name in mutations.
-	EdgeUnStructuredEventInformations = "un_structured_event_informations"
 	// EdgeVenue holds the string denoting the venue edge name in mutations.
 	EdgeVenue = "venue"
 	// Table holds the table name of the event in the database.
@@ -57,20 +53,6 @@ const (
 	// ArtistsInverseTable is the table name for the Artist entity.
 	// It exists in this package in order to avoid circular dependency with the "artist" package.
 	ArtistsInverseTable = "artists"
-	// RelatedRyzmEventsTable is the table that holds the related_ryzm_events relation/edge.
-	RelatedRyzmEventsTable = "ryzm_events"
-	// RelatedRyzmEventsInverseTable is the table name for the RyzmEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "ryzmevent" package.
-	RelatedRyzmEventsInverseTable = "ryzm_events"
-	// RelatedRyzmEventsColumn is the table column denoting the related_ryzm_events relation/edge.
-	RelatedRyzmEventsColumn = "event_related_ryzm_events"
-	// UnStructuredEventInformationsTable is the table that holds the un_structured_event_informations relation/edge.
-	UnStructuredEventInformationsTable = "un_structured_event_informations"
-	// UnStructuredEventInformationsInverseTable is the table name for the UnStructuredEventInformation entity.
-	// It exists in this package in order to avoid circular dependency with the "unstructuredeventinformation" package.
-	UnStructuredEventInformationsInverseTable = "un_structured_event_informations"
-	// UnStructuredEventInformationsColumn is the table column denoting the un_structured_event_informations relation/edge.
-	UnStructuredEventInformationsColumn = "event_un_structured_event_informations"
 	// VenueTable is the table that holds the venue relation/edge.
 	VenueTable = "events"
 	// VenueInverseTable is the table name for the Venue entity.

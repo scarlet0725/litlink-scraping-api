@@ -153,11 +153,6 @@ func (User) Edges() []ent.Edge {
 			StorageKey(
 				edge.Column("user_id"),
 			),
-		edge.To("google_oauth_states", GoogleOauthState.Type).
-			Unique().
-			StorageKey(
-				edge.Column("user_id"),
-			),
 		edge.To("events", Event.Type),
 		edge.To("external_calendars", ExternalCalendar.Type).
 			Unique().

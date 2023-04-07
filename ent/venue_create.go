@@ -290,13 +290,7 @@ func (vc *VenueCreate) sqlSave(ctx context.Context) (*Venue, error) {
 func (vc *VenueCreate) createSpec() (*Venue, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Venue{config: vc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: venue.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: venue.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(venue.Table, sqlgraph.NewFieldSpec(venue.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = vc.conflict
 	if value, ok := vc.mutation.VenueID(); ok {
@@ -355,10 +349,7 @@ func (vc *VenueCreate) createSpec() (*Venue, *sqlgraph.CreateSpec) {
 			Columns: []string{venue.EventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

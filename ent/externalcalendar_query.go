@@ -18,11 +18,8 @@ import (
 // ExternalCalendarQuery is the builder for querying ExternalCalendar entities.
 type ExternalCalendarQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
 	inters     []Interceptor
 	predicates []predicate.ExternalCalendar
 	withUser   *UserQuery
@@ -41,20 +38,20 @@ func (ecq *ExternalCalendarQuery) Where(ps ...predicate.ExternalCalendar) *Exter
 
 // Limit the number of records to be returned by this query.
 func (ecq *ExternalCalendarQuery) Limit(limit int) *ExternalCalendarQuery {
-	ecq.limit = &limit
+	ecq.ctx.Limit = &limit
 	return ecq
 }
 
 // Offset to start from.
 func (ecq *ExternalCalendarQuery) Offset(offset int) *ExternalCalendarQuery {
-	ecq.offset = &offset
+	ecq.ctx.Offset = &offset
 	return ecq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ecq *ExternalCalendarQuery) Unique(unique bool) *ExternalCalendarQuery {
-	ecq.unique = &unique
+	ecq.ctx.Unique = &unique
 	return ecq
 }
 
@@ -89,7 +86,7 @@ func (ecq *ExternalCalendarQuery) QueryUser() *UserQuery {
 // First returns the first ExternalCalendar entity from the query.
 // Returns a *NotFoundError when no ExternalCalendar was found.
 func (ecq *ExternalCalendarQuery) First(ctx context.Context) (*ExternalCalendar, error) {
-	nodes, err := ecq.Limit(1).All(newQueryContext(ctx, TypeExternalCalendar, "First"))
+	nodes, err := ecq.Limit(1).All(setContextOp(ctx, ecq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (ecq *ExternalCalendarQuery) FirstX(ctx context.Context) *ExternalCalendar 
 // Returns a *NotFoundError when no ExternalCalendar ID was found.
 func (ecq *ExternalCalendarQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ecq.Limit(1).IDs(newQueryContext(ctx, TypeExternalCalendar, "FirstID")); err != nil {
+	if ids, err = ecq.Limit(1).IDs(setContextOp(ctx, ecq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (ecq *ExternalCalendarQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one ExternalCalendar entity is found.
 // Returns a *NotFoundError when no ExternalCalendar entities are found.
 func (ecq *ExternalCalendarQuery) Only(ctx context.Context) (*ExternalCalendar, error) {
-	nodes, err := ecq.Limit(2).All(newQueryContext(ctx, TypeExternalCalendar, "Only"))
+	nodes, err := ecq.Limit(2).All(setContextOp(ctx, ecq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (ecq *ExternalCalendarQuery) OnlyX(ctx context.Context) *ExternalCalendar {
 // Returns a *NotFoundError when no entities are found.
 func (ecq *ExternalCalendarQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ecq.Limit(2).IDs(newQueryContext(ctx, TypeExternalCalendar, "OnlyID")); err != nil {
+	if ids, err = ecq.Limit(2).IDs(setContextOp(ctx, ecq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (ecq *ExternalCalendarQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of ExternalCalendars.
 func (ecq *ExternalCalendarQuery) All(ctx context.Context) ([]*ExternalCalendar, error) {
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "All")
+	ctx = setContextOp(ctx, ecq.ctx, "All")
 	if err := ecq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,10 +203,12 @@ func (ecq *ExternalCalendarQuery) AllX(ctx context.Context) []*ExternalCalendar 
 }
 
 // IDs executes the query and returns a list of ExternalCalendar IDs.
-func (ecq *ExternalCalendarQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "IDs")
-	if err := ecq.Select(externalcalendar.FieldID).Scan(ctx, &ids); err != nil {
+func (ecq *ExternalCalendarQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ecq.ctx.Unique == nil && ecq.path != nil {
+		ecq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ecq.ctx, "IDs")
+	if err = ecq.Select(externalcalendar.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -226,7 +225,7 @@ func (ecq *ExternalCalendarQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ecq *ExternalCalendarQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "Count")
+	ctx = setContextOp(ctx, ecq.ctx, "Count")
 	if err := ecq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +243,7 @@ func (ecq *ExternalCalendarQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ecq *ExternalCalendarQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "Exist")
+	ctx = setContextOp(ctx, ecq.ctx, "Exist")
 	switch _, err := ecq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +271,14 @@ func (ecq *ExternalCalendarQuery) Clone() *ExternalCalendarQuery {
 	}
 	return &ExternalCalendarQuery{
 		config:     ecq.config,
-		limit:      ecq.limit,
-		offset:     ecq.offset,
+		ctx:        ecq.ctx.Clone(),
 		order:      append([]OrderFunc{}, ecq.order...),
 		inters:     append([]Interceptor{}, ecq.inters...),
 		predicates: append([]predicate.ExternalCalendar{}, ecq.predicates...),
 		withUser:   ecq.withUser.Clone(),
 		// clone intermediate query.
-		sql:    ecq.sql.Clone(),
-		path:   ecq.path,
-		unique: ecq.unique,
+		sql:  ecq.sql.Clone(),
+		path: ecq.path,
 	}
 }
 
@@ -311,9 +308,9 @@ func (ecq *ExternalCalendarQuery) WithUser(opts ...func(*UserQuery)) *ExternalCa
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ecq *ExternalCalendarQuery) GroupBy(field string, fields ...string) *ExternalCalendarGroupBy {
-	ecq.fields = append([]string{field}, fields...)
+	ecq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &ExternalCalendarGroupBy{build: ecq}
-	grbuild.flds = &ecq.fields
+	grbuild.flds = &ecq.ctx.Fields
 	grbuild.label = externalcalendar.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +329,10 @@ func (ecq *ExternalCalendarQuery) GroupBy(field string, fields ...string) *Exter
 //		Select(externalcalendar.FieldName).
 //		Scan(ctx, &v)
 func (ecq *ExternalCalendarQuery) Select(fields ...string) *ExternalCalendarSelect {
-	ecq.fields = append(ecq.fields, fields...)
+	ecq.ctx.Fields = append(ecq.ctx.Fields, fields...)
 	sbuild := &ExternalCalendarSelect{ExternalCalendarQuery: ecq}
 	sbuild.label = externalcalendar.Label
-	sbuild.flds, sbuild.scan = &ecq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &ecq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +352,7 @@ func (ecq *ExternalCalendarQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range ecq.fields {
+	for _, f := range ecq.ctx.Fields {
 		if !externalcalendar.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -428,6 +425,9 @@ func (ecq *ExternalCalendarQuery) loadUser(ctx context.Context, query *UserQuery
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -450,30 +450,22 @@ func (ecq *ExternalCalendarQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(ecq.modifiers) > 0 {
 		_spec.Modifiers = ecq.modifiers
 	}
-	_spec.Node.Columns = ecq.fields
-	if len(ecq.fields) > 0 {
-		_spec.Unique = ecq.unique != nil && *ecq.unique
+	_spec.Node.Columns = ecq.ctx.Fields
+	if len(ecq.ctx.Fields) > 0 {
+		_spec.Unique = ecq.ctx.Unique != nil && *ecq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ecq.driver, _spec)
 }
 
 func (ecq *ExternalCalendarQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   externalcalendar.Table,
-			Columns: externalcalendar.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: externalcalendar.FieldID,
-			},
-		},
-		From:   ecq.sql,
-		Unique: true,
-	}
-	if unique := ecq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(externalcalendar.Table, externalcalendar.Columns, sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt))
+	_spec.From = ecq.sql
+	if unique := ecq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ecq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := ecq.fields; len(fields) > 0 {
+	if fields := ecq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, externalcalendar.FieldID)
 		for i := range fields {
@@ -489,10 +481,10 @@ func (ecq *ExternalCalendarQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ecq.limit; limit != nil {
+	if limit := ecq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ecq.offset; offset != nil {
+	if offset := ecq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ecq.order; len(ps) > 0 {
@@ -508,7 +500,7 @@ func (ecq *ExternalCalendarQuery) querySpec() *sqlgraph.QuerySpec {
 func (ecq *ExternalCalendarQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ecq.driver.Dialect())
 	t1 := builder.Table(externalcalendar.Table)
-	columns := ecq.fields
+	columns := ecq.ctx.Fields
 	if len(columns) == 0 {
 		columns = externalcalendar.Columns
 	}
@@ -517,7 +509,7 @@ func (ecq *ExternalCalendarQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = ecq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ecq.unique != nil && *ecq.unique {
+	if ecq.ctx.Unique != nil && *ecq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range ecq.modifiers {
@@ -529,12 +521,12 @@ func (ecq *ExternalCalendarQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range ecq.order {
 		p(selector)
 	}
-	if offset := ecq.offset; offset != nil {
+	if offset := ecq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ecq.limit; limit != nil {
+	if limit := ecq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -560,7 +552,7 @@ func (ecgb *ExternalCalendarGroupBy) Aggregate(fns ...AggregateFunc) *ExternalCa
 
 // Scan applies the selector query and scans the result into the given value.
 func (ecgb *ExternalCalendarGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "GroupBy")
+	ctx = setContextOp(ctx, ecgb.build.ctx, "GroupBy")
 	if err := ecgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -608,7 +600,7 @@ func (ecs *ExternalCalendarSelect) Aggregate(fns ...AggregateFunc) *ExternalCale
 
 // Scan applies the selector query and scans the result into the given value.
 func (ecs *ExternalCalendarSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeExternalCalendar, "Select")
+	ctx = setContextOp(ctx, ecs.ctx, "Select")
 	if err := ecs.prepareQuery(ctx); err != nil {
 		return err
 	}

@@ -53,15 +53,11 @@ type EventEdges struct {
 	Users []*User `json:"users,omitempty"`
 	// Artists holds the value of the artists edge.
 	Artists []*Artist `json:"artists,omitempty"`
-	// RelatedRyzmEvents holds the value of the related_ryzm_events edge.
-	RelatedRyzmEvents []*RyzmEvent `json:"related_ryzm_events,omitempty"`
-	// UnStructuredEventInformations holds the value of the un_structured_event_informations edge.
-	UnStructuredEventInformations []*UnStructuredEventInformation `json:"un_structured_event_informations,omitempty"`
 	// Venue holds the value of the venue edge.
 	Venue *Venue `json:"venue,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [3]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -82,28 +78,10 @@ func (e EventEdges) ArtistsOrErr() ([]*Artist, error) {
 	return nil, &NotLoadedError{edge: "artists"}
 }
 
-// RelatedRyzmEventsOrErr returns the RelatedRyzmEvents value or an error if the edge
-// was not loaded in eager-loading.
-func (e EventEdges) RelatedRyzmEventsOrErr() ([]*RyzmEvent, error) {
-	if e.loadedTypes[2] {
-		return e.RelatedRyzmEvents, nil
-	}
-	return nil, &NotLoadedError{edge: "related_ryzm_events"}
-}
-
-// UnStructuredEventInformationsOrErr returns the UnStructuredEventInformations value or an error if the edge
-// was not loaded in eager-loading.
-func (e EventEdges) UnStructuredEventInformationsOrErr() ([]*UnStructuredEventInformation, error) {
-	if e.loadedTypes[3] {
-		return e.UnStructuredEventInformations, nil
-	}
-	return nil, &NotLoadedError{edge: "un_structured_event_informations"}
-}
-
 // VenueOrErr returns the Venue value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e EventEdges) VenueOrErr() (*Venue, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[2] {
 		if e.Venue == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: venue.Label}
@@ -238,34 +216,24 @@ func (e *Event) assignValues(columns []string, values []any) error {
 
 // QueryUsers queries the "users" edge of the Event entity.
 func (e *Event) QueryUsers() *UserQuery {
-	return (&EventClient{config: e.config}).QueryUsers(e)
+	return NewEventClient(e.config).QueryUsers(e)
 }
 
 // QueryArtists queries the "artists" edge of the Event entity.
 func (e *Event) QueryArtists() *ArtistQuery {
-	return (&EventClient{config: e.config}).QueryArtists(e)
-}
-
-// QueryRelatedRyzmEvents queries the "related_ryzm_events" edge of the Event entity.
-func (e *Event) QueryRelatedRyzmEvents() *RyzmEventQuery {
-	return (&EventClient{config: e.config}).QueryRelatedRyzmEvents(e)
-}
-
-// QueryUnStructuredEventInformations queries the "un_structured_event_informations" edge of the Event entity.
-func (e *Event) QueryUnStructuredEventInformations() *UnStructuredEventInformationQuery {
-	return (&EventClient{config: e.config}).QueryUnStructuredEventInformations(e)
+	return NewEventClient(e.config).QueryArtists(e)
 }
 
 // QueryVenue queries the "venue" edge of the Event entity.
 func (e *Event) QueryVenue() *VenueQuery {
-	return (&EventClient{config: e.config}).QueryVenue(e)
+	return NewEventClient(e.config).QueryVenue(e)
 }
 
 // Update returns a builder for updating this Event.
 // Note that you need to call Event.Unwrap() before calling this method if this Event
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (e *Event) Update() *EventUpdateOne {
-	return (&EventClient{config: e.config}).UpdateOne(e)
+	return NewEventClient(e.config).UpdateOne(e)
 }
 
 // Unwrap unwraps the Event entity that was returned from a transaction after it was closed,
@@ -335,9 +303,3 @@ func (e *Event) String() string {
 
 // Events is a parsable slice of Event.
 type Events []*Event
-
-func (e Events) config(cfg config) {
-	for _i := range e {
-		e[_i].config = cfg
-	}
-}

@@ -190,16 +190,7 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := ecu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   externalcalendar.Table,
-			Columns: externalcalendar.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: externalcalendar.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(externalcalendar.Table, externalcalendar.Columns, sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt))
 	if ps := ecu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -239,10 +230,7 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{externalcalendar.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -255,10 +243,7 @@ func (ecu *ExternalCalendarUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{externalcalendar.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -382,6 +367,12 @@ func (ecuo *ExternalCalendarUpdateOne) ClearUser() *ExternalCalendarUpdateOne {
 	return ecuo
 }
 
+// Where appends a list predicates to the ExternalCalendarUpdate builder.
+func (ecuo *ExternalCalendarUpdateOne) Where(ps ...predicate.ExternalCalendar) *ExternalCalendarUpdateOne {
+	ecuo.mutation.Where(ps...)
+	return ecuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ecuo *ExternalCalendarUpdateOne) Select(field string, fields ...string) *ExternalCalendarUpdateOne {
@@ -455,16 +446,7 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 	if err := ecuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   externalcalendar.Table,
-			Columns: externalcalendar.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: externalcalendar.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(externalcalendar.Table, externalcalendar.Columns, sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt))
 	id, ok := ecuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ExternalCalendar.id" for update`)}
@@ -521,10 +503,7 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 			Columns: []string{externalcalendar.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -537,10 +516,7 @@ func (ecuo *ExternalCalendarUpdateOne) sqlSave(ctx context.Context) (_node *Exte
 			Columns: []string{externalcalendar.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

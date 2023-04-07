@@ -19,11 +19,8 @@ import (
 // VenueQuery is the builder for querying Venue entities.
 type VenueQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
 	inters     []Interceptor
 	predicates []predicate.Venue
 	withEvents *EventQuery
@@ -41,20 +38,20 @@ func (vq *VenueQuery) Where(ps ...predicate.Venue) *VenueQuery {
 
 // Limit the number of records to be returned by this query.
 func (vq *VenueQuery) Limit(limit int) *VenueQuery {
-	vq.limit = &limit
+	vq.ctx.Limit = &limit
 	return vq
 }
 
 // Offset to start from.
 func (vq *VenueQuery) Offset(offset int) *VenueQuery {
-	vq.offset = &offset
+	vq.ctx.Offset = &offset
 	return vq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (vq *VenueQuery) Unique(unique bool) *VenueQuery {
-	vq.unique = &unique
+	vq.ctx.Unique = &unique
 	return vq
 }
 
@@ -89,7 +86,7 @@ func (vq *VenueQuery) QueryEvents() *EventQuery {
 // First returns the first Venue entity from the query.
 // Returns a *NotFoundError when no Venue was found.
 func (vq *VenueQuery) First(ctx context.Context) (*Venue, error) {
-	nodes, err := vq.Limit(1).All(newQueryContext(ctx, TypeVenue, "First"))
+	nodes, err := vq.Limit(1).All(setContextOp(ctx, vq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (vq *VenueQuery) FirstX(ctx context.Context) *Venue {
 // Returns a *NotFoundError when no Venue ID was found.
 func (vq *VenueQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vq.Limit(1).IDs(newQueryContext(ctx, TypeVenue, "FirstID")); err != nil {
+	if ids, err = vq.Limit(1).IDs(setContextOp(ctx, vq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -135,7 +132,7 @@ func (vq *VenueQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one Venue entity is found.
 // Returns a *NotFoundError when no Venue entities are found.
 func (vq *VenueQuery) Only(ctx context.Context) (*Venue, error) {
-	nodes, err := vq.Limit(2).All(newQueryContext(ctx, TypeVenue, "Only"))
+	nodes, err := vq.Limit(2).All(setContextOp(ctx, vq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +160,7 @@ func (vq *VenueQuery) OnlyX(ctx context.Context) *Venue {
 // Returns a *NotFoundError when no entities are found.
 func (vq *VenueQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vq.Limit(2).IDs(newQueryContext(ctx, TypeVenue, "OnlyID")); err != nil {
+	if ids, err = vq.Limit(2).IDs(setContextOp(ctx, vq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -188,7 +185,7 @@ func (vq *VenueQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of Venues.
 func (vq *VenueQuery) All(ctx context.Context) ([]*Venue, error) {
-	ctx = newQueryContext(ctx, TypeVenue, "All")
+	ctx = setContextOp(ctx, vq.ctx, "All")
 	if err := vq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,10 +203,12 @@ func (vq *VenueQuery) AllX(ctx context.Context) []*Venue {
 }
 
 // IDs executes the query and returns a list of Venue IDs.
-func (vq *VenueQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = newQueryContext(ctx, TypeVenue, "IDs")
-	if err := vq.Select(venue.FieldID).Scan(ctx, &ids); err != nil {
+func (vq *VenueQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if vq.ctx.Unique == nil && vq.path != nil {
+		vq.Unique(true)
+	}
+	ctx = setContextOp(ctx, vq.ctx, "IDs")
+	if err = vq.Select(venue.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -226,7 +225,7 @@ func (vq *VenueQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (vq *VenueQuery) Count(ctx context.Context) (int, error) {
-	ctx = newQueryContext(ctx, TypeVenue, "Count")
+	ctx = setContextOp(ctx, vq.ctx, "Count")
 	if err := vq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -244,7 +243,7 @@ func (vq *VenueQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vq *VenueQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = newQueryContext(ctx, TypeVenue, "Exist")
+	ctx = setContextOp(ctx, vq.ctx, "Exist")
 	switch _, err := vq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -272,16 +271,14 @@ func (vq *VenueQuery) Clone() *VenueQuery {
 	}
 	return &VenueQuery{
 		config:     vq.config,
-		limit:      vq.limit,
-		offset:     vq.offset,
+		ctx:        vq.ctx.Clone(),
 		order:      append([]OrderFunc{}, vq.order...),
 		inters:     append([]Interceptor{}, vq.inters...),
 		predicates: append([]predicate.Venue{}, vq.predicates...),
 		withEvents: vq.withEvents.Clone(),
 		// clone intermediate query.
-		sql:    vq.sql.Clone(),
-		path:   vq.path,
-		unique: vq.unique,
+		sql:  vq.sql.Clone(),
+		path: vq.path,
 	}
 }
 
@@ -311,9 +308,9 @@ func (vq *VenueQuery) WithEvents(opts ...func(*EventQuery)) *VenueQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (vq *VenueQuery) GroupBy(field string, fields ...string) *VenueGroupBy {
-	vq.fields = append([]string{field}, fields...)
+	vq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &VenueGroupBy{build: vq}
-	grbuild.flds = &vq.fields
+	grbuild.flds = &vq.ctx.Fields
 	grbuild.label = venue.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -332,10 +329,10 @@ func (vq *VenueQuery) GroupBy(field string, fields ...string) *VenueGroupBy {
 //		Select(venue.FieldVenueID).
 //		Scan(ctx, &v)
 func (vq *VenueQuery) Select(fields ...string) *VenueSelect {
-	vq.fields = append(vq.fields, fields...)
+	vq.ctx.Fields = append(vq.ctx.Fields, fields...)
 	sbuild := &VenueSelect{VenueQuery: vq}
 	sbuild.label = venue.Label
-	sbuild.flds, sbuild.scan = &vq.fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &vq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
@@ -355,7 +352,7 @@ func (vq *VenueQuery) prepareQuery(ctx context.Context) error {
 			}
 		}
 	}
-	for _, f := range vq.fields {
+	for _, f := range vq.ctx.Fields {
 		if !venue.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -446,30 +443,22 @@ func (vq *VenueQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(vq.modifiers) > 0 {
 		_spec.Modifiers = vq.modifiers
 	}
-	_spec.Node.Columns = vq.fields
-	if len(vq.fields) > 0 {
-		_spec.Unique = vq.unique != nil && *vq.unique
+	_spec.Node.Columns = vq.ctx.Fields
+	if len(vq.ctx.Fields) > 0 {
+		_spec.Unique = vq.ctx.Unique != nil && *vq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, vq.driver, _spec)
 }
 
 func (vq *VenueQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   venue.Table,
-			Columns: venue.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: venue.FieldID,
-			},
-		},
-		From:   vq.sql,
-		Unique: true,
-	}
-	if unique := vq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(venue.Table, venue.Columns, sqlgraph.NewFieldSpec(venue.FieldID, field.TypeInt))
+	_spec.From = vq.sql
+	if unique := vq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := vq.fields; len(fields) > 0 {
+	if fields := vq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, venue.FieldID)
 		for i := range fields {
@@ -485,10 +474,10 @@ func (vq *VenueQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := vq.limit; limit != nil {
+	if limit := vq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := vq.offset; offset != nil {
+	if offset := vq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := vq.order; len(ps) > 0 {
@@ -504,7 +493,7 @@ func (vq *VenueQuery) querySpec() *sqlgraph.QuerySpec {
 func (vq *VenueQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(vq.driver.Dialect())
 	t1 := builder.Table(venue.Table)
-	columns := vq.fields
+	columns := vq.ctx.Fields
 	if len(columns) == 0 {
 		columns = venue.Columns
 	}
@@ -513,7 +502,7 @@ func (vq *VenueQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = vq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if vq.unique != nil && *vq.unique {
+	if vq.ctx.Unique != nil && *vq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range vq.modifiers {
@@ -525,12 +514,12 @@ func (vq *VenueQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range vq.order {
 		p(selector)
 	}
-	if offset := vq.offset; offset != nil {
+	if offset := vq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := vq.limit; limit != nil {
+	if limit := vq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -556,7 +545,7 @@ func (vgb *VenueGroupBy) Aggregate(fns ...AggregateFunc) *VenueGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (vgb *VenueGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeVenue, "GroupBy")
+	ctx = setContextOp(ctx, vgb.build.ctx, "GroupBy")
 	if err := vgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -604,7 +593,7 @@ func (vs *VenueSelect) Aggregate(fns ...AggregateFunc) *VenueSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (vs *VenueSelect) Scan(ctx context.Context, v any) error {
-	ctx = newQueryContext(ctx, TypeVenue, "Select")
+	ctx = setContextOp(ctx, vs.ctx, "Select")
 	if err := vs.prepareQuery(ctx); err != nil {
 		return err
 	}

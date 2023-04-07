@@ -45,18 +45,6 @@ func (f ExternalCalendarFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExternalCalendarMutation", m)
 }
 
-// The GoogleOauthStateFunc type is an adapter to allow the use of ordinary
-// function as GoogleOauthState mutator.
-type GoogleOauthStateFunc func(context.Context, *ent.GoogleOauthStateMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f GoogleOauthStateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.GoogleOauthStateMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GoogleOauthStateMutation", m)
-}
-
 // The GoogleOauthTokenFunc type is an adapter to allow the use of ordinary
 // function as GoogleOauthToken mutator.
 type GoogleOauthTokenFunc func(context.Context, *ent.GoogleOauthTokenMutation) (ent.Value, error)
@@ -79,30 +67,6 @@ func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
-}
-
-// The RyzmEventFunc type is an adapter to allow the use of ordinary
-// function as RyzmEvent mutator.
-type RyzmEventFunc func(context.Context, *ent.RyzmEventMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f RyzmEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.RyzmEventMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RyzmEventMutation", m)
-}
-
-// The UnStructuredEventInformationFunc type is an adapter to allow the use of ordinary
-// function as UnStructuredEventInformation mutator.
-type UnStructuredEventInformationFunc func(context.Context, *ent.UnStructuredEventInformationMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UnStructuredEventInformationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.UnStructuredEventInformationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UnStructuredEventInformationMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

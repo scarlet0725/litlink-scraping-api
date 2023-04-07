@@ -217,13 +217,7 @@ func (ecc *ExternalCalendarCreate) sqlSave(ctx context.Context) (*ExternalCalend
 func (ecc *ExternalCalendarCreate) createSpec() (*ExternalCalendar, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ExternalCalendar{config: ecc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: externalcalendar.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: externalcalendar.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(externalcalendar.Table, sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = ecc.conflict
 	if value, ok := ecc.mutation.Name(); ok {
@@ -262,10 +256,7 @@ func (ecc *ExternalCalendarCreate) createSpec() (*ExternalCalendar, *sqlgraph.Cr
 			Columns: []string{externalcalendar.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

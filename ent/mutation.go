@@ -9,20 +9,16 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/predicate"
 	"github.com/scarlet0725/prism-api/ent/role"
-	"github.com/scarlet0725/prism-api/ent/ryzmevent"
-	"github.com/scarlet0725/prism-api/ent/unstructuredeventinformation"
 	"github.com/scarlet0725/prism-api/ent/user"
 	"github.com/scarlet0725/prism-api/ent/venue"
-
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -34,16 +30,13 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeArtist                       = "Artist"
-	TypeEvent                        = "Event"
-	TypeExternalCalendar             = "ExternalCalendar"
-	TypeGoogleOauthState             = "GoogleOauthState"
-	TypeGoogleOauthToken             = "GoogleOauthToken"
-	TypeRole                         = "Role"
-	TypeRyzmEvent                    = "RyzmEvent"
-	TypeUnStructuredEventInformation = "UnStructuredEventInformation"
-	TypeUser                         = "User"
-	TypeVenue                        = "Venue"
+	TypeArtist           = "Artist"
+	TypeEvent            = "Event"
+	TypeExternalCalendar = "ExternalCalendar"
+	TypeGoogleOauthToken = "GoogleOauthToken"
+	TypeRole             = "Role"
+	TypeUser             = "User"
+	TypeVenue            = "Venue"
 )
 
 // ArtistMutation represents an operation that mutates the Artist nodes in the graph.
@@ -779,39 +772,33 @@ func (m *ArtistMutation) ResetEdge(name string) error {
 // EventMutation represents an operation that mutates the Event nodes in the graph.
 type EventMutation struct {
 	config
-	op                                      Op
-	typ                                     string
-	id                                      *int
-	event_id                                *string
-	name                                    *string
-	date                                    *time.Time
-	open_time                               *time.Time
-	start_time                              *time.Time
-	end_time                                *time.Time
-	description                             *string
-	url                                     *string
-	ticket_url                              *string
-	created_at                              *time.Time
-	updated_at                              *time.Time
-	deleted_at                              *time.Time
-	clearedFields                           map[string]struct{}
-	users                                   map[int]struct{}
-	removedusers                            map[int]struct{}
-	clearedusers                            bool
-	artists                                 map[int]struct{}
-	removedartists                          map[int]struct{}
-	clearedartists                          bool
-	related_ryzm_events                     map[int]struct{}
-	removedrelated_ryzm_events              map[int]struct{}
-	clearedrelated_ryzm_events              bool
-	un_structured_event_informations        map[int]struct{}
-	removedun_structured_event_informations map[int]struct{}
-	clearedun_structured_event_informations bool
-	venue                                   *int
-	clearedvenue                            bool
-	done                                    bool
-	oldValue                                func(context.Context) (*Event, error)
-	predicates                              []predicate.Event
+	op             Op
+	typ            string
+	id             *int
+	event_id       *string
+	name           *string
+	date           *time.Time
+	open_time      *time.Time
+	start_time     *time.Time
+	end_time       *time.Time
+	description    *string
+	url            *string
+	ticket_url     *string
+	created_at     *time.Time
+	updated_at     *time.Time
+	deleted_at     *time.Time
+	clearedFields  map[string]struct{}
+	users          map[int]struct{}
+	removedusers   map[int]struct{}
+	clearedusers   bool
+	artists        map[int]struct{}
+	removedartists map[int]struct{}
+	clearedartists bool
+	venue          *int
+	clearedvenue   bool
+	done           bool
+	oldValue       func(context.Context) (*Event, error)
+	predicates     []predicate.Event
 }
 
 var _ ent.Mutation = (*EventMutation)(nil)
@@ -1556,114 +1543,6 @@ func (m *EventMutation) ResetArtists() {
 	m.removedartists = nil
 }
 
-// AddRelatedRyzmEventIDs adds the "related_ryzm_events" edge to the RyzmEvent entity by ids.
-func (m *EventMutation) AddRelatedRyzmEventIDs(ids ...int) {
-	if m.related_ryzm_events == nil {
-		m.related_ryzm_events = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.related_ryzm_events[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRelatedRyzmEvents clears the "related_ryzm_events" edge to the RyzmEvent entity.
-func (m *EventMutation) ClearRelatedRyzmEvents() {
-	m.clearedrelated_ryzm_events = true
-}
-
-// RelatedRyzmEventsCleared reports if the "related_ryzm_events" edge to the RyzmEvent entity was cleared.
-func (m *EventMutation) RelatedRyzmEventsCleared() bool {
-	return m.clearedrelated_ryzm_events
-}
-
-// RemoveRelatedRyzmEventIDs removes the "related_ryzm_events" edge to the RyzmEvent entity by IDs.
-func (m *EventMutation) RemoveRelatedRyzmEventIDs(ids ...int) {
-	if m.removedrelated_ryzm_events == nil {
-		m.removedrelated_ryzm_events = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.related_ryzm_events, ids[i])
-		m.removedrelated_ryzm_events[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRelatedRyzmEvents returns the removed IDs of the "related_ryzm_events" edge to the RyzmEvent entity.
-func (m *EventMutation) RemovedRelatedRyzmEventsIDs() (ids []int) {
-	for id := range m.removedrelated_ryzm_events {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RelatedRyzmEventsIDs returns the "related_ryzm_events" edge IDs in the mutation.
-func (m *EventMutation) RelatedRyzmEventsIDs() (ids []int) {
-	for id := range m.related_ryzm_events {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRelatedRyzmEvents resets all changes to the "related_ryzm_events" edge.
-func (m *EventMutation) ResetRelatedRyzmEvents() {
-	m.related_ryzm_events = nil
-	m.clearedrelated_ryzm_events = false
-	m.removedrelated_ryzm_events = nil
-}
-
-// AddUnStructuredEventInformationIDs adds the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by ids.
-func (m *EventMutation) AddUnStructuredEventInformationIDs(ids ...int) {
-	if m.un_structured_event_informations == nil {
-		m.un_structured_event_informations = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.un_structured_event_informations[ids[i]] = struct{}{}
-	}
-}
-
-// ClearUnStructuredEventInformations clears the "un_structured_event_informations" edge to the UnStructuredEventInformation entity.
-func (m *EventMutation) ClearUnStructuredEventInformations() {
-	m.clearedun_structured_event_informations = true
-}
-
-// UnStructuredEventInformationsCleared reports if the "un_structured_event_informations" edge to the UnStructuredEventInformation entity was cleared.
-func (m *EventMutation) UnStructuredEventInformationsCleared() bool {
-	return m.clearedun_structured_event_informations
-}
-
-// RemoveUnStructuredEventInformationIDs removes the "un_structured_event_informations" edge to the UnStructuredEventInformation entity by IDs.
-func (m *EventMutation) RemoveUnStructuredEventInformationIDs(ids ...int) {
-	if m.removedun_structured_event_informations == nil {
-		m.removedun_structured_event_informations = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.un_structured_event_informations, ids[i])
-		m.removedun_structured_event_informations[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedUnStructuredEventInformations returns the removed IDs of the "un_structured_event_informations" edge to the UnStructuredEventInformation entity.
-func (m *EventMutation) RemovedUnStructuredEventInformationsIDs() (ids []int) {
-	for id := range m.removedun_structured_event_informations {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// UnStructuredEventInformationsIDs returns the "un_structured_event_informations" edge IDs in the mutation.
-func (m *EventMutation) UnStructuredEventInformationsIDs() (ids []int) {
-	for id := range m.un_structured_event_informations {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetUnStructuredEventInformations resets all changes to the "un_structured_event_informations" edge.
-func (m *EventMutation) ResetUnStructuredEventInformations() {
-	m.un_structured_event_informations = nil
-	m.clearedun_structured_event_informations = false
-	m.removedun_structured_event_informations = nil
-}
-
 // SetVenueID sets the "venue" edge to the Venue entity by id.
 func (m *EventMutation) SetVenueID(id int) {
 	m.venue = &id
@@ -2074,18 +1953,12 @@ func (m *EventMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EventMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 3)
 	if m.users != nil {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.artists != nil {
 		edges = append(edges, event.EdgeArtists)
-	}
-	if m.related_ryzm_events != nil {
-		edges = append(edges, event.EdgeRelatedRyzmEvents)
-	}
-	if m.un_structured_event_informations != nil {
-		edges = append(edges, event.EdgeUnStructuredEventInformations)
 	}
 	if m.venue != nil {
 		edges = append(edges, event.EdgeVenue)
@@ -2109,18 +1982,6 @@ func (m *EventMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case event.EdgeRelatedRyzmEvents:
-		ids := make([]ent.Value, 0, len(m.related_ryzm_events))
-		for id := range m.related_ryzm_events {
-			ids = append(ids, id)
-		}
-		return ids
-	case event.EdgeUnStructuredEventInformations:
-		ids := make([]ent.Value, 0, len(m.un_structured_event_informations))
-		for id := range m.un_structured_event_informations {
-			ids = append(ids, id)
-		}
-		return ids
 	case event.EdgeVenue:
 		if id := m.venue; id != nil {
 			return []ent.Value{*id}
@@ -2131,18 +1992,12 @@ func (m *EventMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EventMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 3)
 	if m.removedusers != nil {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.removedartists != nil {
 		edges = append(edges, event.EdgeArtists)
-	}
-	if m.removedrelated_ryzm_events != nil {
-		edges = append(edges, event.EdgeRelatedRyzmEvents)
-	}
-	if m.removedun_structured_event_informations != nil {
-		edges = append(edges, event.EdgeUnStructuredEventInformations)
 	}
 	return edges
 }
@@ -2163,36 +2018,18 @@ func (m *EventMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case event.EdgeRelatedRyzmEvents:
-		ids := make([]ent.Value, 0, len(m.removedrelated_ryzm_events))
-		for id := range m.removedrelated_ryzm_events {
-			ids = append(ids, id)
-		}
-		return ids
-	case event.EdgeUnStructuredEventInformations:
-		ids := make([]ent.Value, 0, len(m.removedun_structured_event_informations))
-		for id := range m.removedun_structured_event_informations {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EventMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 3)
 	if m.clearedusers {
 		edges = append(edges, event.EdgeUsers)
 	}
 	if m.clearedartists {
 		edges = append(edges, event.EdgeArtists)
-	}
-	if m.clearedrelated_ryzm_events {
-		edges = append(edges, event.EdgeRelatedRyzmEvents)
-	}
-	if m.clearedun_structured_event_informations {
-		edges = append(edges, event.EdgeUnStructuredEventInformations)
 	}
 	if m.clearedvenue {
 		edges = append(edges, event.EdgeVenue)
@@ -2208,10 +2045,6 @@ func (m *EventMutation) EdgeCleared(name string) bool {
 		return m.clearedusers
 	case event.EdgeArtists:
 		return m.clearedartists
-	case event.EdgeRelatedRyzmEvents:
-		return m.clearedrelated_ryzm_events
-	case event.EdgeUnStructuredEventInformations:
-		return m.clearedun_structured_event_informations
 	case event.EdgeVenue:
 		return m.clearedvenue
 	}
@@ -2238,12 +2071,6 @@ func (m *EventMutation) ResetEdge(name string) error {
 		return nil
 	case event.EdgeArtists:
 		m.ResetArtists()
-		return nil
-	case event.EdgeRelatedRyzmEvents:
-		m.ResetRelatedRyzmEvents()
-		return nil
-	case event.EdgeUnStructuredEventInformations:
-		m.ResetUnStructuredEventInformations()
 		return nil
 	case event.EdgeVenue:
 		m.ResetVenue()
@@ -3008,399 +2835,6 @@ func (m *ExternalCalendarMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ExternalCalendar edge %s", name)
-}
-
-// GoogleOauthStateMutation represents an operation that mutates the GoogleOauthState nodes in the graph.
-type GoogleOauthStateMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	state         *string
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*GoogleOauthState, error)
-	predicates    []predicate.GoogleOauthState
-}
-
-var _ ent.Mutation = (*GoogleOauthStateMutation)(nil)
-
-// googleoauthstateOption allows management of the mutation configuration using functional options.
-type googleoauthstateOption func(*GoogleOauthStateMutation)
-
-// newGoogleOauthStateMutation creates new mutation for the GoogleOauthState entity.
-func newGoogleOauthStateMutation(c config, op Op, opts ...googleoauthstateOption) *GoogleOauthStateMutation {
-	m := &GoogleOauthStateMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeGoogleOauthState,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withGoogleOauthStateID sets the ID field of the mutation.
-func withGoogleOauthStateID(id int) googleoauthstateOption {
-	return func(m *GoogleOauthStateMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *GoogleOauthState
-		)
-		m.oldValue = func(ctx context.Context) (*GoogleOauthState, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().GoogleOauthState.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withGoogleOauthState sets the old GoogleOauthState of the mutation.
-func withGoogleOauthState(node *GoogleOauthState) googleoauthstateOption {
-	return func(m *GoogleOauthStateMutation) {
-		m.oldValue = func(context.Context) (*GoogleOauthState, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GoogleOauthStateMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m GoogleOauthStateMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *GoogleOauthStateMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *GoogleOauthStateMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().GoogleOauthState.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetState sets the "state" field.
-func (m *GoogleOauthStateMutation) SetState(s string) {
-	m.state = &s
-}
-
-// State returns the value of the "state" field in the mutation.
-func (m *GoogleOauthStateMutation) State() (r string, exists bool) {
-	v := m.state
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldState returns the old "state" field's value of the GoogleOauthState entity.
-// If the GoogleOauthState object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GoogleOauthStateMutation) OldState(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldState is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldState requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldState: %w", err)
-	}
-	return oldValue.State, nil
-}
-
-// ResetState resets all changes to the "state" field.
-func (m *GoogleOauthStateMutation) ResetState() {
-	m.state = nil
-}
-
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *GoogleOauthStateMutation) SetUserID(id int) {
-	m.user = &id
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *GoogleOauthStateMutation) ClearUser() {
-	m.cleareduser = true
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *GoogleOauthStateMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *GoogleOauthStateMutation) UserID() (id int, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *GoogleOauthStateMutation) UserIDs() (ids []int) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *GoogleOauthStateMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// Where appends a list predicates to the GoogleOauthStateMutation builder.
-func (m *GoogleOauthStateMutation) Where(ps ...predicate.GoogleOauthState) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the GoogleOauthStateMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *GoogleOauthStateMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.GoogleOauthState, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *GoogleOauthStateMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *GoogleOauthStateMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (GoogleOauthState).
-func (m *GoogleOauthStateMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *GoogleOauthStateMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.state != nil {
-		fields = append(fields, googleoauthstate.FieldState)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *GoogleOauthStateMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case googleoauthstate.FieldState:
-		return m.State()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *GoogleOauthStateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case googleoauthstate.FieldState:
-		return m.OldState(ctx)
-	}
-	return nil, fmt.Errorf("unknown GoogleOauthState field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GoogleOauthStateMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case googleoauthstate.FieldState:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetState(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GoogleOauthState field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *GoogleOauthStateMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *GoogleOauthStateMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GoogleOauthStateMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown GoogleOauthState numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *GoogleOauthStateMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *GoogleOauthStateMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *GoogleOauthStateMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown GoogleOauthState nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *GoogleOauthStateMutation) ResetField(name string) error {
-	switch name {
-	case googleoauthstate.FieldState:
-		m.ResetState()
-		return nil
-	}
-	return fmt.Errorf("unknown GoogleOauthState field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GoogleOauthStateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.user != nil {
-		edges = append(edges, googleoauthstate.EdgeUser)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *GoogleOauthStateMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case googleoauthstate.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GoogleOauthStateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *GoogleOauthStateMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GoogleOauthStateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.cleareduser {
-		edges = append(edges, googleoauthstate.EdgeUser)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *GoogleOauthStateMutation) EdgeCleared(name string) bool {
-	switch name {
-	case googleoauthstate.EdgeUser:
-		return m.cleareduser
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *GoogleOauthStateMutation) ClearEdge(name string) error {
-	switch name {
-	case googleoauthstate.EdgeUser:
-		m.ClearUser()
-		return nil
-	}
-	return fmt.Errorf("unknown GoogleOauthState unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *GoogleOauthStateMutation) ResetEdge(name string) error {
-	switch name {
-	case googleoauthstate.EdgeUser:
-		m.ResetUser()
-		return nil
-	}
-	return fmt.Errorf("unknown GoogleOauthState edge %s", name)
 }
 
 // GoogleOauthTokenMutation represents an operation that mutates the GoogleOauthToken nodes in the graph.
@@ -4634,954 +4068,6 @@ func (m *RoleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Role edge %s", name)
 }
 
-// RyzmEventMutation represents an operation that mutates the RyzmEvent nodes in the graph.
-type RyzmEventMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	uuid          *string
-	clearedFields map[string]struct{}
-	event         *int
-	clearedevent  bool
-	done          bool
-	oldValue      func(context.Context) (*RyzmEvent, error)
-	predicates    []predicate.RyzmEvent
-}
-
-var _ ent.Mutation = (*RyzmEventMutation)(nil)
-
-// ryzmeventOption allows management of the mutation configuration using functional options.
-type ryzmeventOption func(*RyzmEventMutation)
-
-// newRyzmEventMutation creates new mutation for the RyzmEvent entity.
-func newRyzmEventMutation(c config, op Op, opts ...ryzmeventOption) *RyzmEventMutation {
-	m := &RyzmEventMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeRyzmEvent,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withRyzmEventID sets the ID field of the mutation.
-func withRyzmEventID(id int) ryzmeventOption {
-	return func(m *RyzmEventMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *RyzmEvent
-		)
-		m.oldValue = func(ctx context.Context) (*RyzmEvent, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().RyzmEvent.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withRyzmEvent sets the old RyzmEvent of the mutation.
-func withRyzmEvent(node *RyzmEvent) ryzmeventOption {
-	return func(m *RyzmEventMutation) {
-		m.oldValue = func(context.Context) (*RyzmEvent, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m RyzmEventMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m RyzmEventMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *RyzmEventMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *RyzmEventMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().RyzmEvent.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUUID sets the "uuid" field.
-func (m *RyzmEventMutation) SetUUID(s string) {
-	m.uuid = &s
-}
-
-// UUID returns the value of the "uuid" field in the mutation.
-func (m *RyzmEventMutation) UUID() (r string, exists bool) {
-	v := m.uuid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUUID returns the old "uuid" field's value of the RyzmEvent entity.
-// If the RyzmEvent object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RyzmEventMutation) OldUUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUUID: %w", err)
-	}
-	return oldValue.UUID, nil
-}
-
-// ResetUUID resets all changes to the "uuid" field.
-func (m *RyzmEventMutation) ResetUUID() {
-	m.uuid = nil
-}
-
-// SetEventID sets the "event" edge to the Event entity by id.
-func (m *RyzmEventMutation) SetEventID(id int) {
-	m.event = &id
-}
-
-// ClearEvent clears the "event" edge to the Event entity.
-func (m *RyzmEventMutation) ClearEvent() {
-	m.clearedevent = true
-}
-
-// EventCleared reports if the "event" edge to the Event entity was cleared.
-func (m *RyzmEventMutation) EventCleared() bool {
-	return m.clearedevent
-}
-
-// EventID returns the "event" edge ID in the mutation.
-func (m *RyzmEventMutation) EventID() (id int, exists bool) {
-	if m.event != nil {
-		return *m.event, true
-	}
-	return
-}
-
-// EventIDs returns the "event" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// EventID instead. It exists only for internal usage by the builders.
-func (m *RyzmEventMutation) EventIDs() (ids []int) {
-	if id := m.event; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetEvent resets all changes to the "event" edge.
-func (m *RyzmEventMutation) ResetEvent() {
-	m.event = nil
-	m.clearedevent = false
-}
-
-// Where appends a list predicates to the RyzmEventMutation builder.
-func (m *RyzmEventMutation) Where(ps ...predicate.RyzmEvent) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the RyzmEventMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *RyzmEventMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.RyzmEvent, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *RyzmEventMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *RyzmEventMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (RyzmEvent).
-func (m *RyzmEventMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *RyzmEventMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.uuid != nil {
-		fields = append(fields, ryzmevent.FieldUUID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *RyzmEventMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case ryzmevent.FieldUUID:
-		return m.UUID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *RyzmEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case ryzmevent.FieldUUID:
-		return m.OldUUID(ctx)
-	}
-	return nil, fmt.Errorf("unknown RyzmEvent field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RyzmEventMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case ryzmevent.FieldUUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUUID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown RyzmEvent field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *RyzmEventMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *RyzmEventMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *RyzmEventMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown RyzmEvent numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *RyzmEventMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *RyzmEventMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *RyzmEventMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown RyzmEvent nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *RyzmEventMutation) ResetField(name string) error {
-	switch name {
-	case ryzmevent.FieldUUID:
-		m.ResetUUID()
-		return nil
-	}
-	return fmt.Errorf("unknown RyzmEvent field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *RyzmEventMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.event != nil {
-		edges = append(edges, ryzmevent.EdgeEvent)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *RyzmEventMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case ryzmevent.EdgeEvent:
-		if id := m.event; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *RyzmEventMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *RyzmEventMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *RyzmEventMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedevent {
-		edges = append(edges, ryzmevent.EdgeEvent)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *RyzmEventMutation) EdgeCleared(name string) bool {
-	switch name {
-	case ryzmevent.EdgeEvent:
-		return m.clearedevent
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *RyzmEventMutation) ClearEdge(name string) error {
-	switch name {
-	case ryzmevent.EdgeEvent:
-		m.ClearEvent()
-		return nil
-	}
-	return fmt.Errorf("unknown RyzmEvent unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *RyzmEventMutation) ResetEdge(name string) error {
-	switch name {
-	case ryzmevent.EdgeEvent:
-		m.ResetEvent()
-		return nil
-	}
-	return fmt.Errorf("unknown RyzmEvent edge %s", name)
-}
-
-// UnStructuredEventInformationMutation represents an operation that mutates the UnStructuredEventInformation nodes in the graph.
-type UnStructuredEventInformationMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	ryzmuuid      *string
-	venue_name    *string
-	artist_name   *string
-	price         *string
-	clearedFields map[string]struct{}
-	event         *int
-	clearedevent  bool
-	done          bool
-	oldValue      func(context.Context) (*UnStructuredEventInformation, error)
-	predicates    []predicate.UnStructuredEventInformation
-}
-
-var _ ent.Mutation = (*UnStructuredEventInformationMutation)(nil)
-
-// unstructuredeventinformationOption allows management of the mutation configuration using functional options.
-type unstructuredeventinformationOption func(*UnStructuredEventInformationMutation)
-
-// newUnStructuredEventInformationMutation creates new mutation for the UnStructuredEventInformation entity.
-func newUnStructuredEventInformationMutation(c config, op Op, opts ...unstructuredeventinformationOption) *UnStructuredEventInformationMutation {
-	m := &UnStructuredEventInformationMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeUnStructuredEventInformation,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withUnStructuredEventInformationID sets the ID field of the mutation.
-func withUnStructuredEventInformationID(id int) unstructuredeventinformationOption {
-	return func(m *UnStructuredEventInformationMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *UnStructuredEventInformation
-		)
-		m.oldValue = func(ctx context.Context) (*UnStructuredEventInformation, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().UnStructuredEventInformation.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withUnStructuredEventInformation sets the old UnStructuredEventInformation of the mutation.
-func withUnStructuredEventInformation(node *UnStructuredEventInformation) unstructuredeventinformationOption {
-	return func(m *UnStructuredEventInformationMutation) {
-		m.oldValue = func(context.Context) (*UnStructuredEventInformation, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UnStructuredEventInformationMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m UnStructuredEventInformationMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *UnStructuredEventInformationMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *UnStructuredEventInformationMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().UnStructuredEventInformation.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetRyzmuuid sets the "ryzmuuid" field.
-func (m *UnStructuredEventInformationMutation) SetRyzmuuid(s string) {
-	m.ryzmuuid = &s
-}
-
-// Ryzmuuid returns the value of the "ryzmuuid" field in the mutation.
-func (m *UnStructuredEventInformationMutation) Ryzmuuid() (r string, exists bool) {
-	v := m.ryzmuuid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRyzmuuid returns the old "ryzmuuid" field's value of the UnStructuredEventInformation entity.
-// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UnStructuredEventInformationMutation) OldRyzmuuid(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRyzmuuid is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRyzmuuid requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRyzmuuid: %w", err)
-	}
-	return oldValue.Ryzmuuid, nil
-}
-
-// ResetRyzmuuid resets all changes to the "ryzmuuid" field.
-func (m *UnStructuredEventInformationMutation) ResetRyzmuuid() {
-	m.ryzmuuid = nil
-}
-
-// SetVenueName sets the "venue_name" field.
-func (m *UnStructuredEventInformationMutation) SetVenueName(s string) {
-	m.venue_name = &s
-}
-
-// VenueName returns the value of the "venue_name" field in the mutation.
-func (m *UnStructuredEventInformationMutation) VenueName() (r string, exists bool) {
-	v := m.venue_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldVenueName returns the old "venue_name" field's value of the UnStructuredEventInformation entity.
-// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UnStructuredEventInformationMutation) OldVenueName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVenueName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVenueName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVenueName: %w", err)
-	}
-	return oldValue.VenueName, nil
-}
-
-// ResetVenueName resets all changes to the "venue_name" field.
-func (m *UnStructuredEventInformationMutation) ResetVenueName() {
-	m.venue_name = nil
-}
-
-// SetArtistName sets the "artist_name" field.
-func (m *UnStructuredEventInformationMutation) SetArtistName(s string) {
-	m.artist_name = &s
-}
-
-// ArtistName returns the value of the "artist_name" field in the mutation.
-func (m *UnStructuredEventInformationMutation) ArtistName() (r string, exists bool) {
-	v := m.artist_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldArtistName returns the old "artist_name" field's value of the UnStructuredEventInformation entity.
-// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UnStructuredEventInformationMutation) OldArtistName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldArtistName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldArtistName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldArtistName: %w", err)
-	}
-	return oldValue.ArtistName, nil
-}
-
-// ResetArtistName resets all changes to the "artist_name" field.
-func (m *UnStructuredEventInformationMutation) ResetArtistName() {
-	m.artist_name = nil
-}
-
-// SetPrice sets the "price" field.
-func (m *UnStructuredEventInformationMutation) SetPrice(s string) {
-	m.price = &s
-}
-
-// Price returns the value of the "price" field in the mutation.
-func (m *UnStructuredEventInformationMutation) Price() (r string, exists bool) {
-	v := m.price
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPrice returns the old "price" field's value of the UnStructuredEventInformation entity.
-// If the UnStructuredEventInformation object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UnStructuredEventInformationMutation) OldPrice(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPrice requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPrice: %w", err)
-	}
-	return oldValue.Price, nil
-}
-
-// ResetPrice resets all changes to the "price" field.
-func (m *UnStructuredEventInformationMutation) ResetPrice() {
-	m.price = nil
-}
-
-// SetEventID sets the "event" edge to the Event entity by id.
-func (m *UnStructuredEventInformationMutation) SetEventID(id int) {
-	m.event = &id
-}
-
-// ClearEvent clears the "event" edge to the Event entity.
-func (m *UnStructuredEventInformationMutation) ClearEvent() {
-	m.clearedevent = true
-}
-
-// EventCleared reports if the "event" edge to the Event entity was cleared.
-func (m *UnStructuredEventInformationMutation) EventCleared() bool {
-	return m.clearedevent
-}
-
-// EventID returns the "event" edge ID in the mutation.
-func (m *UnStructuredEventInformationMutation) EventID() (id int, exists bool) {
-	if m.event != nil {
-		return *m.event, true
-	}
-	return
-}
-
-// EventIDs returns the "event" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// EventID instead. It exists only for internal usage by the builders.
-func (m *UnStructuredEventInformationMutation) EventIDs() (ids []int) {
-	if id := m.event; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetEvent resets all changes to the "event" edge.
-func (m *UnStructuredEventInformationMutation) ResetEvent() {
-	m.event = nil
-	m.clearedevent = false
-}
-
-// Where appends a list predicates to the UnStructuredEventInformationMutation builder.
-func (m *UnStructuredEventInformationMutation) Where(ps ...predicate.UnStructuredEventInformation) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the UnStructuredEventInformationMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *UnStructuredEventInformationMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.UnStructuredEventInformation, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *UnStructuredEventInformationMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *UnStructuredEventInformationMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (UnStructuredEventInformation).
-func (m *UnStructuredEventInformationMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *UnStructuredEventInformationMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.ryzmuuid != nil {
-		fields = append(fields, unstructuredeventinformation.FieldRyzmuuid)
-	}
-	if m.venue_name != nil {
-		fields = append(fields, unstructuredeventinformation.FieldVenueName)
-	}
-	if m.artist_name != nil {
-		fields = append(fields, unstructuredeventinformation.FieldArtistName)
-	}
-	if m.price != nil {
-		fields = append(fields, unstructuredeventinformation.FieldPrice)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *UnStructuredEventInformationMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case unstructuredeventinformation.FieldRyzmuuid:
-		return m.Ryzmuuid()
-	case unstructuredeventinformation.FieldVenueName:
-		return m.VenueName()
-	case unstructuredeventinformation.FieldArtistName:
-		return m.ArtistName()
-	case unstructuredeventinformation.FieldPrice:
-		return m.Price()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *UnStructuredEventInformationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case unstructuredeventinformation.FieldRyzmuuid:
-		return m.OldRyzmuuid(ctx)
-	case unstructuredeventinformation.FieldVenueName:
-		return m.OldVenueName(ctx)
-	case unstructuredeventinformation.FieldArtistName:
-		return m.OldArtistName(ctx)
-	case unstructuredeventinformation.FieldPrice:
-		return m.OldPrice(ctx)
-	}
-	return nil, fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UnStructuredEventInformationMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case unstructuredeventinformation.FieldRyzmuuid:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRyzmuuid(v)
-		return nil
-	case unstructuredeventinformation.FieldVenueName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetVenueName(v)
-		return nil
-	case unstructuredeventinformation.FieldArtistName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetArtistName(v)
-		return nil
-	case unstructuredeventinformation.FieldPrice:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPrice(v)
-		return nil
-	}
-	return fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *UnStructuredEventInformationMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *UnStructuredEventInformationMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *UnStructuredEventInformationMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown UnStructuredEventInformation numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *UnStructuredEventInformationMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *UnStructuredEventInformationMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *UnStructuredEventInformationMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown UnStructuredEventInformation nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *UnStructuredEventInformationMutation) ResetField(name string) error {
-	switch name {
-	case unstructuredeventinformation.FieldRyzmuuid:
-		m.ResetRyzmuuid()
-		return nil
-	case unstructuredeventinformation.FieldVenueName:
-		m.ResetVenueName()
-		return nil
-	case unstructuredeventinformation.FieldArtistName:
-		m.ResetArtistName()
-		return nil
-	case unstructuredeventinformation.FieldPrice:
-		m.ResetPrice()
-		return nil
-	}
-	return fmt.Errorf("unknown UnStructuredEventInformation field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UnStructuredEventInformationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.event != nil {
-		edges = append(edges, unstructuredeventinformation.EdgeEvent)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *UnStructuredEventInformationMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case unstructuredeventinformation.EdgeEvent:
-		if id := m.event; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UnStructuredEventInformationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *UnStructuredEventInformationMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UnStructuredEventInformationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedevent {
-		edges = append(edges, unstructuredeventinformation.EdgeEvent)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *UnStructuredEventInformationMutation) EdgeCleared(name string) bool {
-	switch name {
-	case unstructuredeventinformation.EdgeEvent:
-		return m.clearedevent
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *UnStructuredEventInformationMutation) ClearEdge(name string) error {
-	switch name {
-	case unstructuredeventinformation.EdgeEvent:
-		m.ClearEvent()
-		return nil
-	}
-	return fmt.Errorf("unknown UnStructuredEventInformation unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *UnStructuredEventInformationMutation) ResetEdge(name string) error {
-	switch name {
-	case unstructuredeventinformation.EdgeEvent:
-		m.ResetEvent()
-		return nil
-	}
-	return fmt.Errorf("unknown UnStructuredEventInformation edge %s", name)
-}
-
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
@@ -5603,8 +4089,6 @@ type UserMutation struct {
 	clearedFields              map[string]struct{}
 	google_oauth_tokens        *int
 	clearedgoogle_oauth_tokens bool
-	google_oauth_states        *int
-	clearedgoogle_oauth_states bool
 	events                     map[int]struct{}
 	removedevents              map[int]struct{}
 	clearedevents              bool
@@ -6239,45 +4723,6 @@ func (m *UserMutation) ResetGoogleOauthTokens() {
 	m.clearedgoogle_oauth_tokens = false
 }
 
-// SetGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by id.
-func (m *UserMutation) SetGoogleOauthStatesID(id int) {
-	m.google_oauth_states = &id
-}
-
-// ClearGoogleOauthStates clears the "google_oauth_states" edge to the GoogleOauthState entity.
-func (m *UserMutation) ClearGoogleOauthStates() {
-	m.clearedgoogle_oauth_states = true
-}
-
-// GoogleOauthStatesCleared reports if the "google_oauth_states" edge to the GoogleOauthState entity was cleared.
-func (m *UserMutation) GoogleOauthStatesCleared() bool {
-	return m.clearedgoogle_oauth_states
-}
-
-// GoogleOauthStatesID returns the "google_oauth_states" edge ID in the mutation.
-func (m *UserMutation) GoogleOauthStatesID() (id int, exists bool) {
-	if m.google_oauth_states != nil {
-		return *m.google_oauth_states, true
-	}
-	return
-}
-
-// GoogleOauthStatesIDs returns the "google_oauth_states" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// GoogleOauthStatesID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) GoogleOauthStatesIDs() (ids []int) {
-	if id := m.google_oauth_states; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetGoogleOauthStates resets all changes to the "google_oauth_states" edge.
-func (m *UserMutation) ResetGoogleOauthStates() {
-	m.google_oauth_states = nil
-	m.clearedgoogle_oauth_states = false
-}
-
 // AddEventIDs adds the "events" edge to the Event entity by ids.
 func (m *UserMutation) AddEventIDs(ids ...int) {
 	if m.events == nil {
@@ -6772,12 +5217,9 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.google_oauth_tokens != nil {
 		edges = append(edges, user.EdgeGoogleOauthTokens)
-	}
-	if m.google_oauth_states != nil {
-		edges = append(edges, user.EdgeGoogleOauthStates)
 	}
 	if m.events != nil {
 		edges = append(edges, user.EdgeEvents)
@@ -6797,10 +5239,6 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case user.EdgeGoogleOauthTokens:
 		if id := m.google_oauth_tokens; id != nil {
-			return []ent.Value{*id}
-		}
-	case user.EdgeGoogleOauthStates:
-		if id := m.google_oauth_states; id != nil {
 			return []ent.Value{*id}
 		}
 	case user.EdgeEvents:
@@ -6825,7 +5263,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.removedevents != nil {
 		edges = append(edges, user.EdgeEvents)
 	}
@@ -6857,12 +5295,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.clearedgoogle_oauth_tokens {
 		edges = append(edges, user.EdgeGoogleOauthTokens)
-	}
-	if m.clearedgoogle_oauth_states {
-		edges = append(edges, user.EdgeGoogleOauthStates)
 	}
 	if m.clearedevents {
 		edges = append(edges, user.EdgeEvents)
@@ -6882,8 +5317,6 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeGoogleOauthTokens:
 		return m.clearedgoogle_oauth_tokens
-	case user.EdgeGoogleOauthStates:
-		return m.clearedgoogle_oauth_states
 	case user.EdgeEvents:
 		return m.clearedevents
 	case user.EdgeExternalCalendars:
@@ -6901,9 +5334,6 @@ func (m *UserMutation) ClearEdge(name string) error {
 	case user.EdgeGoogleOauthTokens:
 		m.ClearGoogleOauthTokens()
 		return nil
-	case user.EdgeGoogleOauthStates:
-		m.ClearGoogleOauthStates()
-		return nil
 	case user.EdgeExternalCalendars:
 		m.ClearExternalCalendars()
 		return nil
@@ -6917,9 +5347,6 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeGoogleOauthTokens:
 		m.ResetGoogleOauthTokens()
-		return nil
-	case user.EdgeGoogleOauthStates:
-		m.ResetGoogleOauthStates()
 		return nil
 	case user.EdgeEvents:
 		m.ResetEvents()

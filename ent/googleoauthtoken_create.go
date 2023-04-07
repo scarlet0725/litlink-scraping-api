@@ -122,13 +122,7 @@ func (gotc *GoogleOauthTokenCreate) sqlSave(ctx context.Context) (*GoogleOauthTo
 func (gotc *GoogleOauthTokenCreate) createSpec() (*GoogleOauthToken, *sqlgraph.CreateSpec) {
 	var (
 		_node = &GoogleOauthToken{config: gotc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: googleoauthtoken.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: googleoauthtoken.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(googleoauthtoken.Table, sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = gotc.conflict
 	if value, ok := gotc.mutation.RefreshToken(); ok {
@@ -151,10 +145,7 @@ func (gotc *GoogleOauthTokenCreate) createSpec() (*GoogleOauthToken, *sqlgraph.C
 			Columns: []string{googleoauthtoken.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/scarlet0725/prism-api/ent/event"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/role"
 	"github.com/scarlet0725/prism-api/ent/user"
@@ -180,25 +179,6 @@ func (uc *UserCreate) SetNillableGoogleOauthTokensID(id *int) *UserCreate {
 // SetGoogleOauthTokens sets the "google_oauth_tokens" edge to the GoogleOauthToken entity.
 func (uc *UserCreate) SetGoogleOauthTokens(g *GoogleOauthToken) *UserCreate {
 	return uc.SetGoogleOauthTokensID(g.ID)
-}
-
-// SetGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID.
-func (uc *UserCreate) SetGoogleOauthStatesID(id int) *UserCreate {
-	uc.mutation.SetGoogleOauthStatesID(id)
-	return uc
-}
-
-// SetNillableGoogleOauthStatesID sets the "google_oauth_states" edge to the GoogleOauthState entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableGoogleOauthStatesID(id *int) *UserCreate {
-	if id != nil {
-		uc = uc.SetGoogleOauthStatesID(*id)
-	}
-	return uc
-}
-
-// SetGoogleOauthStates sets the "google_oauth_states" edge to the GoogleOauthState entity.
-func (uc *UserCreate) SetGoogleOauthStates(g *GoogleOauthState) *UserCreate {
-	return uc.SetGoogleOauthStatesID(g.ID)
 }
 
 // AddEventIDs adds the "events" edge to the Event entity by IDs.
@@ -373,13 +353,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: user.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = uc.conflict
 	if value, ok := uc.mutation.UserID(); ok {
@@ -438,29 +412,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.GoogleOauthTokensColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.GoogleOauthStatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.GoogleOauthStatesTable,
-			Columns: []string{user.GoogleOauthStatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: googleoauthstate.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(googleoauthtoken.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -476,10 +428,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.EventsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: event.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -495,10 +444,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.ExternalCalendarsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: externalcalendar.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(externalcalendar.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -514,10 +460,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: role.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
