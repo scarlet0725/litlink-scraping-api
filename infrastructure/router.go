@@ -80,6 +80,7 @@ func (r *ginRouter) SetRoute() error {
 
 	docParser := parser.NewParser()
 	serializer := selializer.NewResponseSerializer()
+	jwtHandler := framework.NewJWTHandler(os.Getenv("JWT_SECRET"))
 
 	userRepository := NewUserRepository(r.ent)
 	artistRepository := NewArtistRepository(r.ent)
@@ -103,7 +104,7 @@ func (r *ginRouter) SetRoute() error {
 
 	v1 := r.router.Group("/v1")
 
-	auth := middleware.NewAuthMiddleware(userRepository)
+	auth := middleware.NewAuthMiddleware(userRepository, jwtHandler)
 
 	userEndpoint := v1.Group("/user")
 	eventEndpoint := v1.Group("/event")
@@ -134,7 +135,6 @@ func (r *ginRouter) SetRoute() error {
 
 	artistEndpoint.Use(auth.Middleware())
 	artistEndpoint.POST("/", artist.CreateArtist)
-	artistEndpoint.POST("/events/auto_update", event.CreateArtistEventsFromCrawlData)
 
 	adminEndpoint.Use(auth.Middleware())
 	venueEndpoint.POST("/", venue.CreateVenue)

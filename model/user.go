@@ -40,11 +40,10 @@ func (u *User) IsProtected() bool {
 }
 
 type GoogleOAuthToken struct {
-	ID           int    `json:"-"`
-	UserID       int    `json:"user_id"`
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 	Expiry       time.Time
+	User         *User `json:"-"`
 }
 
 type OAuthURLResponse struct {

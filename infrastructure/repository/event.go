@@ -13,7 +13,6 @@ type Event interface {
 	DeleteEvent(context.Context, *model.Event) error
 	GetEventsByArtistID(context.Context, string) ([]*model.Event, error)
 	GetEventByID(context.Context, string) (*model.Event, error)
-	GetRyzmEventsByUUDIDs(context.Context, []string) ([]*model.RyzmEvent, error)
 	MergeEvents(ctx context.Context, base *model.Event, target *model.Event) (*model.Event, error)
 	SearchEvents(context.Context, *model.EventSearchQuery) ([]*model.EventSearchResult, error)
 }

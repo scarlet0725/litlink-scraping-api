@@ -20,7 +20,6 @@ type EventAdapter interface {
 	UpdateEvent(ctx *gin.Context)
 	DeleteEvent(ctx *gin.Context)
 	GetEventByID(ctx *gin.Context)
-	CreateArtistEventsFromCrawlData(ctx *gin.Context)
 	MergeEvents(ctx *gin.Context)
 	SearchEvents(ctx *gin.Context)
 }
@@ -131,37 +130,6 @@ func (a *eventAdapter) GetEventByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"ok":    true,
 		"event": event,
-	})
-}
-
-func (a *eventAdapter) CreateArtistEventsFromCrawlData(ctx *gin.Context) {
-	var req model.CrawlerRequest
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"ok": false, "error": "Invalid request"})
-	}
-
-	result, err := a.event.CreateArtistEventsFromCrawlData(ctx, req.ArtistID)
-
-	if err != nil {
-		var appErr *model.AppError
-		if ok := errors.As(err, &appErr); ok {
-			ctx.AbortWithStatusJSON(appErr.Code, appErr.Msg)
-			return
-		}
-
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"ok":    false,
-			"error": "Internal server error",
-		})
-		return
-
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"ok":      true,
-		"message": "Successfully created",
-		"data":    result,
 	})
 }
 

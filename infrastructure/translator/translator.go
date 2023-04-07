@@ -82,7 +82,6 @@ func ExternalCalendarFromModel(source *model.ExternalCalendar) *ent.ExternalCale
 
 func GoogleOAuthTokenFromEnt(source *ent.GoogleOauthToken) *model.GoogleOAuthToken {
 	googleOAuthToken := &model.GoogleOAuthToken{
-		ID:           source.ID,
 		RefreshToken: source.RefreshToken,
 		AccessToken:  source.AccessToken,
 		Expiry:       source.Expiry,
@@ -106,22 +105,6 @@ func EventFromEnts(source *ent.Event) *model.Event {
 	events.TicketURL = source.TicketURL
 
 	return &events
-}
-
-func RyzmEventFromEnt(source *ent.RyzmEvent) *model.RyzmEvent {
-
-	ryzmEvent := &model.RyzmEvent{
-		ID:   source.ID,
-		UUID: source.UUID,
-	}
-
-	if source.Edges.Event != nil {
-		e := EventFromEnt(source.Edges.Event)
-		ryzmEvent.Event = e
-		ryzmEvent.EventID = e.ID
-	}
-
-	return ryzmEvent
 }
 
 func VenueFromEnt(source *ent.Venue) *model.Venue {

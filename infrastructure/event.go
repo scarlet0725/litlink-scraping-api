@@ -7,7 +7,6 @@ import (
 	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/ent/artist"
 	"github.com/scarlet0725/prism-api/ent/event"
-	"github.com/scarlet0725/prism-api/ent/ryzmevent"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/infrastructure/translator"
 	"github.com/scarlet0725/prism-api/model"
@@ -183,24 +182,6 @@ func (e *Event) MergeEvents(ctx context.Context, base *model.Event, target *mode
 	event := translator.EventFromEnt(result)
 
 	return event, nil
-}
-
-func (e *Event) GetRyzmEventsByUUDIDs(ctx context.Context, IDs []string) ([]*model.RyzmEvent, error) {
-	result, err := e.db.RyzmEvent.Query().Where(
-		ryzmevent.UUIDIn(IDs...),
-	).All(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	events := make([]*model.RyzmEvent, 0, len(result))
-
-	for _, event := range result {
-		events = append(events, translator.RyzmEventFromEnt(event))
-	}
-
-	return events, nil
 }
 
 func (e *Event) SearchEvents(ctx context.Context, query *model.EventSearchQuery) ([]*model.EventSearchResult, error) {

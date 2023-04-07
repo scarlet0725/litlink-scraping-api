@@ -8,7 +8,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/ent/externalcalendar"
-	"github.com/scarlet0725/prism-api/ent/googleoauthstate"
 	"github.com/scarlet0725/prism-api/ent/googleoauthtoken"
 	"github.com/scarlet0725/prism-api/ent/user"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
@@ -107,17 +106,6 @@ func (u *userRepository) DeleteUser(ctx context.Context, deleteUser *model.User)
 		Where(
 			googleoauthtoken.HasUserWith(
 				user.ID(int(deleteUser.ID)),
-			),
-		).Exec(ctx)
-
-	if err != nil || c >= 2 {
-		tx.Rollback()
-	}
-
-	c, err = tx.GoogleOauthState.Delete().
-		Where(
-			googleoauthstate.HasUserWith(
-				user.IDEQ(int(deleteUser.ID)),
 			),
 		).Exec(ctx)
 

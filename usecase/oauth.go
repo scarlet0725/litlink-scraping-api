@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
@@ -18,6 +17,7 @@ type oauthUsecase struct {
 	ramdom framework.RandomID
 	google framework.GoogleOAuth
 	oauth  repository.OAuth
+	jwt    framework.JWTHandler
 }
 
 func NewOAuthUsecase(oauth repository.OAuth, ramdom framework.RandomID, google framework.GoogleOAuth) OAuth {
@@ -29,22 +29,12 @@ func NewOAuthUsecase(oauth repository.OAuth, ramdom framework.RandomID, google f
 }
 
 func (a *oauthUsecase) GoogleLinkage(ctx context.Context, user *model.User) (*model.OAuthURLResponse, error) {
-	state, err := a.ramdom.GenerateUUID4()
+	state, err := a.jwt.CreateStateToken(user)
+
 	if err != nil {
 		return nil, err
 	}
 	u := a.google.GenerateAuthURL(state)
-
-	s := &model.GoogleOAuthState{
-		UserID: user.ID,
-		State:  state,
-	}
-
-	_, err = a.oauth.SaveGoogleOAuthState(ctx, s)
-
-	if err != nil {
-		return nil, err
-	}
 
 	o := &model.OAuthURLResponse{
 		AuthURL: u,
@@ -55,22 +45,21 @@ func (a *oauthUsecase) GoogleLinkage(ctx context.Context, user *model.User) (*mo
 }
 
 func (a *oauthUsecase) GoogleOAuthCallback(ctx context.Context, callback *model.GoogleOauthCallback) error {
-	s, err := a.oauth.GetGoogleOAuthState(ctx, callback.State)
+	s, err := a.jwt.ValidateToken(callback.State)
+
 	if err != nil {
 		return err
-	}
-
-	if s.State != callback.State {
-		return errors.New("invalid state")
 	}
 
 	t, err := a.google.GetToken(callback.Code)
 
-	t.UserID = s.UserID
-
 	if err != nil {
 		return err
 	}
+	u := &model.User{}
+	t.User = u
+	t.User.ID = s.ID
+	t.User.UserID = s.UserID
 
 	_, err = a.oauth.SaveGoogleOAuthToken(ctx, t)
 
