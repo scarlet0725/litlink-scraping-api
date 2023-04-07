@@ -4,12 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/infrastructure/repository"
 	"github.com/scarlet0725/prism-api/model"
-	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/selializer"
 )
 
 type Event interface {
@@ -23,34 +20,22 @@ type Event interface {
 }
 
 type eventUsecase struct {
-	fetch      controller.FetchController
-	parser     parser.DocParser
-	selializer selializer.ResponseSerializer
-	json       parser.JsonParser
-	random     framework.RandomID
-	event      repository.Event
-	artist     repository.Artist
-	venue      repository.Venue
+	random framework.RandomID
+	event  repository.Event
+	artist repository.Artist
+	venue  repository.Venue
 }
 
 func NewEventUsecase(
 	event repository.Event,
 	artist repository.Artist,
 	venue repository.Venue,
-	fetch controller.FetchController,
-	parser parser.DocParser,
-	selializer selializer.ResponseSerializer,
-	json parser.JsonParser,
 	r framework.RandomID,
 ) Event {
 	return &eventUsecase{
-		event:      event,
-		artist:     artist,
-		fetch:      fetch,
-		parser:     parser,
-		selializer: selializer,
-		json:       json,
-		random:     r,
+		event:  event,
+		artist: artist,
+		random: r,
 	}
 }
 

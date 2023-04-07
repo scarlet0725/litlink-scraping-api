@@ -8,12 +8,9 @@ import (
 
 	"github.com/scarlet0725/prism-api/adapter"
 	"github.com/scarlet0725/prism-api/cmd"
-	"github.com/scarlet0725/prism-api/controller"
 	"github.com/scarlet0725/prism-api/ent"
 	"github.com/scarlet0725/prism-api/framework"
 	"github.com/scarlet0725/prism-api/middleware"
-	"github.com/scarlet0725/prism-api/parser"
-	"github.com/scarlet0725/prism-api/selializer"
 	"github.com/scarlet0725/prism-api/usecase"
 )
 
@@ -74,12 +71,6 @@ func (r *ginRouter) SetRoute() error {
 		return err
 	}
 
-	cache := NewRedisManager(r.redis)
-	httpClient := NewHTTPClient()
-	fetchController := controller.NewFetchController(httpClient, cache)
-
-	docParser := parser.NewParser()
-	serializer := selializer.NewResponseSerializer()
 	jwtHandler := framework.NewJWTHandler(os.Getenv("JWT_SECRET"))
 
 	userRepository := NewUserRepository(r.ent)
@@ -90,7 +81,7 @@ func (r *ginRouter) SetRoute() error {
 
 	googleOAuth := framework.NewGoogleOAuth(oauthConfig)
 
-	eventUsecase := usecase.NewEventUsecase(eventRepository, artistRepository, venueRepository, fetchController, docParser, serializer, parser.NewJsonParser(), random)
+	eventUsecase := usecase.NewEventUsecase(eventRepository, artistRepository, venueRepository, random)
 	userUsecase := usecase.NewUserUsecase(userRepository, random, googleOAuth, NewGoogleCalenderClient)
 	artistUsecase := usecase.NewArtistUsecase(artistRepository, random)
 	venueUsecase := usecase.NewVenueUsecase(venueRepository, random)
